@@ -55,7 +55,7 @@ const ForgotPassword = () => {
                 </FormItem>
               )}
             />
-            <Button type='submit' className='w-[400px] h-[40px] bg-blue-500 text-white rounded-md hover:bg-blue-600'>Gửi</Button>
+            <Button type='submit' className='w-[400px] h-[40px] bg-primary text-white rounded-md hover:opacity-90'>Gửi</Button>
           </form>
         </Form>
       </div>

@@ -50,7 +50,7 @@ const Login = () => {
             <div className='flex flex-col items-center mb-8'>
               <div className='flex font-bold text-4xl'>
                 <img src={Logo} alt="Logo STU" className='w-20' />
-                <div className='text-[#0d4c89] flex flex-col justify-end'>
+                <div className='text-primary flex flex-col justify-end'>
                   <p>Test</p>
                 </div>
               </div>
