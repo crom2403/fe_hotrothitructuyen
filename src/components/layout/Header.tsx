@@ -10,9 +10,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Settings } from "lucide-react";
 import { SidebarTrigger } from "../ui/sidebar";
-import useAppStore from "@/stores/appStore";
+import { useNavigate } from "react-router-dom";
+import path from "@/utils/path";
 
 const Header = () => {
+  const navigate = useNavigate()
   const getInitials = (name: string) => {
     return name
       .split(" ") 
@@ -55,7 +57,7 @@ const Header = () => {
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <User className="mr-2 h-4 w-4" />
-                <span>Hồ sơ cá nhân</span>
+                <span onClick={() => navigate(path.PROFILE)}>Hồ sơ cá nhân</span>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Settings className="mr-2 h-4 w-4" />

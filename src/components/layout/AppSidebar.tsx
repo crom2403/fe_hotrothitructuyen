@@ -3,11 +3,6 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupConte
 import Logo from '../../../public/images/png/logo.png'
 import useAppStore from '@/stores/appStore';
 
-interface SidebarProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-}
-
 const AppSidebar = () => {
   const { openSidebar } = useAppStore()
 
