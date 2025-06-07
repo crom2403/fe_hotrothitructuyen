@@ -1,5 +1,4 @@
-// import STU from '../../assets/images/stu.png';
-import LogoSTU from '../../assets/images/Logo_STU.png';
+import Logo from '../../../public/images/png/logo.png';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '../ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -9,6 +8,8 @@ import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { TriangleAlert } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import path from '@/utils/path';
 
 const loginSchema = z.object({
   student_code: z.string()
@@ -24,6 +25,7 @@ const loginSchema = z.object({
 });
 
 const Login = () => {
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -47,7 +49,7 @@ const Login = () => {
           <div className='w-[400px] flex flex-col justify-center gap-4'>
             <div className='flex flex-col items-center mb-8'>
               <div className='flex font-bold text-4xl'>
-                <img src={LogoSTU} alt="Logo STU" className='w-20' />
+                <img src={Logo} alt="Logo STU" className='w-20' />
                 <div className='text-[#0d4c89] flex flex-col justify-end'>
                   <p>Test</p>
                 </div>
@@ -108,7 +110,9 @@ const Login = () => {
                     <Checkbox id="remember" />
                     <Label htmlFor="remember">Ghi nhớ đăng nhập</Label>
                   </div>
-                  <Button type='button' className='bg-gray-200 hover:bg-gray-300 text-black px-4 ml-4'>
+                  <Button type='button' className='bg-gray-200 hover:bg-gray-300 text-black px-4 ml-4'
+                    onClick={() => navigate(path.FORGOT_PASSWORD)}
+                  >
                     <TriangleAlert />
                     Quên mật khẩu?
                   </Button>
