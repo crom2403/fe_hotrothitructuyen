@@ -1,4 +1,4 @@
-import Logo from '../../../public/images/png/logo.png';
+import Logo from '../../../public/images/svg/logo.svg';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '../ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -47,12 +47,9 @@ const Login = () => {
       <div className='w-full h-full flex items-center justify-center'>
         <div className='justify-center items-center flex'>
           <div className='w-[400px] flex flex-col justify-center gap-4'>
-            <div className='flex flex-col items-center mb-8'>
+            <div className='flex flex-col items-center mb-4'>
               <div className='flex font-bold text-4xl'>
-                <img src={Logo} alt="Logo STU" className='w-20' />
-                <div className='text-primary flex flex-col justify-end'>
-                  <p>Test</p>
-                </div>
+                <img src={Logo} alt="Logo STU" className='w-25 h-25' />
               </div>
               <p className='uppercase text-2xl font-semibold text-black/70'>Đăng nhập</p>
             </div>

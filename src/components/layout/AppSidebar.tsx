@@ -1,6 +1,8 @@
 import { BarChart3, BookOpen, Brain, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, Monitor, PenTool, Settings, Trophy, Users } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
-import Logo from '../../../public/images/png/logo.png'
+import Logo from '../../../public/images/svg/logo.svg'
+import LogoMini from '../../../public/images/svg/logo-mini.svg'
+
 import useAppStore from '@/stores/appStore';
 
 const AppSidebar = () => {
@@ -45,7 +47,13 @@ const AppSidebar = () => {
     <Sidebar collapsible="icon" className='w-[255px]'>
       <SidebarHeader>
         <div className='flex items-center gap-2 py-1'>
-          <img src={Logo} alt="Logo" className='w-10 h-10 data-[collapsed=true]:w-10 data-[collapsed=true]:h-10 transition-all duration-300' />
+          {
+            openSidebar ? (
+              <img src={Logo} alt="Logo" className='w-15 h-15 transition-all duration-500' />
+            ) : (
+              <img src={LogoMini} alt="Logo" className='w-10 h-10 transition-all duration-500' />
+            )
+          }
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">Exam System</span>
             <span className="truncate text-xs text-muted-foreground">Hệ thống thi trắc nghiệm</span>

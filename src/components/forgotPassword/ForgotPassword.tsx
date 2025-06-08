@@ -1,16 +1,16 @@
-import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Input } from '../ui/input'
-import { ChevronLeft, Key } from 'lucide-react'
-import Logo from '../../../public/images/png/logo.png'
+import { ChevronLeft } from 'lucide-react'
+import Logo from '../../../public/images/svg/logo.svg'
 import { Button } from '../ui/button'
 import { useNavigate } from 'react-router-dom'
 import path from '@/utils/path'
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email({message: "Email không hợp lệ"}),
 })
 
 const ForgotPassword = () => {
@@ -29,10 +29,7 @@ const ForgotPassword = () => {
   return (
     <div className='flex flex-col w-full h-screen items-center justify-center gap-7'>
       <div className='flex flex-col items-center justify-center gap-2'>
-        {/* <div className='bg-blue-200 w-15 h-15 rounded-full flex items-center justify-center shadow-blue-300 shadow-lg'>
-          <Key className='w-7 h-7'/>
-        </div> */}
-        <img src={Logo} alt="Logo STU" className='w-20' />
+        <img src={Logo} alt="Logo STU" className='w-25 h-25' />
         <p className='text-2xl font-bold mt-4'>Quên mật khẩu?</p>
         <p className='text-sm text-gray-500'>Nhập email đã được liên kết với tài khoản để lấy lại mật khẩu</p>
       </div>
@@ -52,6 +49,7 @@ const ForgotPassword = () => {
                       />
                     </div>
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
