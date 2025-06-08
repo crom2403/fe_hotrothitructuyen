@@ -11,7 +11,7 @@ const MainLayout = () => {
           <div>
             <AppSidebar />
           </div>
-          <div className="flex-1 bg-gray-100">
+          <div className="flex-1 bg-gray-50">
             <div className="w-full h-16 bg-white">
               <Header />
             </div>
