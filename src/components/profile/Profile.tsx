@@ -63,7 +63,7 @@ const Profile = () => {
   })
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-5 space-y-6">
       <div className="flex gap-4 items-center">
         <Avatar className="w-20 h-20 bg-primary">
           <AvatarImage src={"/placeholder.sv"} />

@@ -1,9 +1,11 @@
-import { BarChart3, BookOpen, Brain, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, Monitor, PenTool, Settings, Trophy, Users } from 'lucide-react';
+import { BarChart3, BookOpen, Brain, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, Library, Monitor, PenTool, Settings, Trophy, Users } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import Logo from '../../../public/images/svg/logo.svg'
 import LogoMini from '../../../public/images/svg/logo-mini.svg'
 
 import useAppStore from '@/stores/appStore';
+import path from '@/utils/path';
+import { Link } from 'react-router-dom';
 
 const AppSidebar = () => {
   const { openSidebar } = useAppStore()
@@ -21,7 +23,7 @@ const AppSidebar = () => {
         ]
       case "teacher":
         return [
-          { id: "dashboard", label: "Tổng quan", icon: Home },
+          { id: "dashboard", label: "Tổng quan", icon: Home, path: path.TEACHER.OVERVIEW },
           { id: "questions", label: "Ngân hàng câu hỏi", icon: Database },
           { id: "create-exam", label: "Tạo đề thi", icon: PenTool },
           { id: "exams", label: "Quản lý đề thi", icon: ClipboardList },
@@ -44,7 +46,7 @@ const AppSidebar = () => {
   const menuItems = getMenuItems()
 
   return (
-    <Sidebar collapsible="icon" className='w-[255px]'>
+    <Sidebar collapsible="icon" className='w-[255px] bg-white'>
       <SidebarHeader>
         <div className='flex items-center gap-2 py-1'>
           {
@@ -62,16 +64,18 @@ const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu chính</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
                 const Icon = item.icon
                 return (
                   <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton>
-                      <Icon />
-                      <span>{item.label}</span>
+                    <SidebarMenuButton asChild>
+                      <Link to={item.path || ""}>
+                        <Icon />
+                        <span>{item.label}</span>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )
