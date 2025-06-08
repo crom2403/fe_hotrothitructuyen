@@ -7,9 +7,10 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
-import { TriangleAlert } from 'lucide-react';
+import { Eye, EyeOff, Loader2, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import path from '@/utils/path';
+import { useState } from 'react';
 
 const loginSchema = z.object({
   student_code: z.string()
@@ -26,6 +27,9 @@ const loginSchema = z.object({
 
 const Login = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -83,24 +87,40 @@ const Login = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
-                        <div className='flex items-center gap-4'>
+                        <div className='flex items-center gap-4 relative'>
                           <Input
-                            type='password'
+                            type={showPassword ? "text" : "password"}
                             className='bg-gray-100 w-[400px]'
                             placeholder='Mật khẩu'
                             {...field}
                           />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="absolute right-0 top-0 h-full px-3 focus:ring-0 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
                         </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button
+                <Button 
                   type='submit'
                   className='w-full bg-blue-800 hover:bg-blue-700 text-white px-6'
+                  disabled={isLoading}
                 >
-                  Đăng nhập
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Đang đăng nhập...
+                    </>
+                  ) : (
+                    "Đăng nhập"
+                  )}
                 </Button>
                 <div className='mt-4 flex justify-between items-center w-full'>
                   <div className="flex items-center gap-2">
