@@ -56,7 +56,7 @@ const QuestionDialog = ({
           Thêm câu hỏi
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-[1200px] max-h-[90vh] overflow-y-auto bg-white p-6">
+      <DialogContent className="min-w-[70vw] max-w-[1200px] min-h-[90vh] overflow-y-auto bg-white p-6">
         <DialogHeader>
           <DialogTitle>{editingQuestion ? "Chỉnh sửa câu hỏi" : "Thêm câu hỏi mới"}</DialogTitle>
           <DialogDescription>
