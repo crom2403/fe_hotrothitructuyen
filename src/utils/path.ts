@@ -20,6 +20,7 @@ const path = {
     OVERVIEW: "/teacher/overview",
     STUDY_GROUP: "/teacher/study_group",
     QUESTION: "/teacher/question",
+    QUESTION_BANK: "/teacher/question_bank",
     USER: "/teacher/user",
     MODULE: "/teacher/module",
     MODULE_DETAIL: "/teacher/module/detail",

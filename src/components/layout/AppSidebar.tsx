@@ -5,10 +5,11 @@ import LogoMini from '../../../public/images/svg/logo-mini.svg'
 
 import useAppStore from '@/stores/appStore';
 import path from '@/utils/path';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const AppSidebar = () => {
   const { openSidebar } = useAppStore()
+  const location = useLocation()
 
   const getMenuItems = () => {
     switch ("teacher" as String) {
@@ -24,7 +25,7 @@ const AppSidebar = () => {
       case "teacher":
         return [
           { id: "dashboard", label: "Tổng quan", icon: Home, path: path.TEACHER.OVERVIEW },
-          { id: "questions", label: "Ngân hàng câu hỏi", icon: Database },
+          { id: "questions", label: "Ngân hàng câu hỏi", icon: Database, path: path.TEACHER.QUESTION_BANK },
           { id: "create-exam", label: "Tạo đề thi", icon: PenTool },
           { id: "exams", label: "Quản lý đề thi", icon: ClipboardList },
           { id: "exam-rooms", label: "Phòng thi", icon: Monitor },
@@ -69,11 +70,19 @@ const AppSidebar = () => {
             <SidebarMenu>
               {menuItems.map((item) => {
                 const Icon = item.icon
+                const isActive = location.pathname === item.path
                 return (
                   <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton
+                      asChild
+                      className={`transition-all duration-200 ${
+                        isActive
+                          ? 'bg-gray-100 = font-semibold'
+                          : 'hover:bg-gray-100 hover:text-gray-900'
+                      }`}
+                    >
                       <Link to={item.path || ""}>
-                        <Icon />
+                        <Icon className={isActive ? 'text-blue-600' : ''} />
                         <span>{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
