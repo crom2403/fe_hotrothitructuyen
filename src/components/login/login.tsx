@@ -108,7 +108,7 @@ const Login = () => {
                     </FormItem>
                   )}
                 />
-                <Button 
+                <Button
                   type='submit'
                   className='w-full bg-blue-800 hover:bg-blue-700 text-white px-6'
                   disabled={isLoading}
