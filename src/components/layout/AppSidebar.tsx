@@ -16,7 +16,7 @@ const AppSidebar = () => {
       case "admin":
         return [
           { id: "dashboard", label: "Tổng quan", icon: Home, path: path.ADMIN.OVERVIEW },
-          { id: "users", label: "Quản lý người dùng", icon: Users},
+          { id: "users", label: "Quản lý người dùng", icon: Users, path: path.ADMIN.USER },
           { id: "subjects", label: "Quản lý môn học", icon: BookOpen },
           { id: "semesters", label: "Năm học & Học kỳ", icon: Calendar },
           { id: "classes", label: "Lớp học phần", icon: GraduationCap },

@@ -7,6 +7,7 @@ import TeacherOverview from "@/features/teacher/Overview"
 import Profile from "@/components/profile/Profile"
 import QuestionBank from "@/features/teacher/QuestionBank"
 import AdminOverview from "@/features/admin/Overview"
+import UserManagement from "@/features/admin/UserManagement"
 
 
 const AppRoutes = () => {
@@ -20,6 +21,7 @@ const AppRoutes = () => {
           <Route path={path.PROFILE} element={<Profile/>}/>
           <Route path={path.TEACHER.QUESTION_BANK} element={<QuestionBank/>}/>
           <Route path={path.ADMIN.OVERVIEW} element={<AdminOverview/>}/>
+          <Route path={path.ADMIN.USER} element={<UserManagement/>}/>
         </Route>
       </Routes>
     </>

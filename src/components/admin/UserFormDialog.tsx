@@ -1,0 +1,174 @@
+import type { User, UserFormData } from "@/types/userType";
+import type { UseFormReturn } from "react-hook-form";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Loader2, Plus } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
+import { Input } from "../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+
+interface UserFormDialogProps {
+  form: UseFormReturn<UserFormData>;
+  isDialogOpen: boolean;
+  setIsDialogOpen: (open: boolean) => void;
+  editingUser: User | null;
+  setEditingUser: (user: User | null) => void;
+  onSubmit: (data: UserFormData) => Promise<void>;
+  isLoading: boolean;
+}
+
+const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setEditingUser, onSubmit, isLoading }: UserFormDialogProps) => {
+  return (
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogTrigger asChild>
+        <Button
+          className="bg-black hover:bg-black/80"
+          onClick={() => {
+            setEditingUser(null);
+            form.reset();
+          }}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Thêm người dùng
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {editingUser ? "Chỉnh sửa người dùng" : "Thêm người dùng mới"}
+          </DialogTitle>
+          <DialogDescription>
+            {editingUser ? "Cập nhật thông tin người dùng" : "Tạo tài khoản mới cho hệ thống"}
+          </DialogDescription>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mã người dùng</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Nhập mã người dùng"
+                        className={form.formState.errors.code ? "border-red-500" : ""}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Nhập email"
+                        className={form.formState.errors.email ? "border-red-500" : ""}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Họ và tên</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Nhập họ và tên"
+                        className={form.formState.errors.fullName ? "border-red-500" : ""}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vai trò</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn vai trò" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="student">Sinh viên</SelectItem>
+                          <SelectItem value="teacher">Giáo viên</SelectItem>
+                          <SelectItem value="admin">Quản trị viên</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Số điện thoại</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Nhập số điện thoại"
+                        className={form.formState.errors.phone ? "border-red-500" : ""}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Hủy
+              </Button>
+              <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {editingUser ? "Đang cập nhật..." : "Đang tạo..."}
+                  </>
+                ) : editingUser ? (
+                  "Cập nhật"
+                ) : (
+                  "Tạo mới"
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export default UserFormDialog

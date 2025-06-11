@@ -1,23 +1,11 @@
 import QuestionDialog from "@/components/teacher/QuestionDialog";
 import { Button } from "@/components/ui/button"
+import type { Question } from "@/types/questionType";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload } from "lucide-react"
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
-
-export interface Question {
-  id: string;
-  content: string;
-  type: "single" | "multiple" | "boolean" | "matching" | "drag-drop";
-  subject: string;
-  topic: string;
-  difficulty: "easy" | "medium" | "hard";
-  points: number;
-  options: string[];
-  correctAnswers: number[];
-  explanation?: string;
-}
 
 export type QuestionFormData = {
   content: string;
