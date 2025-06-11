@@ -9,8 +9,9 @@ import {
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
 import QuestionForm from "./QuestionForm";
-import type { Question, QuestionFormData } from "@/features/teacher/QuestionBank";
+import type { QuestionFormData } from "@/features/teacher/QuestionBank";
 import type { UseFormReturn } from "react-hook-form";
+import type { Question } from "@/types/questionType";
 
 interface QuestionDialogProps {
   isDialogOpen: boolean;
@@ -47,6 +48,7 @@ const QuestionDialog = ({
     }}>
       <DialogTrigger asChild>
         <Button
+          className="bg-black hover:bg-black/80"
           onClick={() => {
             setEditingQuestion(null);
             form.reset();

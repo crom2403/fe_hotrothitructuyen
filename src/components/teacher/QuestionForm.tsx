@@ -1,4 +1,4 @@
-import type { Question, QuestionFormData } from '@/features/teacher/QuestionBank'
+import type { QuestionFormData } from '@/features/teacher/QuestionBank'
 import { type UseFormReturn } from 'react-hook-form'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -8,6 +8,7 @@ import { Button } from '../ui/button';
 import { ImageIcon, Loader2 } from 'lucide-react';
 import SingleChoiceForm from './SingleChoiceForm';
 import MultipleChoiceForm from './MultipleChoiceForm';
+import type { Question } from '@/types/questionType';
 
 interface QuestionFormProps {
   form: UseFormReturn<QuestionFormData>;

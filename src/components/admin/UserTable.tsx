@@ -1,0 +1,168 @@
+import type { User } from "@/types/userType";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Edit, MoreHorizontal, Search, Unlock, Lock, Trash2 } from "lucide-react";
+import { Input } from "../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { Badge } from "../ui/badge";
+import { cn } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { Button } from "../ui/button";
+import Paginate from "../common/Pagination";
+import { useState } from "react";
+
+interface UserTableProps {
+  users: User[];
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  roleFilter: string;
+  setRoleFilter: (role: string) => void;
+  handleEdit: (user: User) => void;
+  handleToggleStatus: (userId: string) => Promise<void>;
+  handleDelete: (userId: string) => Promise<void>;
+}
+
+const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, handleEdit, handleToggleStatus, handleDelete }: UserTableProps) => {
+  const [page, setPage] = useState(0)
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
+  const getRoleText = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "Quản trị viên";
+      case "teacher":
+        return "Giáo viên";
+      case "student":
+        return "Sinh viên";
+      default:
+        return role;
+    }
+  };
+
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "destructive";
+      case "teacher":
+        return "default";
+      case "student":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
+  const handlePageClick = (page: number) => {
+    setPage(page)
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Danh sách người dùng</CardTitle>
+        <CardDescription>Tổng cộng {users.length} người dùng</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center space-x-4 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Tìm kiếm theo tên, mã số hoặc email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Lọc theo vai trò" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả vai trò</SelectItem>
+              <SelectItem value="admin">Quản trị viên</SelectItem>
+              <SelectItem value="teacher">Giáo viên</SelectItem>
+              <SelectItem value="student">Sinh viên</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Mã người dùng</TableHead>
+              <TableHead>Họ tên</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Vai trò</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Thao tác</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {
+              filteredUsers.map((user) => (
+                <TableRow key={user.code}>
+                  <TableCell className="font-medium">{user.code}</TableCell>
+                  <TableCell>{user.fullName}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Badge variant={getRoleBadgeVariant(user.role) as any}>{getRoleText(user.role)}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={cn(user.isActive ? "bg-green-500" : "bg-red-500")}>
+                      {user.isActive ? "Hoạt động" : "Bị khóa"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(user)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Chỉnh sửa
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleToggleStatus(user.code)}>
+                          {user.isActive ? (
+                            <>
+                              <Lock className="mr-2 h-4 w-4" />
+                              Khóa tài khoản
+                            </>
+                          ) : (
+                            <>
+                              <Unlock className="mr-2 h-4 w-4" />
+                              Mở khóa
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(user.code)} className="text-red-600">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Xóa
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            }
+          </TableBody>
+        </Table>
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-8 text-gray-500">Không tìm thấy người dùng nào</div>
+        )}
+      </CardContent>
+      <Paginate page={page} totalPages={100} onPageChange={handlePageClick} />
+    </Card>
+  )
+}
+
+export default UserTable
