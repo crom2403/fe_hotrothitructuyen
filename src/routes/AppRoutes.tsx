@@ -9,6 +9,7 @@ import QuestionBank from "@/features/teacher/QuestionBank"
 import AdminOverview from "@/features/admin/Overview"
 import UserManagement from "@/features/admin/UserManagement"
 import NotFoundPage from "@/components/notFound/NotFoundPage"
+import StudentOverview from "@/features/student/Overview"
 
 
 const AppRoutes = () => {
@@ -23,6 +24,7 @@ const AppRoutes = () => {
           <Route path={path.TEACHER.QUESTION_BANK} element={<QuestionBank/>}/>
           <Route path={path.ADMIN.OVERVIEW} element={<AdminOverview/>}/>
           <Route path={path.ADMIN.USER} element={<UserManagement/>}/>
+          <Route path={path.STUDENT.OVERVIEW} element={<StudentOverview/>}/>
         </Route>
         <Route path="*" element={<NotFoundPage/>}/>
       </Routes>
