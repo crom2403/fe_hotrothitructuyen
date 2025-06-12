@@ -126,7 +126,7 @@ const QuestionForm = ({
                 <FormLabel>Độ khó</FormLabel>
                 <FormControl>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
+                    <SelectTrigger className='w-full'>
                       <SelectValue placeholder="Chọn độ khó" />
                     </SelectTrigger>
                     <SelectContent>

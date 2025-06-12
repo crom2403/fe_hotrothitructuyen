@@ -12,7 +12,7 @@ const AppSidebar = () => {
   const location = useLocation()
 
   const getMenuItems = () => {
-    switch ("admin" as String) {
+    switch ("student" as String) {
       case "admin":
         return [
           { id: "dashboard", label: "Tổng quan", icon: Home, path: path.ADMIN.OVERVIEW },
@@ -34,10 +34,11 @@ const AppSidebar = () => {
         ]
       case "student":
         return [
-          { id: "dashboard", label: "Tổng quan", icon: Home },
+          { id: "dashboard", label: "Tổng quan", icon: Home, path: path.STUDENT.OVERVIEW },
           { id: "exam-schedule", label: "Lịch thi", icon: CalendarDays },
           { id: "exams", label: "Danh sách bài thi", icon: ClipboardList },
           { id: "results", label: "Kết quả thi", icon: Trophy },
+          { id: "classes", label: "Lớp học phần", icon: GraduationCap },
         ]
       default:
         return []
