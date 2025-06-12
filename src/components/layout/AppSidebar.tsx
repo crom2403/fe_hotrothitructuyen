@@ -12,7 +12,7 @@ const AppSidebar = () => {
   const location = useLocation()
 
   const getMenuItems = () => {
-    switch ("student" as String) {
+    switch ("teacher" as String) {
       case "admin":
         return [
           { id: "dashboard", label: "Tổng quan", icon: Home, path: path.ADMIN.OVERVIEW },

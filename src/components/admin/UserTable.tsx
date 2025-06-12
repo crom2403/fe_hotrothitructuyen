@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import Paginate from "../common/Pagination";
-import { useState } from "react";
 
 interface UserTableProps {
   users: User[];
@@ -17,14 +16,16 @@ interface UserTableProps {
   setSearchTerm: (term: string) => void;
   roleFilter: string;
   setRoleFilter: (role: string) => void;
+  page: number;
+  setPage: (page: number) => void;
+  totalPages: number;
   handleEdit: (user: User) => void;
   handleToggleStatus: (userId: string) => Promise<void>;
   handleDelete: (userId: string) => Promise<void>;
+  handlePageClick: (page: number) => void;
 }
 
-const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, handleEdit, handleToggleStatus, handleDelete }: UserTableProps) => {
-  const [page, setPage] = useState(0)
-
+const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, setPage, totalPages, handleEdit, handleToggleStatus, handleDelete, handlePageClick }: UserTableProps) => {
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,10 +59,6 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
         return "outline";
     }
   };
-
-  const handlePageClick = (page: number) => {
-    setPage(page)
-  }
 
   return (
     <Card>
@@ -157,10 +154,14 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
           </TableBody>
         </Table>
         {filteredUsers.length === 0 && (
-          <div className="text-center py-8 text-gray-500">Không tìm thấy người dùng nào</div>
+          <TableBody>
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-8 text-gray-500">Không tìm thấy người dùng nào</TableCell>
+            </TableRow>
+          </TableBody>
         )}
       </CardContent>
-      <Paginate page={page} totalPages={100} onPageChange={handlePageClick} />
+      <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
     </Card>
   )
 }

@@ -15,7 +15,7 @@ const MainLayout = () => {
             <div className="w-full h-16 bg-white">
               <Header />
             </div>
-            <div className="w-full overflow-y-scroll py-8 px-12">
+            <div className="w-full py-8 px-12">
               <Outlet />
             </div>
           </div>

@@ -1,4 +1,5 @@
 import QuestionDialog from "@/components/teacher/QuestionDialog";
+import QuestionTable from "@/components/teacher/QuestionTable";
 import { Button } from "@/components/ui/button"
 import type { Question } from "@/types/questionType";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,7 +41,7 @@ const QuestionBank = () => {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
-
+  const [page, setPage] = useState(1);
 
   const form = useForm<QuestionFormData>({
     resolver: zodResolver(questionSchema),
@@ -76,21 +77,21 @@ const QuestionBank = () => {
       options: ["HTML", "CSS", "JavaScript", "MySQL", "React", "Node.js"],
       correctAnswers: [0, 1, 2, 4],
       difficulty: "medium",
-      subject: "Lập trình Web",
+      subject: "Mạng máy tính",
       topic: "Frontend Technologies",
       points: 2,
     },
     {
       id: "3",
-      content: "JSX là cú pháp bắt buộc trong React",
-      type: "boolean",
-      options: ["Đúng", "Sai"],
-      correctAnswers: [1],
-      difficulty: "easy",
+      content: "Những công nghệ nào sau đây thuộc về Backend?",
+      type: "multiple",
+      options: ["HTML", "CSS", "JavaScript", "MySQL", "React", "Node.js"],
+      correctAnswers: [0, 1, 2, 4],
+      difficulty: "medium",
       subject: "Lập trình Web",
-      topic: "React JSX",
-      points: 1,
-    },
+      topic: "Backend Technologies",
+      points: 2,
+    }
   ]);
 
   const questionType = form.watch("type");
@@ -140,6 +141,21 @@ const QuestionBank = () => {
       form.setValue("correctAnswers", newCorrectAnswers);
     }
   };
+
+  const handleEdit = (question: Question) => {
+    setEditingQuestion(question);
+    setIsDialogOpen(true);
+  }
+
+  const handleDelete = (questionId: string) => {
+    setQuestions(questions.filter((question) => question.id !== questionId));
+  }
+
+  const handlePageClick = (page: number) => {
+    setPage(page);
+  }
+
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -168,8 +184,25 @@ const QuestionBank = () => {
           />
         </div>
       </div>
-      <div></div>
-      <div></div>
+      <div>
+        <QuestionTable
+          questions={questions}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          subjectFilter={subjectFilter}
+          setSubjectFilter={setSubjectFilter}
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
+          difficultyFilter={difficultyFilter}
+          setDifficultyFilter={setDifficultyFilter}
+          page={page}
+          setPage={setPage}
+          totalPages={100}
+          handleEdit={handleEdit}
+          handleDelete={handleDelete}
+          handlePageClick={handlePageClick}
+        />
+      </div>
     </div>
   )
 }
