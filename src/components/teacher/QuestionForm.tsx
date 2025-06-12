@@ -6,9 +6,10 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { ImageIcon, Loader2 } from 'lucide-react';
-import SingleChoiceForm from './SingleChoiceForm';
+
 import MultipleChoiceForm from './MultipleChoiceForm';
 import type { Question } from '@/types/questionType';
+import { SingleChoiceForm } from './SingleChoiceForm';
 
 interface QuestionFormProps {
   form: UseFormReturn<QuestionFormData>;
@@ -219,6 +220,7 @@ const QuestionForm = ({
             variant='outline'
             onClick={() => {
               form.reset()
+              
             }}
           > Hủy
           </Button>

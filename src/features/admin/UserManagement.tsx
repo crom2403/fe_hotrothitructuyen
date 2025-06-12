@@ -22,6 +22,7 @@ const UserManagement = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
+  const [page, setPage] = useState(0)
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -83,6 +84,11 @@ const UserManagement = () => {
     console.log(userId)
   }
 
+  const handlePageClick = (page: number) => {
+    setPage(page)
+    console.log(page)
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -107,9 +113,13 @@ const UserManagement = () => {
           setSearchTerm={setSearchTerm}
           roleFilter={roleFilter}
           setRoleFilter={setRoleFilter}
+          page={page}
+          setPage={setPage}
+          totalPages={100}
           handleEdit={handleEdit}
           handleToggleStatus={handleToggleStatus}
           handleDelete={handleDelete}
+          handlePageClick={handlePageClick}
         />
       </div>
     </div>
