@@ -1,16 +1,17 @@
 const path = {
-  // SERVER_URL: "https://inevitable-justinn-tsondev-41d66d2f.koyeb.app/api/v1",
+  SERVER_URL: "https://successful-laura-tsondev-c5a7fe4d.koyeb.app",
   PUBLIC: "/",
   HOME: "",
   LOGIN: "/login",
   FORGOT_PASSWORD: "/forgot-password",
   PROFILE: "/profile",
+  ACCESS_DENIED: "/access-denied",
   ADMIN: {
     OVERVIEW: "/admin/overview",
     STUDY_GROUP: "/admin/study_group",
     QUESTION: "/admin/question",
     USER: "/admin/user",
-    MODULE: "/admin/module", // Môn học
+    SUBJECT: "/admin/subject", // Môn học
     ASSIGNMENT: "/admin/assignment", // Phân công
     EXAM: "/admin/exam", // Đề kiểm tra
     NOTIFICATION: "/admin/notification", // Thông báo
