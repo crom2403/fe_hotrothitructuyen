@@ -1,9 +1,6 @@
-
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 
-
-// Định nghĩa kiểu cho Store
 interface AppStore {
   openSidebar: boolean,
   setOpenSidebar: (open: boolean) => void

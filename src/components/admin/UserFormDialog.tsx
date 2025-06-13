@@ -2,10 +2,13 @@ import type { User, UserFormData } from "@/types/userType";
 import type { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Button } from "../ui/button";
-import { Loader2, Plus } from "lucide-react";
+import { CalendarIcon, Loader2, Plus } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { format } from "date-fns";
+import { Calendar } from "../ui/calendar";
 
 interface UserFormDialogProps {
   form: UseFormReturn<UserFormData>;
@@ -103,7 +106,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
                 )}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="role"
@@ -126,8 +129,29 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Giới tính</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Chọn giới tính" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Nam</SelectItem>
+                          <SelectItem value="female">Nữ</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="phone"
@@ -146,6 +170,38 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="birthDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col gap-2">
+                    <FormLabel>Ngày sinh</FormLabel>
+                    <Popover>
+                      <PopoverTrigger>
+                        <FormControl>
+                          <Button variant="outline" className="w-full justify-start text-left">
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value ? format(field.value, "dd/MM/yyyy") : <span>Chọn ngày sinh</span>}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value ? new Date(field.value) : undefined}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          captionLayout="dropdown"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
             </div>
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>

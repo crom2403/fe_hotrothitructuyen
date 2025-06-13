@@ -3,6 +3,7 @@ import AppRoutes from "./routes/AppRoutes"
 import { Toaster } from "sonner"
 
 function App() {
+
   return (
     <div className="container mx-auto">
       <div className="min-h-screen">
@@ -10,7 +11,7 @@ function App() {
           <AppRoutes />
         </Router>
       </div>
-      <Toaster position="top-center" expand={false} richColors/>
+      <Toaster position="top-center" expand={false} richColors />
     </div>
   )
 }

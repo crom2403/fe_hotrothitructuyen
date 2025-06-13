@@ -6,18 +6,20 @@ import LogoMini from '../../../public/images/svg/logo-mini.svg'
 import useAppStore from '@/stores/appStore';
 import path from '@/utils/path';
 import { Link, useLocation } from 'react-router-dom';
+import useAuthStore from '@/stores/authStore';
 
 const AppSidebar = () => {
   const { openSidebar } = useAppStore()
   const location = useLocation()
-
+  const { currentUser } = useAuthStore()
+  
   const getMenuItems = () => {
-    switch ("teacher" as String) {
+    switch (currentUser?.role_code as String) {
       case "admin":
         return [
           { id: "dashboard", label: "Tổng quan", icon: Home, path: path.ADMIN.OVERVIEW },
           { id: "users", label: "Quản lý người dùng", icon: Users, path: path.ADMIN.USER },
-          { id: "subjects", label: "Quản lý môn học", icon: BookOpen },
+          { id: "subjects", label: "Quản lý môn học", icon: BookOpen, path: path.ADMIN.SUBJECT },
           { id: "semesters", label: "Năm học & Học kỳ", icon: Calendar },
           { id: "classes", label: "Lớp học phần", icon: GraduationCap },
           { id: "settings", label: "Cài đặt hệ thống", icon: Settings },

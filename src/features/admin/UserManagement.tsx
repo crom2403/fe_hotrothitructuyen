@@ -14,6 +14,8 @@ const userSchema = z.object({
     required_error: "Vui lòng chọn vai trò",
   }),
   phone: z.string().optional(),
+  birthDate: z.date(),
+  gender: z.enum(["male", "female"]),
 })
 
 const UserManagement = () => {
@@ -32,13 +34,14 @@ const UserManagement = () => {
       fullName: "",
       role: "student",
       phone: "",
+      birthDate: new Date(),
+      gender: "male",
     },
   })
 
   const [users, setUsers] = useState<User[]>([
     {
-      code: "1",
-      username: "admin",
+      code: "admin",
       email: "admin@university.edu.vn",
       fullName: "Quản trị viên",
       role: "admin",
@@ -46,8 +49,7 @@ const UserManagement = () => {
       createdAt: "2024-01-01T00:00:00Z",
     },
     {
-      code: "2",
-      username: "teacher1",
+      code: "teacher1",
       email: "teacher1@university.edu.vn",
       fullName: "Nguyễn Văn A",
       role: "teacher",
@@ -56,8 +58,7 @@ const UserManagement = () => {
       createdAt: "2024-01-02T00:00:00Z",
     },
     {
-      code: "3",
-      username: "student1",
+      code: "student1",
       email: "student1@university.edu.vn",
       fullName: "Trần Thị B",
       role: "student",

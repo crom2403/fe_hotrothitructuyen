@@ -11,14 +11,15 @@ import { Eye, EyeOff, Loader2, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import path from '@/utils/path';
 import { useState } from 'react';
+import { apiGetCurrentUser, apiLogin } from '@/services/auth';
+import useAuthStore from '@/stores/authStore';
+import { toast } from 'sonner';
+import type { AxiosError } from 'axios';
 
 const loginSchema = z.object({
-  student_code: z.string()
+  code: z.string()
     .min(1, {
       message: 'Mã sinh viên không được để trống',
-    })
-    .regex(/^dh/i, {
-      message: 'Mã sinh viên không hợp lệ',
     }),
   password: z.string().min(6, {
     message: 'Mật khẩu phải có ít nhất 6 ký tự',
@@ -29,25 +30,50 @@ const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { login, getCurrentUser, currentUser } = useAuthStore()
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      student_code: '',
+      code: '',
       password: '',
     },
   })
 
-  const onSubmit = (data: z.infer<typeof loginSchema>) => {
-    console.log('Submitted data:', data);
-    // Handle login logic here, e.g., API call
+  const onSubmit = async (data: z.infer<typeof loginSchema>) => {
+    setIsLoading(true)
+    try {
+      const response = await apiLogin(data);
+      if (response.status === 200) {
+        const { access_token, refresh_token } = response.data.data;
+        login(access_token, refresh_token);
+        const res = await apiGetCurrentUser();
+        if (res.status === 200) {
+          const { data } = res;
+          getCurrentUser(data);
+          if (currentUser?.role_code === "student") {
+            navigate(path.STUDENT.OVERVIEW)
+          } else if (currentUser?.role_code === "teacher") {
+            navigate(path.TEACHER.OVERVIEW)
+          } else if (currentUser?.role_code === "admin") {
+            navigate(path.ADMIN.OVERVIEW)
+          }
+          toast.success("Đăng nhập thành công")
+        } else {
+          toast.error(res.data.message || "Lấy thông tin người dùng thất bại")
+        }
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className='flex w-full h-screen'>
-      {/* <div className='flex-[60%] bg-gray-100 flex justify-center items-center'>
-        <img src={STU} alt='Khuôn viên STU'/>
-      </div> */}
       <div className='w-full h-full flex items-center justify-center'>
         <div className='justify-center items-center flex'>
           <div className='w-[400px] flex flex-col justify-center gap-4'>
@@ -65,7 +91,7 @@ const Login = () => {
               >
                 <FormField
                   control={form.control}
-                  name='student_code'
+                  name='code'
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
