@@ -12,12 +12,14 @@ import { User, LogOut, Settings } from "lucide-react";
 import { SidebarTrigger } from "../ui/sidebar";
 import { useNavigate } from "react-router-dom";
 import path from "@/utils/path";
+import useAuthStore from "@/stores/authStore";
 
 const Header = () => {
+  const { currentUser } = useAuthStore()
   const navigate = useNavigate()
   const getInitials = (name: string) => {
     return name
-      .split(" ") 
+      .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase();
@@ -31,27 +33,26 @@ const Header = () => {
         </div>
 
         <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-600">Xin chào, bạn</span>
+          <span className="text-sm text-gray-600">Xin chào, {currentUser?.full_name}</span>
 
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button
                 variant="ghost"
                 className="relative h-8 w-8 rounded-full"
-                onClick={() => console.log("Avatar clicked")}
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg" alt="AAA" />
-                  <AvatarFallback>{getInitials("AAA")}</AvatarFallback>
+                  <AvatarImage src={currentUser?.avatar || "/placeholder.svg"} alt={currentUser?.full_name || "AAA"} />
+                  <AvatarFallback>{getInitials(currentUser?.full_name || "AAA")}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 z-50" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">AAA</p>
-                  <p className="text-xs leading-none text-muted-foreground">Giáo viên</p>
-                  <p className="text-xs leading-none text-muted-foreground">aaa@gmail.com</p>
+                  <p className="text-sm font-medium leading-none">{currentUser?.full_name}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{currentUser?.role_code}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{currentUser?.email}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
