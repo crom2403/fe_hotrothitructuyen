@@ -9,3 +9,12 @@ export interface Subject {
   status: boolean
   createdAt: string
 }
+
+export interface SubjectFormData {
+  code: string
+  name: string
+  credits: number
+  description?: string
+  theoryHours: number
+  practiceHours: number
+}

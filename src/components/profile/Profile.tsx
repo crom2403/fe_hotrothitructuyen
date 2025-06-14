@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
 import { Input } from "../ui/input"
 import { useState } from "react"
+import useAuthStore from "@/stores/authStore"
 
 const profileSchema = z.object({
   name: z.string(),
@@ -37,6 +38,7 @@ type PasswordFormData = z.infer<typeof passwordSchema>
 
 const Profile = () => {
   const [isLoading, setIsLoading] = useState(false)
+  const { currentUser } = useAuthStore()
   const [showPassword, setShowPassword] = useState({
     current: false,
     new: false,
@@ -46,10 +48,10 @@ const Profile = () => {
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: "Trần Văn A",
-      code: "DH52100027",
-      phone: "",
-      email: "",
+      name: currentUser?.full_name || "",
+      code: currentUser?.code || "",
+      phone: currentUser?.phone || "",
+      email: currentUser?.email || "",
     },
   })
 
@@ -66,13 +68,13 @@ const Profile = () => {
     <div className="max-w-4xl mx-auto p-5 space-y-6">
       <div className="flex gap-4 items-center">
         <Avatar className="w-20 h-20 bg-primary">
-          <AvatarImage src={"/placeholder.sv"} />
-          <AvatarFallback className="text-lg">T</AvatarFallback>
+          <AvatarImage src={currentUser?.avatar || "/placeholder.svg"} />
+          <AvatarFallback className="text-lg">{currentUser?.full_name}</AvatarFallback>
         </Avatar>
         <div>
-          <h1 className="text-2xl font-bold">Tên người dùng</h1>
-          <p className="text-gray-600">Teacher</p>
-          <p className="text-sm text-gray-500">aaa@gmail.com</p>
+          <h1 className="text-2xl font-bold">{currentUser?.full_name}</h1>
+          <p className="text-gray-600">{currentUser?.role_code}</p>
+          <p className="text-sm text-gray-500">{currentUser?.email}</p>
         </div>
         <Button variant={"outline"} className="flex items-center gap-2">
           <Camera className="h-4 w-4" />

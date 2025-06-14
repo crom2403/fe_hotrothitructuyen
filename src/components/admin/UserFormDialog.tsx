@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { format } from "date-fns";
 import { Calendar } from "../ui/calendar";
+import { useEffect, useState } from "react";
+import { apiGetRoles } from "@/services/admin/role";
 
 interface UserFormDialogProps {
   form: UseFormReturn<UserFormData>;
@@ -20,7 +22,26 @@ interface UserFormDialogProps {
   isLoading: boolean;
 }
 
+interface Role {
+  id: string,
+  code: string,
+  name: string,
+  description: string
+}
+
 const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setEditingUser, onSubmit, isLoading }: UserFormDialogProps) => {
+  const [roles, setRoles] = useState<Role[]>([])
+
+  useEffect(() => {
+    fetchRoles()
+  }, [])
+
+  const fetchRoles = async () => {
+    const response = await apiGetRoles()
+    console.log(response.data.data)
+    setRoles(response.data.data)
+  }
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
@@ -119,9 +140,9 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
                           <SelectValue placeholder="Chọn vai trò" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="student">Sinh viên</SelectItem>
-                          <SelectItem value="teacher">Giáo viên</SelectItem>
-                          <SelectItem value="admin">Quản trị viên</SelectItem>
+                          {roles.map((role) => (
+                            <SelectItem key={role.id} value={role.code}>{role.name}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -204,7 +225,11 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
 
             </div>
             <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => {
+                setIsDialogOpen(false)
+                setEditingUser(null)
+                form.reset()
+              }}>
                 Hủy
               </Button>
               <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoading}>
