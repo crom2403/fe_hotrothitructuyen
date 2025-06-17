@@ -8,3 +8,7 @@ import path from "@/utils/path";
 export const apiLogin = async (data: LoginType) => axios.post(path.SERVER_URL + apiRoutes.login, data)
 
 export const apiGetCurrentUser = async () => instance.get(apiRoutes.me)
+
+export const apiForgotPassword = async (data: object) => axios.post(path.SERVER_URL + apiRoutes.forgotPassword, data)
+
+export const apiResetPassword = async (data: object) => axios.post(path.SERVER_URL + apiRoutes.resetPassword, data)

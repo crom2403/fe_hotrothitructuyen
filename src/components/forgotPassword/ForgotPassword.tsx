@@ -8,12 +8,17 @@ import Logo from '../../../public/images/svg/logo.svg'
 import { Button } from '../ui/button'
 import { useNavigate } from 'react-router-dom'
 import path from '@/utils/path'
+import { apiForgotPassword } from '@/services/auth'
+import { useState } from 'react'
+import type { AxiosError } from 'axios'
+import { toast } from 'sonner'
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email({message: "Email không hợp lệ"}),
+  email: z.string().email({ message: "Email không hợp lệ" }),
 })
 
 const ForgotPassword = () => {
+  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate();
   const form = useForm<z.infer<typeof forgotPasswordSchema>>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -22,8 +27,23 @@ const ForgotPassword = () => {
     },
   })
 
-  const onSubmit = (data: z.infer<typeof forgotPasswordSchema>) => {
-    console.log(data)
+  const onSubmit = async (data: z.infer<typeof forgotPasswordSchema>) => {
+    setIsLoading(true);
+    try {
+      const response = await apiForgotPassword({ email: data.email });
+      if (response.status === 201) {
+        toast.success("Mã OTP đã được gửi đến email của bạn");
+        navigate(path.OTP_CONFIRMATION, { state: { email: data.email } });
+      } else {
+        toast.error(response.data.message || "Gửi mã OTP thất bại");
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -53,11 +73,15 @@ const ForgotPassword = () => {
                 </FormItem>
               )}
             />
-            <Button type='submit' className='w-[400px] h-[40px] bg-primary text-white rounded-md hover:opacity-90'>Gửi</Button>
+            <Button type='submit' className='w-[400px] h-[40px] bg-primary text-white rounded-md hover:opacity-90'
+              disabled={isLoading}
+            >
+              {isLoading ? "Đang gửi..." : "Gửi"}
+            </Button>
           </form>
         </Form>
       </div>
-      <div className='flex items-center justify-center gap-2 hover:cursor-pointer hover:underline hover:text-blue-500' 
+      <div className='flex items-center justify-center gap-2 hover:cursor-pointer hover:underline hover:text-blue-500'
         onClick={() => navigate(path.LOGIN)}
       >
         <ChevronLeft size={20} />
