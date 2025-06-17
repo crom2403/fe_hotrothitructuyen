@@ -4,17 +4,16 @@ export interface Subject {
   name: string
   credits: number
   description?: string
-  theoryHours: number
-  practiceHours: number
-  status: boolean
-  createdAt: string
+  theory_hours: number
+  practice_hours: number
+  is_active: boolean
 }
 
 export interface SubjectFormData {
   code: string
   name: string
-  credits: number
   description?: string
-  theoryHours: number
-  practiceHours: number
+  theory_hours?: number
+  practice_hours?: number
+  credits: number
 }

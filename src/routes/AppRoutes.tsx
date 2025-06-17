@@ -4,6 +4,7 @@ import path from "../utils/path";
 import ProtectedRoute from "./ProtectedRoute";
 import MainLayout from "@/components/layout/MainLayout";
 import Loading from "../../public/loading.gif"
+import OTPConfirmation from "@/components/forgotPassword/OTPConfirmation";
 
 // Lazy load components
 const Login = lazy(() => import("@/components/login/login"));
@@ -16,6 +17,7 @@ const AdminOverview = lazy(() => import("@/features/admin/Overview"));
 const UserManagement = lazy(() => import("@/features/admin/UserManagement"));
 const StudentOverview = lazy(() => import("@/features/student/Overview"));
 const SubjectManagement = lazy(() => import("@/features/admin/SubjectManagement"));
+const YearSemesterManagement = lazy(() => import("@/features/admin/YearSemesterManagement"));
 const AccessDeniedPage = lazy(() => import("@/components/accessDenied/AccessDeniedPage"));
 
 const AppRoutes = () => {
@@ -34,6 +36,7 @@ const AppRoutes = () => {
         <Route path={path.LOGIN} element={<Login />} />
         <Route path={path.FORGOT_PASSWORD} element={<ForgotPassword />} />
         <Route path={path.ACCESS_DENIED} element={<AccessDeniedPage />} />
+        <Route path={path.OTP_CONFIRMATION} element={<OTPConfirmation />} />
         {/* Protected routes under MainLayout */}
         <Route
           element={
@@ -82,6 +85,14 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <SubjectManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.ADMIN.YEAR_SEMESTER}
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <YearSemesterManagement />
               </ProtectedRoute>
             }
           />

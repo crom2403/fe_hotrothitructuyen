@@ -1,4 +1,3 @@
-import AccessDeniedPage from "@/components/accessDenied/AccessDeniedPage";
 import useAuthStore from "@/stores/authStore";
 import path from "@/utils/path";
 import { Navigate, Outlet } from "react-router-dom"

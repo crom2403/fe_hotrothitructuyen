@@ -17,7 +17,6 @@ interface UserTableProps {
   roleFilter: string;
   setRoleFilter: (role: string) => void;
   page: number;
-  setPage: (page: number) => void;
   totalPages: number;
   handleEdit: (user: User) => void;
   handleToggleStatus: (userId: string) => Promise<void>;
@@ -25,11 +24,11 @@ interface UserTableProps {
   handlePageClick: (page: number) => void;
 }
 
-const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, setPage, totalPages, handleEdit, handleToggleStatus, handleDelete, handlePageClick }: UserTableProps) => {
+const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, totalPages, handleEdit, handleToggleStatus, handleDelete, handlePageClick }: UserTableProps) => {
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
     return matchesSearch && matchesRole;

@@ -15,7 +15,7 @@ import path from "@/utils/path";
 import useAuthStore from "@/stores/authStore";
 
 const Header = () => {
-  const { currentUser } = useAuthStore()
+  const { currentUser, logout } = useAuthStore()
   const navigate = useNavigate()
   const getInitials = (name: string) => {
     return name
@@ -24,6 +24,11 @@ const Header = () => {
       .join("")
       .toUpperCase();
   };
+
+  const handleLogout = () => {
+    logout()
+    navigate(path.LOGIN)
+  }
 
   return (
     <header className="border-b bg-white">
@@ -65,7 +70,7 @@ const Header = () => {
                 <span>Cài đặt</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Đăng xuất</span>
               </DropdownMenuItem>

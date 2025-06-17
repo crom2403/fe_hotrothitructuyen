@@ -38,7 +38,6 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
 
   const fetchRoles = async () => {
     const response = await apiGetRoles()
-    console.log(response.data.data)
     setRoles(response.data.data)
   }
 

@@ -24,9 +24,10 @@ export interface CurrentUser {
 interface AuthStore {
   accessToken: string,
   refreshToken: string,
-  login: (accessToken: string, refreshToken: string) => Promise<void> 
+  login: (accessToken: string, refreshToken: string) => void
   currentUser: CurrentUser | null
-  getCurrentUser: (currentUser: CurrentUser) => Promise<void>
+  getCurrentUser: (currentUser: CurrentUser) => void
+  logout: () => void
 }
 
 const useAuthStore = create<AuthStore>()(
@@ -35,13 +36,19 @@ const useAuthStore = create<AuthStore>()(
       accessToken: "",
       refreshToken: "",
       currentUser: null,
-      login: async (accessToken: string, refreshToken: string) => {
+      login: (accessToken: string, refreshToken: string) => {
         set({ accessToken, refreshToken })
         localStorage.setItem("accessToken", accessToken)
         localStorage.setItem("refreshToken", refreshToken)
       },
-      getCurrentUser: async (currentUser: CurrentUser) => {
+      getCurrentUser: (currentUser: CurrentUser) => {
         set({ currentUser })
+      },
+      logout: () => {
+        set({ currentUser: null, accessToken: "", refreshToken: "" })
+        localStorage.removeItem("accessToken")
+        localStorage.removeItem("refreshToken")
+        localStorage.removeItem("auth-storage")
       }
     }),
     {

@@ -1,62 +1,54 @@
 import SubjectFormDialog from "@/components/admin/SubjectFormDialog";
 import SubjectTable from "@/components/admin/SubjectTable";
+import { apiCreateSubject, apiDeleteSubject, apiGetSubjects, apiToggleStatusSubject } from "@/services/admin/subject";
 import type { Subject, SubjectFormData } from "@/types/subjectType";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import type { AxiosError } from "axios";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 const SubjectSchema = z.object({
   code: z.string().min(1, { message: "Mã môn học là bắt buộc" }),
   name: z.string().min(1, { message: "Tên môn học là bắt buộc" }),
   credits: z.number().min(1, { message: "Số tín chỉ là bắt buộc" }),
-  theoryHours: z.number().min(1, { message: "Số tiết lý thuyết là bắt buộc" }),
-  practiceHours: z.number().min(1, { message: "Số tiết thực hành là bắt buộc" }),
+  theory_hours: z.number().optional().default(0),
+  practice_hours: z.number().optional().default(0),
+  description: z.string().optional().default(""),
 })
+
+interface SubjectResponse {
+  data: Subject[];
+  metadata: {
+    size: number;
+    page: number;
+    last_page: number;
+    total: number;
+  };
+}
 
 const SubjectManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [subjectResponse, setSubjectResponse] = useState<SubjectResponse | null>(null);
 
-  const [subjects, setSubjects] = useState<Subject[]>([
-    {
-      id: "1",
-      code: "MATH101",
-      name: "Toán học cơ bản",
-      credits: 3,
-      description: "Giới thiệu các khái niệm toán học cơ bản",
-      theoryHours: 30,
-      practiceHours: 10,
-      status: true,
-      createdAt: "2024-01-01T00:00:00Z",
-    },
-    {
-      id: "2",
-      code: "CS101",
-      name: "Lập trình cơ bản",
-      credits: 4,
-      description: "Học lập trình với Python",
-      theoryHours: 20,
-      practiceHours: 20,
-      status: true,
-      createdAt: "2024-01-02T00:00:00Z",
-    },
-    {
-      id: "3",
-      code: "PHY101",
-      name: "Vật lý đại cương",
-      credits: 3,
-      description: "Cơ học cổ điển",
-      theoryHours: 25,
-      practiceHours: 5,
-      status: false,
-      createdAt: "2024-01-03T00:00:00Z",
-    },
-  ])
+  useEffect(() => {
+    handleGetSubjects()
+  }, [page, statusFilter, searchTerm])
+
+  const handleGetSubjects = async () => {
+    setIsLoading(true)
+    const response = await apiGetSubjects(page, statusFilter, searchTerm)
+    if (response.status === 200) {
+      setSubjectResponse(response.data)
+    }
+    setIsLoading(false)
+  }
 
   const form = useForm<SubjectFormData>({
     resolver: zodResolver(SubjectSchema),
@@ -64,27 +56,84 @@ const SubjectManagement = () => {
       code: "",
       name: "",
       credits: 0,
-      theoryHours: 0,
-      practiceHours: 0,
+      theory_hours: 0,
+      practice_hours: 0,
+      description: "",
     }
   })
 
   const handleSubmit = async (data: SubjectFormData) => {
-    console.log(data)
+    setIsLoading(true)
+    try {
+      const response = await apiCreateSubject(data)
+      if (response.status === 201) {
+        toast.success("Thêm môn học thành công")
+        setIsDialogOpen(false)
+        form.reset()
+        handleGetSubjects()
+      } else {
+        toast.error(response.data.message || "Thêm môn học thất bại")
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleEdit = (subject: Subject) => {
-    setEditingSubject(subject)
-    setIsDialogOpen(true)
-    form.reset()
+    setEditingSubject(subject);
+    setIsDialogOpen(true);
+    form.reset({
+      code: subject.code,
+      name: subject.name,
+      credits: subject.credits,
+      theory_hours: subject.theory_hours ?? 0,
+      practice_hours: subject.practice_hours ?? 0,
+      description: subject.description ?? "",
+    });
   }
 
   const handleDelete = async (subjectId: string) => {
     console.log(subjectId)
+    setIsLoading(true)
+    try {
+      const response = await apiDeleteSubject(subjectId)
+      if (response.status === 200) {
+        toast.success("Xóa môn học thành công")
+        handleGetSubjects()
+      } else {
+        toast.error(response.data.message || "Xóa môn học thất bại")
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleToggleStatus = async (subjectId: string) => {
-    console.log(subjectId)
+  const handleToggleStatus = async (subjectId: string, is_active: boolean) => {
+    setIsLoading(true);
+    try {
+      console.log("Toggling status for subject:", { subjectId, newStatus: !is_active });
+      const response = await apiToggleStatusSubject(subjectId, !is_active);
+      if (response.status === 200) {
+        toast.success("Cập nhật trạng thái thành công");
+        handleGetSubjects();
+      } else {
+        toast.error(response.data.message || "Cập nhật trạng thái thất bại");
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const handlePageClick = (page: number) => {
@@ -110,14 +159,15 @@ const SubjectManagement = () => {
       </div>
       <div>
         <SubjectTable
-          subjects={subjects}
+          subjects={subjectResponse?.data || []}
+          subjectCount={subjectResponse?.metadata.total || 0}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
-          page={page}
-          setPage={setPage}
-          totalPages={100}
+          isLoading={isLoading}
+          page={subjectResponse?.metadata.page || 1}
+          totalPages={subjectResponse?.metadata.last_page || 1}
           handleEdit={handleEdit}
           handleDelete={handleDelete}
           handlePageClick={handlePageClick}

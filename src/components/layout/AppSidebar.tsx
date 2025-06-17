@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Brain, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, Library, Monitor, PenTool, Settings, Trophy, Users } from 'lucide-react';
+import { BarChart3, BookOpen, Brain, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, Monitor, PenTool, Settings, Trophy, Users } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import Logo from '../../../public/images/svg/logo.svg'
 import LogoMini from '../../../public/images/svg/logo-mini.svg'
@@ -20,7 +20,7 @@ const AppSidebar = () => {
           { id: "dashboard", label: "Tổng quan", icon: Home, path: path.ADMIN.OVERVIEW },
           { id: "users", label: "Quản lý người dùng", icon: Users, path: path.ADMIN.USER },
           { id: "subjects", label: "Quản lý môn học", icon: BookOpen, path: path.ADMIN.SUBJECT },
-          { id: "semesters", label: "Năm học & Học kỳ", icon: Calendar },
+          { id: "semesters", label: "Năm học & Học kỳ", icon: Calendar, path: path.ADMIN.YEAR_SEMESTER },
           { id: "classes", label: "Lớp học phần", icon: GraduationCap },
           { id: "settings", label: "Cài đặt hệ thống", icon: Settings },
         ]

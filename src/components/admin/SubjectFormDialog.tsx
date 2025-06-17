@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { Button } from "../ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 
 interface SubjectFormDialogProps {
   form: UseFormReturn<SubjectFormData>;
@@ -18,7 +19,20 @@ interface SubjectFormDialogProps {
 
 const SubjectFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingSubject, setEditingSubject, onSubmit, isLoading }: SubjectFormDialogProps) => {
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={(open) => {
+      setIsDialogOpen(open);
+      if (!open) {
+        setEditingSubject(null);
+        form.reset({
+          code: "",
+          name: "",
+          credits: 0,
+          theory_hours: 0,
+          practice_hours: 0,
+          description: "",
+        });
+      }
+    }}>
       <DialogTrigger asChild>
         <Button className="bg-black hover:bg-black/80"
           onClick={() => {
@@ -86,9 +100,15 @@ const SubjectFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingSubject
                       <Input {...field}
                         type="number"
                         min={1}
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          const value = e.target.valueAsNumber;
+                          field.onChange(isNaN(value) ? 0 : value);
+                        }}
                         className={form.formState.errors.credits ? "border-red-500" : ""}
                       />
                     </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )} />
             </div>
@@ -96,14 +116,20 @@ const SubjectFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingSubject
               <div className="space-y-2">
                 <FormField
                   control={form.control}
-                  name="theoryHours"
+                  name="theory_hours"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Số tiết lý thuyết</FormLabel>
                       <FormControl>
                         <Input {...field}
                           type="number"
-                          className={form.formState.errors.theoryHours ? "border-red-500" : ""}
+                          min={0}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.valueAsNumber;
+                            field.onChange(isNaN(value) ? 0 : value);
+                          }}
+                          className={form.formState.errors.theory_hours ? "border-red-500" : ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -114,14 +140,20 @@ const SubjectFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingSubject
               <div className="space-y-2">
                 <FormField
                   control={form.control}
-                  name="practiceHours"
+                  name="practice_hours"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Số tiết thực hành</FormLabel>
                       <FormControl>
                         <Input {...field}
                           type="number"
-                          className={form.formState.errors.practiceHours ? "border-red-500" : ""}
+                          min={0}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.valueAsNumber;
+                            field.onChange(isNaN(value) ? 0 : value);
+                          }}
+                          className={form.formState.errors.practice_hours ? "border-red-500" : ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -130,11 +162,37 @@ const SubjectFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingSubject
                 />
               </div>
             </div>
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Mô tả</FormLabel>
+                    <FormControl>
+                      <Textarea {...field}
+                        rows={5}
+                        value={field.value || ""}
+                        className={form.formState.errors.description ? "border-red-500" : ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => {
-                setIsDialogOpen(false)
-                setEditingSubject(null)
-                form.reset()
+                setIsDialogOpen(false);
+                setEditingSubject(null);
+                form.reset({
+                  code: "",
+                  name: "",
+                  credits: 0,
+                  theory_hours: 0,
+                  practice_hours: 0,
+                  description: "",
+                });
               }}>
                 Hủy
               </Button>
