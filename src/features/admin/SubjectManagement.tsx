@@ -1,5 +1,5 @@
-import SubjectFormDialog from "@/components/admin/SubjectFormDialog";
-import SubjectTable from "@/components/admin/SubjectTable";
+import SubjectFormDialog from "@/components/admin/subject/SubjectFormDialog";
+import SubjectTable from "@/components/admin/subject/SubjectTable";
 import { apiCreateSubject, apiDeleteSubject, apiGetSubjects, apiToggleStatusSubject } from "@/services/admin/subject";
 import type { Subject, SubjectFormData } from "@/types/subjectType";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +18,7 @@ const SubjectSchema = z.object({
   description: z.string().optional().default(""),
 })
 
-interface SubjectResponse {
+export interface SubjectResponse {
   data: Subject[];
   metadata: {
     size: number;

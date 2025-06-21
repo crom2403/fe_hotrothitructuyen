@@ -15,10 +15,11 @@ export interface Semester {
   id: string;
   name: string;
   code: string;
-  year_name: string;
+  academic_year_id: string;
+  academic_year_code: string;
   start_date: string;
   end_date: string;
-  is_current: boolean;
+  is_current: number;
 }
 
 export interface SemesterForm {

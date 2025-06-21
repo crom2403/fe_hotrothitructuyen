@@ -1,11 +1,14 @@
-import SemesterFormDialog from "@/components/admin/SemesterFormDialog"
-import YearFormDialog from "@/components/admin/YearFormDialog"
-import YearSemesterTable from "@/components/admin/YearSemesterTable"
+import SemesterFormDialog from "@/components/admin/year_semester/SemesterFormDialog"
+import YearFormDialog from "@/components/admin/year_semester/YearFormDialog"
+import YearSemesterTable from "@/components/admin/year_semester/YearSemesterTable"
+import { apiCreateAcademicYear, apiGetAcademicYears, apiGetSemesters } from "@/services/admin/yearSemester"
 import type { Semester, Year } from "@/types/year_semesterType"
 import { zodResolver } from "@hookform/resolvers/zod"
+import type { AxiosError } from "axios"
 import { differenceInMonths } from "date-fns"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 import { z } from "zod"
 
 const yearFormSchema = z.object({
@@ -43,8 +46,20 @@ const semesterFormSchema = z
 type YearForm = z.infer<typeof yearFormSchema>
 type SemesterForm = z.infer<typeof semesterFormSchema>
 
+interface SemesterResponse {
+  data: Semester[];
+  metadata: {
+    size: number;
+    page: number;
+    last_page: number;
+    total: number;
+  };
+}
+
+
 const YearSemesterManagement = () => {
   const [isLoading, setIsLoading] = useState(false)
+  const [academicYears, setAcademicYears] = useState<Year[]>([])
   const [isYearFormDialogOpen, setIsYearFormDialogOpen] = useState(false)
   const [isSemesterFormDialogOpen, setIsSemesterFormDialogOpen] = useState(false)
   const [editingSemester, setEditingSemester] = useState<Semester | null>(null)
@@ -52,36 +67,38 @@ const YearSemesterManagement = () => {
   const [yearFilter, setYearFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [page, setPage] = useState(1)
+  const [semesterResponse, setSemesterResponse] = useState<SemesterResponse | null>(null)
 
-  const [semesters, setSemesters] = useState<Semester[]>([
-    {
-      id: "1",
-      name: "Học kỳ 1",
-      code: "HK1_2024",
-      year_name: "2024-2025",
-      start_date: "2024-09-01",
-      end_date: "2024-12-31",
-      is_current: true,
-    },
-    {
-      id: "2",
-      name: "Học kỳ 2",
-      code: "HK2_2024",
-      year_name: "2024-2025",
-      start_date: "2025-01-15",
-      end_date: "2025-05-31",
-      is_current: false,
-    },
-    {
-      id: "3",
-      name: "Học kỳ hè",
-      code: "HKH_2024",
-      year_name: "2024-2025",
-      start_date: "2025-06-01",
-      end_date: "2025-08-31",
-      is_current: false,
-    },
-  ])
+  // const [semesters, setSemesters] = useState<Semester[]>([
+  //   {
+  //     id: "1",
+  //     name: "Học kỳ 1",
+  //     code: "HK1_2024",
+  //     year_name: "2024-2025",
+  //     start_date: "2024-09-01",
+  //     end_date: "2024-12-31",
+  //     is_current: true,
+  //   },
+  //   {
+  //     id: "2",
+  //     name: "Học kỳ 2",
+  //     code: "HK2_2024",
+  //     year_name: "2024-2025",
+  //     start_date: "2025-01-15",
+  //     end_date: "2025-05-31",
+  //     is_current: false,
+  //   },
+  //   {
+  //     id: "3",
+  //     name: "Học kỳ hè",
+  //     code: "HKH_2024",
+  //     year_name: "2024-2025",
+  //     start_date: "2025-06-01",
+  //     end_date: "2025-08-31",
+  //     is_current: false,
+  //   },
+  // ])
+
 
   const yearForm = useForm<YearForm>({
     resolver: zodResolver(yearFormSchema),
@@ -102,37 +119,67 @@ const YearSemesterManagement = () => {
     },
   })
 
+  useEffect(() => {
+    handleGetAcademicYears()
+  }, [isSemesterFormDialogOpen])
+
   const handleYearFormSubmit = async (data: YearForm) => {
     console.log(data)
+    setIsLoading(true)
+    try {
+      const response = await apiCreateAcademicYear(data)
+      if (response.status === 200) {
+        toast.success("Tạo năm học thành công")
+        handleGetAcademicYears()
+        setIsYearFormDialogOpen(false)
+        yearForm.reset()
+        handleGetAcademicYears()
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    handleGetSemesters()
+  }, [page, statusFilter, yearFilter])
+
+  const handleGetSemesters = async () => {
+    setIsLoading(true)
+    try {
+      const response = await apiGetSemesters(page, statusFilter, yearFilter)
+      if (response.status === 200) {
+        setSemesterResponse(response.data)
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSemesterFormSubmit = async (data: SemesterForm) => {
     console.log(data)
   }
 
-  const academicYears: Year[] = [
-    {
-      id: "1",
-      code: "2024-2025",
-      start_year: 2024,
-      end_year: 2025,
-      is_current: true,
-    },
-    {
-      id: "2",
-      code: "2025-2026",
-      start_year: 2025,
-      end_year: 2026,
-      is_current: false,
-    },
-    {
-      id: "3",
-      code: "2026-2027",
-      start_year: 2026,
-      end_year: 2027,
-      is_current: false,
-    },
-  ]
+  const handleGetAcademicYears = async () => {
+    try {
+      const response = await apiGetAcademicYears()
+      if (response.status === 200) {
+        setAcademicYears(response.data.data)
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    }
+  }
 
   const handleEdit = (semester: Semester) => {
     setEditingSemester(semester)
@@ -180,16 +227,17 @@ const YearSemesterManagement = () => {
       </div>
       <div>
         <YearSemesterTable
-          semesters={semesters}
+          semesters={semesterResponse?.data || []}
           academicYears={academicYears}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
+          isLoading={isLoading}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
-          page={page}
-          totalPages={100}
+          page={semesterResponse?.metadata.page || 1}
+          totalPages={semesterResponse?.metadata.last_page || 1}
           handleEdit={handleEdit}
           handleDelete={handleDelete}
           handlePageClick={handlePageClick}

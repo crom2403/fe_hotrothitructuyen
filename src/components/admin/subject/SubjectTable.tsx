@@ -1,18 +1,18 @@
 import type { Subject } from "@/types/subjectType"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
-import { Input } from "../ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { BookOpen, Edit, Search, MoreHorizontal, Trash2, Eye, Loader2 } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu"
-import { Button } from "../ui/button"
-import Paginate from "../common/Pagination"
-import { Badge } from "../ui/badge"
-import SubjectDetail from "./SubjectDetail"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import Paginate from "@/components/common/Pagination"
+import { Badge } from "@/components/ui/badge"
+import SubjectDetail from "@/components/admin/subject/SubjectDetail"
 import { useEffect, useState } from "react"
-import { Dialog } from "../ui/dialog"
-import DeleteDialog from "../common/DeleteDialog"
-import { AlertDialog } from "../ui/alert-dialog"
+import { Dialog } from "@/components/ui/dialog"
+import DeleteDialog from "@/components/common/DeleteDialog"
+import { AlertDialog } from "@/components/ui/alert-dialog"
 
 interface SubjectTableProps {
   subjects: Subject[]
@@ -108,20 +108,25 @@ const SubjectTable = ({ subjects, subjectCount, searchTerm, setSearchTerm, statu
         </div>
 
         {/* Table */}
-        {isLoading ? <div className="flex justify-center items-center h-96">
-          <Loader2 className="w-10 h-10 animate-spin" />
-        </div> : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mã môn học</TableHead>
-                <TableHead>Tên môn học</TableHead>
-                <TableHead>Số tín chỉ</TableHead>
-                <TableHead>Số tiết học</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead>Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Mã môn học</TableHead>
+              <TableHead>Tên môn học</TableHead>
+              <TableHead>Số tín chỉ</TableHead>
+              <TableHead>Số tiết học</TableHead>
+              <TableHead>Trạng thái</TableHead>
+              <TableHead>Thao tác</TableHead>
+            </TableRow>
+          </TableHeader>
+          {isLoading ? <TableRow>
+            <TableCell colSpan={6} className="text-center py-8">
+              <div className="flex justify-center items-center h-32">
+                <Loader2 className="w-10 h-10 animate-spin" />
+              </div>
+            </TableCell>
+          </TableRow> : (
             <TableBody>
               {filteredSubjects.map((subject) => (
                 <TableRow key={subject.id}>
@@ -164,8 +169,8 @@ const SubjectTable = ({ subjects, subjectCount, searchTerm, setSearchTerm, statu
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
-        )}
+          )}
+        </Table>
         <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
 
         <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>

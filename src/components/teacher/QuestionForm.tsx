@@ -51,7 +51,7 @@ const QuestionForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <div className='space-y-2'>
           <FormField
             control={form.control}
             name="subject"
@@ -71,23 +71,6 @@ const QuestionForm = ({
                       ))}
                     </SelectContent>
                   </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="topic"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Chủ đề</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Nhập chủ đề"
-                    {...field}
-                    className='w-full'
-                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -178,10 +161,6 @@ const QuestionForm = ({
               </FormItem>
             )}
           />
-          <Button type='button' variant='outline' size="sm">
-            <ImageIcon className="mr-2 h-4 w-4" />
-            Thêm hình ảnh
-          </Button>
         </div>
 
         {/* Dạng câu hỏi */}

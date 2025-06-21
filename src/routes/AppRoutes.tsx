@@ -19,6 +19,7 @@ const StudentOverview = lazy(() => import("@/features/student/Overview"));
 const SubjectManagement = lazy(() => import("@/features/admin/SubjectManagement"));
 const YearSemesterManagement = lazy(() => import("@/features/admin/YearSemesterManagement"));
 const AccessDeniedPage = lazy(() => import("@/components/accessDenied/AccessDeniedPage"));
+const AdminStudyGroupManagement = lazy(() => import("@/features/admin/StudyGroupManagement"));
 
 const AppRoutes = () => {
   return (
@@ -93,6 +94,15 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <YearSemesterManagement />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={path.ADMIN.STUDY_GROUP}
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminStudyGroupManagement />
               </ProtectedRoute>
             }
           />

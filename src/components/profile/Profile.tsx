@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Button } from "../ui/button"
-import { Camera, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Camera, Eye, EyeOff, Loader2, Mail } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
@@ -16,6 +16,7 @@ const profileSchema = z.object({
   code: z.string(),
   phone: z.string().min(10, { message: "Số điện thoại không hợp lệ" }).optional(),
   email: z.string().email({ message: "Email không hợp lệ" }).optional(),
+  date_of_birth: z.string().optional(),
 })
 
 const passwordSchema = z.object({
@@ -45,6 +46,8 @@ const Profile = () => {
     confirm: false,
   })
 
+  console.log(currentUser)
+
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -52,6 +55,7 @@ const Profile = () => {
       code: currentUser?.code || "",
       phone: currentUser?.phone || "",
       email: currentUser?.email || "",
+      date_of_birth: currentUser?.date_of_birth || "",
     },
   })
 
@@ -76,10 +80,10 @@ const Profile = () => {
           <p className="text-gray-600">{currentUser?.role_code}</p>
           <p className="text-sm text-gray-500">{currentUser?.email}</p>
         </div>
-        <Button variant={"outline"} className="flex items-center gap-2">
+        {/* <Button variant={"outline"} className="flex items-center gap-2">
           <Camera className="h-4 w-4" />
           Thay đổi ảnh
-        </Button>
+        </Button> */}
       </div>
 
       <Tabs defaultValue="profile" className="space-y-4">
@@ -128,39 +132,88 @@ const Profile = () => {
                     />
                   </div>
                   <div className="space-y-3">
-                    <FormField
-                      control={profileForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email liên lạc</FormLabel>
-                          <FormControl>
-                            <div>
-                              <Input {...field} placeholder="Nhập email" className="w-full" />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={profileForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Số điện thoại</FormLabel>
+                            <FormControl>
+                              <div>
+                                <Input {...field} placeholder="Nhập số điện thoại"
+                                  className="w-full"
+                                  disabled={true}
+                                />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={profileForm.control}
+                        name="date_of_birth"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Ngày sinh</FormLabel>
+                            <FormControl>
+                              <Input {...field} placeholder="Nhập ngày sinh" className="w-full" disabled />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <div className="flex gap-4">
+                      {
+                        currentUser?.email ? (
+                          <FormField
+                            control={profileForm.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel>Email liên lạc</FormLabel>
+                                <FormControl>
+                                  <div>
+                                    <Input {...field} placeholder="Nhập email" className="w-full" disabled />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ) : (
+                          <div className="flex gap-4 items-end">
+                            <FormField
+                              control={profileForm.control}
+                              name="email"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Email liên lạc</FormLabel>
+                                  <FormControl>
+                                    <div className="flex-1 min-w-[640px]">
+                                      <Input {...field} placeholder="Nhập email" className="w-full" />
+                                    </div>
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <div className="flex items-end justify-end">
+                              <Button variant={"outline"} className="flex items-center gap-2">
+                                <Mail className="h-4 w-4" />
+                                Liên kết Google
+                              </Button>
                             </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={profileForm.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Số điện thoại</FormLabel>
-                          <FormControl>
-                            <div>
-                              <Input {...field} placeholder="Nhập số điện thoại" className="w-full" />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                          </div>
+                        )
+                      }
+
+                    </div>
                   </div>
 
-                  <Button type="submit" className="bg-black" disabled={isLoading}>
+                  {/* <Button type="submit" className="bg-black" disabled={isLoading}>
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -169,7 +222,7 @@ const Profile = () => {
                     ) : (
                       "Cập nhật thông tin"
                     )}
-                  </Button>
+                  </Button> */}
                 </form>
               </Form>
             </CardContent>

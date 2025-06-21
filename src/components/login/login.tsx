@@ -49,16 +49,16 @@ const Login = () => {
         login(access_token, refresh_token);
         const res = await apiGetCurrentUser();
         if (res.status === 200) {
-          const { data } = res;
-          getCurrentUser(data);
-          if (currentUser?.role_code === "student") {
-            navigate(path.STUDENT.OVERVIEW)
-          } else if (currentUser?.role_code === "teacher") {
-            navigate(path.TEACHER.OVERVIEW)
-          } else if (currentUser?.role_code === "admin") {
-            navigate(path.ADMIN.OVERVIEW)
+          const userData = res.data;
+          getCurrentUser(userData);
+          if (userData.role_code === "student") {
+            navigate(path.STUDENT.OVERVIEW);
+          } else if (userData.role_code === "teacher") {
+            navigate(path.TEACHER.OVERVIEW);
+          } else if (userData.role_code === "admin") {
+            navigate(path.ADMIN.OVERVIEW);
           }
-          toast.success("Đăng nhập thành công")
+          toast.success("Đăng nhập thành công");
         } else {
           toast.error(res.data.message || "Lấy thông tin người dùng thất bại")
         }
