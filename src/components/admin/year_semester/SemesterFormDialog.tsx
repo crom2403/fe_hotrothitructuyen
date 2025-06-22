@@ -10,7 +10,7 @@ import { CalendarIcon, PlusIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Calendar } from "../ui/calendar";
+import { Calendar } from "../../ui/calendar";
 
 interface SemesterFormDialogProps {
   form: UseFormReturn<SemesterForm>;
@@ -129,7 +129,7 @@ const SemesterFormDialog = ({
                       </SelectTrigger>
                       <SelectContent>
                         {years.map((year) => (
-                          <SelectItem key={year.code} value={year.code}>
+                          <SelectItem key={year.id} value={year.id}>
                             {year.code}
                           </SelectItem>
                         ))}

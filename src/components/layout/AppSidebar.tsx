@@ -21,18 +21,19 @@ const AppSidebar = () => {
           { id: "users", label: "Quản lý người dùng", icon: Users, path: path.ADMIN.USER },
           { id: "subjects", label: "Quản lý môn học", icon: BookOpen, path: path.ADMIN.SUBJECT },
           { id: "semesters", label: "Năm học & Học kỳ", icon: Calendar, path: path.ADMIN.YEAR_SEMESTER },
-          { id: "classes", label: "Lớp học phần", icon: GraduationCap },
-          { id: "settings", label: "Cài đặt hệ thống", icon: Settings },
+          { id: "classes", label: "Lớp học phần", icon: GraduationCap, path: path.ADMIN.STUDY_GROUP },
+          // { id: "settings", label: "Cài đặt hệ thống", icon: Settings },
         ]
       case "teacher":
         return [
           { id: "dashboard", label: "Tổng quan", icon: Home, path: path.TEACHER.OVERVIEW },
-          { id: "questions", label: "Ngân hàng câu hỏi", icon: Database, path: path.TEACHER.QUESTION_BANK },
-          { id: "create-exam", label: "Tạo đề thi", icon: PenTool },
+          { id: "questions", label: "Câu hỏi", icon: Database, path: path.TEACHER.QUESTION_BANK },
+          { id: "create-exam", label: "Tạo đề thi", icon: PenTool, path: path.TEACHER.EXAM },
           { id: "exams", label: "Quản lý đề thi", icon: ClipboardList },
-          { id: "exam-rooms", label: "Phòng thi", icon: Monitor },
+          { id: "classes", label: "Lớp học phần", icon: GraduationCap },
+          // { id: "exam-rooms", label: "Phòng thi", icon: Monitor },
           { id: "results", label: "Kết quả & Báo cáo", icon: BarChart3 },
-          { id: "ai-exam", label: "Tạo đề thi AI", icon: Brain },
+          // { id: "ai-exam", label: "Tạo đề thi AI", icon: Brain },
         ]
       case "student":
         return [

@@ -1,14 +1,17 @@
 import type { User } from "@/types/userType";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Edit, MoreHorizontal, Search, Unlock, Lock, Trash2 } from "lucide-react";
-import { Input } from "../ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { Badge } from "../ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card";
+import { Edit, MoreHorizontal, Search, Unlock, Lock, Trash2, Eye } from "lucide-react";
+import { Input } from "../../ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/table";
+import { Badge } from "../../ui/badge";
 import { cn } from "@/lib/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
-import Paginate from "../common/Pagination";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../ui/dropdown-menu";
+import { Button } from "../../ui/button";
+import Paginate from "../../common/Pagination";
+import { useState } from "react";
+import { Dialog } from "../../ui/dialog";
+import UserDetail from "./UserDetail";
 
 interface UserTableProps {
   users: User[];
@@ -25,6 +28,9 @@ interface UserTableProps {
 }
 
 const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, totalPages, handleEdit, handleToggleStatus, handleDelete, handlePageClick }: UserTableProps) => {
+  const [isOpenDetailUser, setIsOpenDetailUser] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,6 +64,11 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
         return "outline";
     }
   };
+
+  const openDetailUser = (user: User) => {
+    setSelectedUser(user)
+    setIsOpenDetailUser(true)
+  }
 
   return (
     <Card>
@@ -123,6 +134,10 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openDetailUser(user)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Xem chi tiết
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(user)}>
                           <Edit className="mr-2 h-4 w-4" />
                           Chỉnh sửa
@@ -140,10 +155,12 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
                             </>
                           )}
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(user.code)} className="text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Xóa
-                        </DropdownMenuItem>
+                        {user.role !== "admin" && (
+                          <DropdownMenuItem onClick={() => handleDelete(user.code)} className="text-red-600">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Xóa
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -159,8 +176,12 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
             </TableRow>
           </TableBody>
         )}
+        <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
+
+        <Dialog open={isOpenDetailUser} onOpenChange={setIsOpenDetailUser}>
+          <UserDetail user={selectedUser} />
+        </Dialog>
       </CardContent>
-      <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
     </Card>
   )
 }

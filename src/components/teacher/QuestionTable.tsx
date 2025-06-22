@@ -1,7 +1,7 @@
 import type { Question } from "@/types/questionType"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Input } from "../ui/input"
-import { Edit, MoreHorizontal, Search, Trash2 } from "lucide-react"
+import { Edit, Eye, MoreHorizontal, Search, Trash2 } from "lucide-react"
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "../ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
 import { Badge } from "../ui/badge"
@@ -32,7 +32,7 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
   const filteredQuestions = questions.filter((question) => {
     const matchesSearch = question.content.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = subjectFilter === "all" || question.subject === subjectFilter;
-    const matchesType = typeFilter === "all" || question.type === typeFilter;
+    const matchesType = typeFilter === "all" || question.type_id === typeFilter;
     const matchesDifficulty = difficultyFilter === "all" || question.difficulty === difficultyFilter;
     return matchesSearch && matchesSubject && matchesType && matchesDifficulty;
   })
@@ -128,7 +128,7 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
               <TableHead>Chủ đề</TableHead>
               <TableHead>Loại</TableHead>
               <TableHead>Độ khó</TableHead>
-              <TableHead>Điểm</TableHead>
+              <TableHead>Trạng thái</TableHead>
               <TableHead>Thao tác</TableHead>
             </TableRow>
           </TableHeader>
@@ -143,14 +143,14 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
                 <TableCell>{question.subject}</TableCell>
                 <TableCell>{question.topic}</TableCell>
                 <TableCell>
-                  <Badge variant="outline">{getTypeText(question.type)}</Badge>
+                  <Badge variant="outline">{getTypeText(question.type_id)}</Badge>
                 </TableCell>
                 <TableCell>
                   <Badge className={getDifficultyColor(question.difficulty)}>
                     {getDifficultyText(question.difficulty)}
                   </Badge>
                 </TableCell>
-                <TableCell>{question.points}</TableCell>
+                <TableCell>{question.is_public}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger>
@@ -159,10 +159,20 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(question)}>
-                        <Edit className="mr-2 h-4 w-4 text-primary" />
-                        Chỉnh sửa
+                      <DropdownMenuItem onClick={() => {
+                        
+                      }}>
+                        <Eye className="mr-2 h-4 w-4 text-primary" />
+                        Xem chi tiết
                       </DropdownMenuItem>
+                      {
+                        question.is_public === false && (
+                          <DropdownMenuItem onClick={() => handleEdit(question)}>
+                            <Edit className="mr-2 h-4 w-4 text-primary" />
+                            Chỉnh sửa
+                          </DropdownMenuItem>
+                        )
+                      }
                       <DropdownMenuItem onClick={() => handleDelete(question.id)} className="text-red-600">
                         <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                         Xóa

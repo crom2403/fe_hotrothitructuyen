@@ -2,8 +2,8 @@ import type { SubjectFormData } from "@/types/subjectType";
 import instance from "../instance";
 import apiRoutes from "../apiRoutes";
 
-export const apiGetSubjects = async (page: number, is_active: string, name: string) => {
-  let query = `/subject?page=${page}`
+export const apiGetSubjects = async (page: number, is_active?: string, name?: string, size?: number) => {
+  let query = apiRoutes.admin.subject + `?page=${page}`
   if (is_active === "active") {
     query += `&is_active=1`
   } else if (is_active === "inactive") {
@@ -11,6 +11,9 @@ export const apiGetSubjects = async (page: number, is_active: string, name: stri
   }
   if (name) {
     query += `&name=${name}`
+  }
+  if (size) {
+    query += `&size=${size}`
   }
   return instance.get(query)
 }

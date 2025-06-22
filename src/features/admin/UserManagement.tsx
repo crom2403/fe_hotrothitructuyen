@@ -1,6 +1,6 @@
-import UserFormDialog from "@/components/admin/UserFormDialog"
-import UserTable from "@/components/admin/UserTable"
-import type { User, UserFormData } from "@/types/userType"
+import UserFormDialog from "@/components/admin/user/UserFormDialog"
+import UserTable from "@/components/admin/user/UserTable"
+import type { User, UserFormData, UserInfoResponse } from "@/types/userType"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -17,6 +17,16 @@ const userSchema = z.object({
   birthDate: z.date(),
   gender: z.enum(["male", "female"]),
 })
+
+export interface UserResponse {
+  data: UserInfoResponse[];
+  metadata: {
+    size: number;
+    page: number;
+    last_page: number;
+    total: number;
+  };
+}
 
 const UserManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -115,7 +125,6 @@ const UserManagement = () => {
           roleFilter={roleFilter}
           setRoleFilter={setRoleFilter}
           page={page}
-          setPage={setPage}
           totalPages={100}
           handleEdit={handleEdit}
           handleToggleStatus={handleToggleStatus}

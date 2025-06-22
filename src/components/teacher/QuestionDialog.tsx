@@ -9,9 +9,11 @@ import {
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
 import QuestionForm from "./QuestionForm";
-import type { QuestionFormData } from "@/features/teacher/QuestionBank";
+import type { QuestionFormData, QuestionType } from "@/types/questionType";
 import type { UseFormReturn } from "react-hook-form";
 import type { Question } from "@/types/questionType";
+import type { DifficultyLevel } from "@/types/difficultyLevelType";
+import type { Subject } from "@/types/subjectType";
 
 interface QuestionDialogProps {
   isDialogOpen: boolean;
@@ -22,10 +24,16 @@ interface QuestionDialogProps {
   onSubmit: (data: QuestionFormData) => void;
   isLoading: boolean;
   questionType: string;
+  questionTypes: QuestionType[];
+  isLoadingQuestionTypes: boolean;
+  difficultyLevels: DifficultyLevel[];
+  isLoadingDifficultyLevels: boolean;
   addOption: () => void;
   removeOption: (index: number) => void;
   updateOption: (index: number, value: string) => void;
   toggleCorrectAnswer: (index: number) => void;
+  subjects: Subject[];
+  isLoadingSubjects: boolean;
 }
 
 const QuestionDialog = ({
@@ -37,10 +45,16 @@ const QuestionDialog = ({
   onSubmit,
   isLoading,
   questionType,
+  questionTypes,
+  isLoadingQuestionTypes,
+  difficultyLevels,
+  isLoadingDifficultyLevels,
   addOption,
   removeOption,
   updateOption,
   toggleCorrectAnswer,
+  subjects,
+  isLoadingSubjects,
 }: QuestionDialogProps) => {
   return (
     <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -67,14 +81,20 @@ const QuestionDialog = ({
         </DialogHeader>
         <QuestionForm
           form={form}
-          onSubmit={onSubmit}
+          onSubmit={onSubmit} 
           editingQuestion={editingQuestion}
           isLoading={isLoading}
+          isLoadingQuestionTypes={isLoadingQuestionTypes}
           questionType={questionType}
+          questionTypes={questionTypes}
           addOption={addOption}
           removeOption={removeOption}
           updateOption={updateOption}
           toggleCorrectAnswer={toggleCorrectAnswer}
+          difficultyLevels={difficultyLevels}
+          isLoadingDifficultyLevels={isLoadingDifficultyLevels}
+          subjects={subjects}
+          isLoadingSubjects={isLoadingSubjects}
         />
       </DialogContent>
     </Dialog>

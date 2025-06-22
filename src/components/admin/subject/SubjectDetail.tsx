@@ -2,11 +2,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
+} from "@/components/ui/dialog";
 import type { Subject } from "@/types/subjectType";
-import { Badge } from "../ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle } from "lucide-react";
-import Info from "../common/Info";
+import Info from "@/components/common/Info";
 
 interface SubjectDetailProps {
   subject: Subject | null;

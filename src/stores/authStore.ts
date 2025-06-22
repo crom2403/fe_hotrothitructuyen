@@ -9,16 +9,16 @@ export interface Role {
 
 export interface CurrentUser {
   id: string,
-    code: string,
-    email: string | null,
-    full_name:string,
-    avatar: string,
-    phone: string | null,
-    gender: string,
-    date_of_birth: string | null,
-    role_id: string,
-    role_code: string,
-    role_name: string
+  code: string,
+  email: string | null,
+  full_name:string,
+  avatar: string,
+  phone: string | null,
+  gender: string,
+  date_of_birth: string | null,
+  role_id: string,
+  role_code: string,
+  role_name: string
 }
 
 interface AuthStore {
