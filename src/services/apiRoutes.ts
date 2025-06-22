@@ -8,6 +8,7 @@ const apiRoutes = {
   resetPassword: "/auth/password/confirm",
   googleVerify: "/auth/google/verify",
   googleConfirm: "/auth/google/confirm",
+  difficultyLevel: "/difficulty-levels",
   admin: {
     overview: "/admin/overview",
     study_group: "/study-groups",
@@ -26,7 +27,7 @@ const apiRoutes = {
     overview: "/teacher/overview",
     study_group: "/study-group/teacher",
     study_group_detail: "/study-group/detail",
-    question: "/teacher/question",
+    question: "/questions",
     user: "/teacher/user",
     module: "/teacher/module",
     assignment: "/teacher/assignment",

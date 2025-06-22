@@ -5,6 +5,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import MainLayout from "@/components/layout/MainLayout";
 import Loading from "../../public/loading.gif"
 import OTPConfirmation from "@/components/forgotPassword/OTPConfirmation";
+import CreateExam from "@/features/teacher/CreateExam";
 
 // Lazy load components
 const Login = lazy(() => import("@/components/login/login"));
@@ -60,6 +61,15 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute allowedRoles={["teacher"]}>
                 <QuestionBank />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={path.TEACHER.EXAM}
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <CreateExam />
               </ProtectedRoute>
             }
           />
