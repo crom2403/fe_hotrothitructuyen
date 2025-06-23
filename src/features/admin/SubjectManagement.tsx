@@ -1,7 +1,7 @@
 import SubjectFormDialog from "@/components/admin/subject/SubjectFormDialog";
 import SubjectTable from "@/components/admin/subject/SubjectTable";
 import { apiCreateSubject, apiDeleteSubject, apiGetSubjects, apiToggleStatusSubject } from "@/services/admin/subject";
-import type { Subject, SubjectFormData } from "@/types/subjectType";
+import type { Subject, SubjectFormData, SubjectResponse } from "@/types/subjectType";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { AxiosError } from "axios";
 import { useEffect, useState } from "react";
@@ -17,16 +17,6 @@ const SubjectSchema = z.object({
   practice_hours: z.number().optional().default(0),
   description: z.string().optional().default(""),
 })
-
-export interface SubjectResponse {
-  data: Subject[];
-  metadata: {
-    size: number;
-    page: number;
-    last_page: number;
-    total: number;
-  };
-}
 
 const SubjectManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

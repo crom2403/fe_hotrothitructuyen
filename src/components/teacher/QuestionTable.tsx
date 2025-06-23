@@ -1,4 +1,4 @@
-import type { Question } from "@/types/questionType"
+import type { QuestionRequest } from "@/types/questionType"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Input } from "../ui/input"
 import { Edit, Eye, MoreHorizontal, Search, Trash2 } from "lucide-react"
@@ -8,9 +8,10 @@ import { Badge } from "../ui/badge"
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { Button } from "../ui/button"
 import Paginate from "../common/Pagination"
+import useAuthStore from "@/stores/authStore"
 
 interface QuestionTableProps {
-  questions: Question[],
+  questions: QuestionRequest[],
   searchTerm: string,
   setSearchTerm: (term: string) => void,
   subjectFilter: string,
@@ -20,14 +21,13 @@ interface QuestionTableProps {
   difficultyFilter: string,
   setDifficultyFilter: (difficulty: string) => void,
   page: number,
-  setPage: (page: number) => void,
   totalPages: number,
-  handleEdit: (question: Question) => void,
-  handleDelete: (questionId: string) => void,
+  handleEdit?: (question: QuestionRequest) => void,
+  handleDelete?: (questionId: string) => void,
   handlePageClick: (page: number) => void,
 }
 
-const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, typeFilter, setTypeFilter, difficultyFilter, setDifficultyFilter, page, setPage, totalPages, handleEdit, handleDelete, handlePageClick }: QuestionTableProps) => {
+const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, typeFilter, setTypeFilter, difficultyFilter, setDifficultyFilter, page, totalPages, handleEdit, handleDelete, handlePageClick }: QuestionTableProps) => {
 
   const filteredQuestions = questions.filter((question) => {
     const matchesSearch = question.content.toLowerCase().includes(searchTerm.toLowerCase());
@@ -159,21 +159,19 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => {
-                        
-                      }}>
+                      <DropdownMenuItem onClick={() => {}}>
                         <Eye className="mr-2 h-4 w-4 text-primary" />
                         Xem chi tiết
                       </DropdownMenuItem>
                       {
                         question.is_public === false && (
-                          <DropdownMenuItem onClick={() => handleEdit(question)}>
+                          <DropdownMenuItem onClick={() => handleEdit?.(question)}>
                             <Edit className="mr-2 h-4 w-4 text-primary" />
                             Chỉnh sửa
                           </DropdownMenuItem>
                         )
                       }
-                      <DropdownMenuItem onClick={() => handleDelete(question.id)} className="text-red-600">
+                      <DropdownMenuItem onClick={() => handleDelete?.(question.id)} className="text-red-600">
                         <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                         Xóa
                       </DropdownMenuItem>

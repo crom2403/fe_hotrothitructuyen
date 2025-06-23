@@ -17,3 +17,13 @@ export interface SubjectFormData {
   practice_hours?: number
   credits: number
 }
+
+export interface SubjectResponse {
+  data: Subject[];
+  metadata: {
+    size: number;
+    page: number;
+    last_page: number;
+    total: number;
+  };
+}

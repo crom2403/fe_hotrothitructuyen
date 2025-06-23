@@ -22,6 +22,7 @@ const AppSidebar = () => {
           { id: "subjects", label: "Quản lý môn học", icon: BookOpen, path: path.ADMIN.SUBJECT },
           { id: "semesters", label: "Năm học & Học kỳ", icon: Calendar, path: path.ADMIN.YEAR_SEMESTER },
           { id: "classes", label: "Lớp học phần", icon: GraduationCap, path: path.ADMIN.STUDY_GROUP },
+          { id: "questions", label: "Quản lý câu hỏi", icon: Database, path: path.ADMIN.QUESTION },
           // { id: "settings", label: "Cài đặt hệ thống", icon: Settings },
         ]
       case "teacher":

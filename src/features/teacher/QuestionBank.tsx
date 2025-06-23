@@ -5,7 +5,7 @@ import { Tabs, TabsTrigger, TabsList, TabsContent } from "@/components/ui/tabs";
 import { apiGetSubjects } from "@/services/admin/subject";
 import { apiCreateQuestion, apiGetDifficultyLevels, apiGetQuestionTypes } from "@/services/teacher/question";
 import type { DifficultyLevel } from "@/types/difficultyLevelType";
-import type { Question, QuestionFormData, QuestionTypeResponse } from "@/types/questionType";
+import type { QuestionRequest, QuestionFormData, QuestionTypeResponse } from "@/types/questionType";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { AxiosError } from "axios";
 import { Upload } from "lucide-react"
@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import type { SubjectResponse } from "../admin/SubjectManagement";
+import type { SubjectResponse } from "@/types/subjectType";
 
 const questionSchema = z.object({
   content: z.string().min(1, "Nội dung câu hỏi không được để trống"),
@@ -25,14 +25,65 @@ const questionSchema = z.object({
   explanation: z.string().optional(),
   is_public: z.boolean().default(false),
 });
-
+export const questions: QuestionRequest[] = [
+  {
+    id: "1",
+    content: "<p>React là gì?</p>",
+    type_id: "a883bd65-4b9b-11f0-8936-862ccfb06bcd",
+    subject: "web",
+    topic: "React Basics",
+    difficulty: "easy",
+    answers: [
+      { content: "Thư viện JavaScript", is_correct: true, order_index: 0 },
+      { content: "Framework PHP", is_correct: false, order_index: 1 },
+      { content: "Ngôn ngữ lập trình", is_correct: false, order_index: 2 },
+      { content: "Cơ sở dữ liệu", is_correct: false, order_index: 3 },
+    ],
+    explanation: "<p>React là một thư viện JavaScript để xây dựng giao diện người dùng.</p>",
+    is_public: false,
+  },
+  {
+    id: "2",
+    content: "<p>Những công nghệ nào sau đây thuộc về Frontend?</p>",
+    type_id: "a883b649-4b9b-11f0-8936-862ccfb06bcd",
+    subject: "network",
+    topic: "Frontend Technologies",
+    difficulty: "medium",
+    answers: [
+      { content: "HTML", is_correct: true, order_index: 0 },
+      { content: "CSS", is_correct: true, order_index: 1 },
+      { content: "JavaScript", is_correct: true, order_index: 2 },
+      { content: "MySQL", is_correct: false, order_index: 3 },
+      { content: "React", is_correct: true, order_index: 4 },
+      { content: "Node.js", is_correct: false, order_index: 5 },
+    ],
+    is_public: false,
+  },
+  {
+    id: "3",
+    content: "<p>Những công nghệ nào sau đây thuộc về Backend?</p>",
+    type_id: "a883b649-4b9b-11f0-8936-862ccfb06bcd",
+    subject: "web",
+    topic: "Backend Technologies",
+    difficulty: "medium",
+    answers: [
+      { content: "HTML", is_correct: false, order_index: 0 },
+      { content: "CSS", is_correct: false, order_index: 1 },
+      { content: "JavaScript", is_correct: false, order_index: 2 },
+      { content: "MySQL", is_correct: true, order_index: 3 },
+      { content: "React", is_correct: false, order_index: 4 },
+      { content: "Node.js", is_correct: true, order_index: 5 },
+    ],
+    is_public: false,
+  },
+];
 const QuestionBank = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [editingQuestion, setEditingQuestion] = useState<QuestionRequest | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingQuestionTypes, setIsLoadingQuestionTypes] = useState(false);
   const [isLoadingDifficultyLevels, setIsLoadingDifficultyLevels] = useState(false);
@@ -56,58 +107,7 @@ const QuestionBank = () => {
     },
   });
 
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: "1",
-      content: "<p>React là gì?</p>",
-      type_id: "a883bd65-4b9b-11f0-8936-862ccfb06bcd",
-      subject: "web",
-      topic: "React Basics",
-      difficulty: "easy",
-      answers: [
-        { content: "Thư viện JavaScript", is_correct: true, order_index: 0 },
-        { content: "Framework PHP", is_correct: false, order_index: 1 },
-        { content: "Ngôn ngữ lập trình", is_correct: false, order_index: 2 },
-        { content: "Cơ sở dữ liệu", is_correct: false, order_index: 3 },
-      ],
-      explanation: "<p>React là một thư viện JavaScript để xây dựng giao diện người dùng.</p>",
-      is_public: false,
-    },
-    {
-      id: "2",
-      content: "<p>Những công nghệ nào sau đây thuộc về Frontend?</p>",
-      type_id: "a883b649-4b9b-11f0-8936-862ccfb06bcd",
-      subject: "network",
-      topic: "Frontend Technologies",
-      difficulty: "medium",
-      answers: [
-        { content: "HTML", is_correct: true, order_index: 0 },
-        { content: "CSS", is_correct: true, order_index: 1 },
-        { content: "JavaScript", is_correct: true, order_index: 2 },
-        { content: "MySQL", is_correct: false, order_index: 3 },
-        { content: "React", is_correct: true, order_index: 4 },
-        { content: "Node.js", is_correct: false, order_index: 5 },
-      ],
-      is_public: false,
-    },
-    {
-      id: "3",
-      content: "<p>Những công nghệ nào sau đây thuộc về Backend?</p>",
-      type_id: "a883b649-4b9b-11f0-8936-862ccfb06bcd",
-      subject: "web",
-      topic: "Backend Technologies",
-      difficulty: "medium",
-      answers: [
-        { content: "HTML", is_correct: false, order_index: 0 },
-        { content: "CSS", is_correct: false, order_index: 1 },
-        { content: "JavaScript", is_correct: false, order_index: 2 },
-        { content: "MySQL", is_correct: true, order_index: 3 },
-        { content: "React", is_correct: false, order_index: 4 },
-        { content: "Node.js", is_correct: true, order_index: 5 },
-      ],
-      is_public: false,
-    },
-  ]);
+
 
   const handleGetQuestionTypes = async () => {
     setIsLoadingQuestionTypes(true);
@@ -243,7 +243,7 @@ const QuestionBank = () => {
     }
   };
 
-  const handleEdit = (question: Question) => {
+  const handleEdit = (question: QuestionRequest) => {
     setEditingQuestion(question);
     // form.reset({
     //   content: question.content,
@@ -322,7 +322,6 @@ const QuestionBank = () => {
             difficultyFilter={difficultyFilter}
             setDifficultyFilter={setDifficultyFilter}
             page={page}
-            setPage={setPage}
             totalPages={100}
             handleEdit={handleEdit}
             handleDelete={handleDelete}
@@ -342,8 +341,7 @@ const QuestionBank = () => {
             difficultyFilter={difficultyFilter}
             setDifficultyFilter={setDifficultyFilter}
             page={page}
-            setPage={setPage}
-            totalPages={100}
+            totalPages={100}  
             handleEdit={handleEdit}
             handleDelete={handleDelete}
             handlePageClick={handlePageClick}

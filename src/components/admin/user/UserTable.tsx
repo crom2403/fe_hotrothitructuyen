@@ -1,6 +1,6 @@
-import type { User } from "@/types/userType";
+import type { User, UserInfoResponse } from "@/types/userType";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card";
-import { Edit, MoreHorizontal, Search, Unlock, Lock, Trash2, Eye } from "lucide-react";
+import { Edit, MoreHorizontal, Search, Unlock, Lock, Trash2, Eye, Loader2 } from "lucide-react";
 import { Input } from "../../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/table";
@@ -14,43 +14,32 @@ import { Dialog } from "../../ui/dialog";
 import UserDetail from "./UserDetail";
 
 interface UserTableProps {
-  users: User[];
+  users: UserInfoResponse[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   roleFilter: string;
   setRoleFilter: (role: string) => void;
   page: number;
   totalPages: number;
-  handleEdit: (user: User) => void;
+  handleEdit: (user: UserInfoResponse) => void;
   handleToggleStatus: (userId: string) => Promise<void>;
   handleDelete: (userId: string) => Promise<void>;
   handlePageClick: (page: number) => void;
+  isLoading: boolean;
 }
 
-const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, totalPages, handleEdit, handleToggleStatus, handleDelete, handlePageClick }: UserTableProps) => {
+const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, totalPages, handleEdit, handleToggleStatus, handleDelete, handlePageClick, isLoading }: UserTableProps) => {
   const [isOpenDetailUser, setIsOpenDetailUser] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [selectedUser, setSelectedUser] = useState<UserInfoResponse | null>(null)
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    const matchesRole = roleFilter === "all" || user.role_code === roleFilter;
     return matchesSearch && matchesRole;
   });
-  const getRoleText = (role: string) => {
-    switch (role) {
-      case "admin":
-        return "Quản trị viên";
-      case "teacher":
-        return "Giáo viên";
-      case "student":
-        return "Sinh viên";
-      default:
-        return role;
-    }
-  };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -65,7 +54,7 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
     }
   };
 
-  const openDetailUser = (user: User) => {
+  const openDetailUser = (user: UserInfoResponse) => {
     setSelectedUser(user)
     setIsOpenDetailUser(true)
   }
@@ -112,18 +101,26 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
             </TableRow>
           </TableHeader>
           <TableBody>
-            {
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <div className="flex justify-center items-center h-32">
+                    <Loader2 className="w-10 h-10 animate-spin" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
               filteredUsers.map((user) => (
                 <TableRow key={user.code}>
                   <TableCell className="font-medium">{user.code}</TableCell>
-                  <TableCell>{user.fullName}</TableCell>
+                  <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <Badge variant={getRoleBadgeVariant(user.role) as any}>{getRoleText(user.role)}</Badge>
+                    <Badge variant={getRoleBadgeVariant(user.role_code) as any}>{user.role_name}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={cn(user.isActive ? "bg-green-500" : "bg-red-500")}>
-                      {user.isActive ? "Hoạt động" : "Bị khóa"}
+                    <Badge className={cn(user.is_active ? "bg-green-500" : "bg-red-500")}>
+                      {user.is_active ? "Hoạt động" : "Bị khóa"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -143,7 +140,7 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
                           Chỉnh sửa
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleToggleStatus(user.code)}>
-                          {user.isActive ? (
+                          {user.is_active ? (
                             <>
                               <Lock className="mr-2 h-4 w-4" />
                               Khóa tài khoản
@@ -155,7 +152,7 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
                             </>
                           )}
                         </DropdownMenuItem>
-                        {user.role !== "admin" && (
+                        {user.role_code !== "admin" && (
                           <DropdownMenuItem onClick={() => handleDelete(user.code)} className="text-red-600">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Xóa
@@ -166,10 +163,10 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
                   </TableCell>
                 </TableRow>
               ))
-            }
+            )}
           </TableBody>
         </Table>
-        {filteredUsers.length === 0 && (
+        {filteredUsers.length === 0 && !isLoading && (
           <TableBody>
             <TableRow>
               <TableCell colSpan={7} className="text-center py-8 text-gray-500">Không tìm thấy người dùng nào</TableCell>
@@ -178,9 +175,9 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
         )}
         <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
 
-        <Dialog open={isOpenDetailUser} onOpenChange={setIsOpenDetailUser}>
+        {/* <Dialog open={isOpenDetailUser} onOpenChange={setIsOpenDetailUser}>
           <UserDetail user={selectedUser} />
-        </Dialog>
+        </Dialog> */}
       </CardContent>
     </Card>
   )

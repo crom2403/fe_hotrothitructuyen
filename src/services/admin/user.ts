@@ -3,7 +3,7 @@ import apiRoutes from "../apiRoutes";
 
 export const apiGetUsers = async (page: number, role?: string, size?: number) => {
   let query = apiRoutes.admin.user + `?page=${page}`
-  if (role) {
+  if (role && role !== "all") {
     query += `&role_code=${role}`
   }
   if (size) {
