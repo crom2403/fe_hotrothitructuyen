@@ -7,10 +7,9 @@ import { Button } from '../ui/button';
 import { Loader2 } from 'lucide-react';
 
 import MultipleChoiceForm from './MultipleChoiceForm';
-import type { Question } from '@/types/questionType';
+import type { QuestionRequest } from '@/types/questionType';
 import { SingleChoiceForm } from './SingleChoiceForm';
 import { Switch } from '../ui/switch';
-import { useEffect } from 'react';
 import type { DifficultyLevel } from '@/types/difficultyLevelType';
 import type { Subject } from '@/types/subjectType';
 import QuillEditor from '../common/QuillEditor';
@@ -18,7 +17,7 @@ import QuillEditor from '../common/QuillEditor';
 interface QuestionFormProps {
   form: UseFormReturn<QuestionFormData>;
   onSubmit: (data: QuestionFormData) => void;
-  editingQuestion: Question | null;
+  editingQuestion: QuestionRequest | null;
   isLoading: boolean;
   questionType: string;
   questionTypes: QuestionType[];

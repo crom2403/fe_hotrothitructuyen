@@ -1,89 +1,74 @@
 import UserFormDialog from "@/components/admin/user/UserFormDialog"
 import UserTable from "@/components/admin/user/UserTable"
-import type { User, UserFormData, UserInfoResponse } from "@/types/userType"
+import { apiGetUsers } from "@/services/admin/user"
+import type { UserFormData, UserInfoResponse, UserResponse } from "@/types/userType"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
+import type { AxiosError } from "axios"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 import { z } from "zod"
 
 const userSchema = z.object({
   code: z.string().min(1, "Vui lòng nhập mã người dùng"),
-  email: z.string().email("Email không hợp lệ"),
-  fullName: z.string().min(1, "Vui lòng nhập họ và tên"),
+  email: z.string().optional(),
+  full_name: z.string().min(1, "Vui lòng nhập họ và tên"),
   role: z.enum(["admin", "teacher", "student"], {
     required_error: "Vui lòng chọn vai trò",
   }),
   phone: z.string().optional(),
-  birthDate: z.date(),
+  date_of_birth: z.date(),
   gender: z.enum(["male", "female"]),
 })
 
-export interface UserResponse {
-  data: UserInfoResponse[];
-  metadata: {
-    size: number;
-    page: number;
-    last_page: number;
-    total: number;
-  };
-}
-
 const UserManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [editingUser, setEditingUser] = useState<UserInfoResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useState(1)
+  const [users, setUsers] = useState<UserResponse | null>(null)
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       code: "",
-      email: "",
-      fullName: "",
+      full_name: "",
       role: "student",
       phone: "",
-      birthDate: new Date(),
+      date_of_birth: new Date(),
       gender: "male",
     },
   })
 
-  const [users, setUsers] = useState<User[]>([
-    {
-      code: "admin",
-      email: "admin@university.edu.vn",
-      fullName: "Quản trị viên",
-      role: "admin",
-      isActive: true,
-      createdAt: "2024-01-01T00:00:00Z",
-    },
-    {
-      code: "teacher1",
-      email: "teacher1@university.edu.vn",
-      fullName: "Nguyễn Văn A",
-      role: "teacher",
-      phone: "0123456789",
-      isActive: true,
-      createdAt: "2024-01-02T00:00:00Z",
-    },
-    {
-      code: "student1",
-      email: "student1@university.edu.vn",
-      fullName: "Trần Thị B",
-      role: "student",
-      phone: "0987654321",
-      isActive: false,
-      createdAt: "2024-01-03T00:00:00Z",
-    },
-  ])
+  useEffect(() => {
+    handleGetUsers()
+  }, [page, roleFilter])
+
+  const handleGetUsers = async () => {
+    setIsLoading(true)
+    try {
+      const apiRoleFilter = roleFilter === "" ? "all" : roleFilter;
+      const response = await apiGetUsers(page, apiRoleFilter)
+      if (response.status === 200) {
+        setUsers(response.data)
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleSubmit = async (data: UserFormData) => {
     console.log(data)
   }
 
-  const handleEdit = (user: User) => {
-    setEditingUser(user)
+  const handleEdit = (user: UserInfoResponse) => {
+    setEditingUser(user as any)
     setIsDialogOpen(true)
   }
 
@@ -111,25 +96,26 @@ const UserManagement = () => {
           form={form}
           isDialogOpen={isDialogOpen}
           setIsDialogOpen={setIsDialogOpen}
-          editingUser={editingUser}
-          setEditingUser={setEditingUser}
+          editingUser={editingUser as any}
+          setEditingUser={setEditingUser as any}
           onSubmit={handleSubmit}
           isLoading={isLoading}
         />
       </div>
       <div>
         <UserTable
-          users={users}
+          users={users?.data || []}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           roleFilter={roleFilter}
           setRoleFilter={setRoleFilter}
           page={page}
-          totalPages={100}
+          totalPages={users?.metadata.last_page || 0}
           handleEdit={handleEdit}
           handleToggleStatus={handleToggleStatus}
           handleDelete={handleDelete}
           handlePageClick={handlePageClick}
+          isLoading={isLoading}
         />
       </div>
     </div>

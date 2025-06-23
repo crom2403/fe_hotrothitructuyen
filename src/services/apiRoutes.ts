@@ -12,7 +12,7 @@ const apiRoutes = {
   admin: {
     overview: "/admin/overview",
     study_group: "/study-groups",
-    question: "/admin/question",
+    question: "/questions",
     user: "/admin/users",
     create_user: "/auth/register",
     subject: "/subject",

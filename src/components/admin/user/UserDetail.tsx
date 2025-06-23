@@ -12,7 +12,7 @@ const UserDetail = ({ user }: UserDetailProps) => {
   return (
     <DialogContent className="min-w-[50vw] max-w-[1200px] min-h-[60vh] overflow-y-auto bg-white p-6">
       <DialogHeader>
-        <DialogTitle className="text-2xl font-bold text-center">Chi tiết người dùng</DialogTitle>
+        <DialogTitle className="text-xl font-bold text-center">Chi tiết người dùng</DialogTitle>
       </DialogHeader>
       <div className="flex flex-col items-center gap-2">
         <Avatar className="w-20 h-20">

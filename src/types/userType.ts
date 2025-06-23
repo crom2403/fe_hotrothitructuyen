@@ -23,10 +23,19 @@ export interface UserInfoResponse {
 
 export type UserFormData = {
   code: string;
-  email: string;
-  fullName: string;
+  full_name: string;
   role: "admin" | "teacher" | "student";
   phone?: string;
-  birthDate: Date;
+  date_of_birth: Date;
   gender: "male" | "female";
 };
+
+export interface UserResponse {
+  data: UserInfoResponse[];
+  metadata: {
+    size: number;
+    page: number;
+    last_page: number;
+    total: number;
+  };
+}

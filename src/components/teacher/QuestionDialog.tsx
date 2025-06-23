@@ -11,15 +11,15 @@ import { Plus } from "lucide-react";
 import QuestionForm from "./QuestionForm";
 import type { QuestionFormData, QuestionType } from "@/types/questionType";
 import type { UseFormReturn } from "react-hook-form";
-import type { Question } from "@/types/questionType";
+import type { QuestionRequest } from "@/types/questionType";
 import type { DifficultyLevel } from "@/types/difficultyLevelType";
 import type { Subject } from "@/types/subjectType";
 
 interface QuestionDialogProps {
   isDialogOpen: boolean;
   setIsDialogOpen: (open: boolean) => void;
-  editingQuestion: Question | null;
-  setEditingQuestion: (question: Question | null) => void;
+  editingQuestion: QuestionRequest | null;
+  setEditingQuestion: (question: QuestionRequest | null) => void;
   form: UseFormReturn<QuestionFormData>;
   onSubmit: (data: QuestionFormData) => void;
   isLoading: boolean;

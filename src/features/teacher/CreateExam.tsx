@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Eye, Loader2, Plus, Save } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Eye, Loader2, Save } from "lucide-react"
 import { useState } from "react"
 
 const CreateExam = () => {
@@ -8,7 +8,7 @@ const CreateExam = () => {
   const [activeTab, setActiveTab] = useState("basic")
 
   return (
-    <div>
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">Tạo đề thi</h1>
@@ -42,6 +42,10 @@ const CreateExam = () => {
             <TabsTrigger value="settings">Cài đặt</TabsTrigger>
             <TabsTrigger value="preview">Xem trước</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="basic">
+            
+          </TabsContent>
         </Tabs>
       </div>
     </div>

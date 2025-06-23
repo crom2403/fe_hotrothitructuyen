@@ -5,7 +5,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import MainLayout from "@/components/layout/MainLayout";
 import Loading from "../../public/loading.gif"
 import OTPConfirmation from "@/components/forgotPassword/OTPConfirmation";
-import CreateExam from "@/features/teacher/CreateExam";
+
+
 
 // Lazy load components
 const Login = lazy(() => import("@/components/login/login"));
@@ -21,6 +22,8 @@ const SubjectManagement = lazy(() => import("@/features/admin/SubjectManagement"
 const YearSemesterManagement = lazy(() => import("@/features/admin/YearSemesterManagement"));
 const AccessDeniedPage = lazy(() => import("@/components/accessDenied/AccessDeniedPage"));
 const AdminStudyGroupManagement = lazy(() => import("@/features/admin/StudyGroupManagement"));
+const QuestionManagement = lazy(() => import("@/features/admin/QuestionManagement"));
+const CreateExam = lazy(() => import("@/features/teacher/CreateExam"));
 
 const AppRoutes = () => {
   return (
@@ -107,12 +110,19 @@ const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path={path.ADMIN.STUDY_GROUP}
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <AdminStudyGroupManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.ADMIN.QUESTION}
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <QuestionManagement />
               </ProtectedRoute>
             }
           />

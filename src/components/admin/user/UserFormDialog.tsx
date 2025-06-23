@@ -89,27 +89,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
             <div className="space-y-2">
               <FormField
                 control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Nhập email"
-                        className={form.formState.errors.email ? "border-red-500" : ""}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="fullName"
+                name="full_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Họ và tên</FormLabel>
@@ -117,7 +97,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
                       <Input
                         {...field}
                         placeholder="Nhập họ và tên"
-                        className={form.formState.errors.fullName ? "border-red-500" : ""}
+                        className={form.formState.errors.full_name ? "border-red-500" : ""}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -192,7 +172,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
               />
               <FormField
                 control={form.control}
-                name="birthDate"
+                name="date_of_birth"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-2">
                     <FormLabel>Ngày sinh</FormLabel>
