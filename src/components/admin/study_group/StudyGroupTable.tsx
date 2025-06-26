@@ -1,70 +1,73 @@
-import DeleteDialog from "@/components/common/DeleteDialog"
-import Paginate from "@/components/common/Pagination"
-import { AlertDialog } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardTitle, CardHeader, CardDescription, CardContent } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TableCell, TableBody, TableHead, TableHeader, TableRow, Table } from "@/components/ui/table"
-import type { StudyGroupInfo } from "@/types/studyGroupType"
-import type { Subject } from "@/types/subjectType"
-import type { Year } from "@/types/year_semesterType"
-import { Copy, Edit, GraduationCap, Loader2, MoreHorizontal, Search, Trash2, Users } from "lucide-react"
-import { useState } from "react"
+import DeleteDialog from "@/components/common/DeleteDialog";
+import Paginate from "@/components/common/Pagination";
+import { AlertDialog } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardTitle, CardHeader, CardDescription, CardContent } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuContent } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TableCell, TableBody, TableHead, TableHeader, TableRow, Table } from "@/components/ui/table";
+import type { StudyGroupInfo } from "@/types/studyGroupType";
+import type { Subject } from "@/types/subjectType";
+import type { Year } from "@/types/year_semesterType";
+import { Copy, Edit, GraduationCap, Loader2, MoreHorizontal, Search, Trash2, Users } from "lucide-react";
+import { useState } from "react";
 
 interface StudyGroupTableProps {
-  studyGroups: StudyGroupInfo[]
-  subjects: Subject[]
-  academicYears: Year[]
-  searchTerm: string
-  setSearchTerm: (searchTerm: string) => void
-  subjectFilter: string
-  setSubjectFilter: (subjectFilter: string) => void
-  yearFilter: string
-  setYearFilter: (yearFilter: string) => void
-  page: number
-  totalPages: number
-  handleEdit: (studyGroup: StudyGroupInfo) => void
-  handleDelete: (studyGroupId: string) => void
-  handlePageClick: (page: number) => void
-  handleToggleStatus: (studyGroupId: string, isActive: boolean) => void
-  copyInviteCode: (inviteCode: string) => void
-  isLoading: boolean
-  isLoadingSubjects: boolean
-  isLoadingAcademicYears: boolean
+  studyGroups: StudyGroupInfo[];
+  subjects: Subject[];
+  academicYears: Year[];
+  searchTerm: string;
+  setSearchTerm: (searchTerm: string) => void;
+  subjectFilter: string;
+  setSubjectFilter: (subjectFilter: string) => void;
+  yearFilter: string;
+  setYearFilter: (yearFilter: string) => void;
+  page: number;
+  totalPages: number;
+  handleEdit: (studyGroup: StudyGroupInfo) => void;
+  handleDelete: (studyGroupId: string) => void;
+  handlePageClick: (page: number) => void;
+  handleToggleStatus: (studyGroupId: string, isActive: boolean) => void;
+  copyInviteCode: (inviteCode: string) => void;
+  isLoading: boolean;
+  isLoadingSubjects: boolean;
+  isLoadingAcademicYears: boolean;
 }
 
-const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, yearFilter, setYearFilter, page, totalPages, handleEdit, handleDelete, handlePageClick, handleToggleStatus, copyInviteCode, isLoading, isLoadingSubjects, isLoadingAcademicYears }: StudyGroupTableProps) => {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedClass, setSelectedClass] = useState<StudyGroupInfo | null>(null)
-
-  const filteredClasses = studyGroups.filter((classItem) => {
-    const matchesSearch =
-      classItem.study_group_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      classItem.study_group_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      classItem.teacher_full_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject =
-      subjectFilter === "all" ||
-      subjects.find((s) => s.id === subjectFilter)?.name === classItem.subject_name;
-    const matchesAcademicYear = yearFilter === "all" || classItem.academic_year_id === yearFilter;
-    return matchesSearch && matchesSubject && matchesAcademicYear;
-  });
-
+const StudyGroupTable = ({
+  studyGroups,
+  subjects,
+  academicYears,
+  searchTerm,
+  setSearchTerm,
+  setSubjectFilter,
+  setYearFilter,
+  page,
+  totalPages,
+  handleEdit,
+  handleDelete,
+  handlePageClick,
+  handleToggleStatus,
+  copyInviteCode,
+  isLoading,
+  isLoadingSubjects,
+  isLoadingAcademicYears,
+}: StudyGroupTableProps) => {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<StudyGroupInfo | null>(null);
 
   const openDeleteDialog = (classItem: StudyGroupInfo) => {
-    setSelectedClass(classItem)
-    setIsDeleteDialogOpen(true)
-  }
+    setSelectedClass(classItem);
+    setIsDeleteDialogOpen(true);
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Danh sách lớp học phần</CardTitle>
-        <CardDescription>
-          Tổng cộng {studyGroups.length} lớp học phần
-        </CardDescription>
+        <CardDescription>Tổng cộng {studyGroups.length} lớp học phần</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-4 mb-4">
@@ -85,7 +88,9 @@ const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, set
             <SelectContent>
               <SelectItem value="all">Tất cả môn học</SelectItem>
               {subjects.map((subject) => (
-                <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
+                <SelectItem key={subject.id} value={subject.id}>
+                  {subject.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -96,7 +101,9 @@ const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, set
             <SelectContent>
               <SelectItem value="all">Tất cả năm học</SelectItem>
               {academicYears.map((year) => (
-                <SelectItem key={year.id} value={year.id}>{year.code}</SelectItem>
+                <SelectItem key={year.id} value={year.id}>
+                  {year.code}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -126,7 +133,7 @@ const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, set
                 </TableCell>
               </TableRow>
             ) : (
-              filteredClasses.map((classItem) => (
+              studyGroups.map((classItem) => (
                 <TableRow key={classItem.study_group_id}>
                   <TableCell className="font-medium">{classItem.study_group_code}</TableCell>
                   <TableCell>
@@ -187,21 +194,19 @@ const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, set
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              )))}
+              ))
+            )}
           </TableBody>
         </Table>
-        {filteredClasses.length === 0 && !isLoading && (
-          <div className="text-center py-8 text-gray-500">Không tìm thấy lớp học phần nào</div>
-        )}
+        {studyGroups.length === 0 && !isLoading && <div className="text-center py-8 text-gray-500">Không tìm thấy lớp học phần nào</div>}
         <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
       </CardContent>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DeleteDialog itemName="lớp học phần" id={selectedClass?.study_group_id || ""} onDelete={handleDelete} />
       </AlertDialog>
-
     </Card>
-  )
-}
+  );
+};
 
-export default StudyGroupTable
+export default StudyGroupTable;
