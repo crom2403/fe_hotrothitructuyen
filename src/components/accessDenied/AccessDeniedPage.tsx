@@ -1,11 +1,10 @@
+import { ArrowLeft } from "lucide-react"
 import DenyImage from "../../../public/images/svg/deny.svg"
 import { Button } from "../ui/button"
 import { useNavigate } from "react-router-dom"
+import path from "@/utils/path"
 const AccessDeniedPage = () => {
   const navigate = useNavigate()
-  const handleGoBack = () => {
-    navigate(-1)
-  }
   return (
     <div className="flex flex-col items-center justify-center w-screen h-screen py-8 ">
       <img src={DenyImage} alt="deny" className="w-1/2 h-1/2" />
@@ -17,10 +16,11 @@ const AccessDeniedPage = () => {
           Bạn đang cố truy cập vào trang mà bạn không có quyền truy cập.
         </p>
       </div>
-      <Button variant="default" className="mt-4"
-        onClick={handleGoBack}
+      <Button variant="default" className="mt-4 flex items-center gap-2"
+        onClick={() => navigate(path.LOGIN)}
       >
-        Quay lại trang trước
+        <ArrowLeft className="w-4 h-4" /> 
+        Đăng nhập
       </Button>
     </div>
   )

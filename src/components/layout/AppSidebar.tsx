@@ -31,7 +31,7 @@ const AppSidebar = () => {
           { id: "questions", label: "Câu hỏi", icon: Database, path: path.TEACHER.QUESTION_BANK },
           { id: "create-exam", label: "Tạo đề thi", icon: PenTool, path: path.TEACHER.EXAM },
           { id: "exams", label: "Quản lý đề thi", icon: ClipboardList },
-          { id: "classes", label: "Lớp học phần", icon: GraduationCap },
+          { id: "classes", label: "Lớp học phần", icon: GraduationCap, path: path.TEACHER.STUDY_GROUP },
           // { id: "exam-rooms", label: "Phòng thi", icon: Monitor },
           { id: "results", label: "Kết quả & Báo cáo", icon: BarChart3 },
           // { id: "ai-exam", label: "Tạo đề thi AI", icon: Brain },

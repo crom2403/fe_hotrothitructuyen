@@ -1,8 +1,8 @@
-import type { User, UserFormData } from "@/types/userType";
+import type { UserFormData, UserInfo } from "@/types/userType";
 import type { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../ui/dialog";
 import { Button } from "../../ui/button";
-import { CalendarIcon, Loader2, Plus } from "lucide-react";
+import { CalendarIcon, Eye, EyeOff, Loader2, Plus } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../ui/form";
 import { Input } from "../../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
@@ -16,8 +16,8 @@ interface UserFormDialogProps {
   form: UseFormReturn<UserFormData>;
   isDialogOpen: boolean;
   setIsDialogOpen: (open: boolean) => void;
-  editingUser: User | null;
-  setEditingUser: (user: User | null) => void;
+  editingUser: UserInfo | null;
+  setEditingUser: (user: UserInfo | null) => void;
   onSubmit: (data: UserFormData) => Promise<void>;
   isLoading: boolean;
 }
@@ -31,6 +31,7 @@ interface Role {
 
 const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setEditingUser, onSubmit, isLoading }: UserFormDialogProps) => {
   const [roles, setRoles] = useState<Role[]>([])
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     fetchRoles()
@@ -106,10 +107,39 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
                 )}
               />
             </div>
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name='password'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className='flex items-center gap-4 relative'>
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          className='w-full'
+                          placeholder='Mật khẩu'
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="absolute right-0 top-0 h-full px-3 focus:ring-0 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <div className="space-y-2 grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="role"
+                name="role_code"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Vai trò</FormLabel>
@@ -154,7 +184,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
             <div className="space-y-2 grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="phone"
+                name="phone_number"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Số điện thoại</FormLabel>
@@ -162,7 +192,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
                       <Input
                         {...field}
                         placeholder="Nhập số điện thoại"
-                        className={form.formState.errors.phone ? "border-red-500" : ""}
+                        className={form.formState.errors.phone_number ? "border-red-500" : ""}
                         disabled={isLoading}
                       />
                     </FormControl>

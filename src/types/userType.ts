@@ -1,17 +1,20 @@
 export interface User {
+  id: string
+  created_at: string
+  is_active: boolean
   code: string
   email: string
-  fullName: string
-  role: "admin" | "teacher" | "student"
-  avatar?: string
-  phone?: string
-  birthDate?: Date
-  gender?: "male" | "female"
-  isActive: boolean
-  createdAt: string
+  full_name: string
+  phone: string
+  gender: string
+  date_of_birth: string
+  role: {
+    id: string
+    name: string
+  }
 }
 
-export interface UserInfoResponse {
+export interface UserInfo {
   id: string
   code: string
   name: string
@@ -24,14 +27,15 @@ export interface UserInfoResponse {
 export type UserFormData = {
   code: string;
   full_name: string;
-  role: "admin" | "teacher" | "student";
-  phone?: string;
+  role_code: "admin" | "teacher" | "student";
+  phone_number?: string;
   date_of_birth: Date;
   gender: "male" | "female";
+  password: string;
 };
 
 export interface UserResponse {
-  data: UserInfoResponse[];
+  data: UserInfo[];
   metadata: {
     size: number;
     page: number;

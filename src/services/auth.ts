@@ -13,6 +13,6 @@ export const apiForgotPassword = async (data: object) => axios.post(path.SERVER_
 
 export const apiResetPassword = async (data: object) => axios.post(path.SERVER_URL + apiRoutes.resetPassword, data)
 
-export const apiGoogleVerify = async (data: object) => axios.post(path.SERVER_URL + apiRoutes.googleVerify, data)
+export const apiGoogleVerify = async (data: object) => instance.post(apiRoutes.googleVerify, data)
 
-export const apiGoogleConfirm = async (data: object) => axios.post(path.SERVER_URL + apiRoutes.googleConfirm, data)
+export const apiGoogleConfirm = async (data: object) => instance.post(apiRoutes.googleConfirm, data)

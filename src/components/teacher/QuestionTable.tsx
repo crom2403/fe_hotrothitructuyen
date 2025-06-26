@@ -1,17 +1,26 @@
-import type { QuestionRequest } from "@/types/questionType"
+import type { QuestionItem, QuestionTypeResponse } from "@/types/questionType"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Input } from "../ui/input"
-import { Edit, Eye, MoreHorizontal, Search, Trash2 } from "lucide-react"
+import { Edit, Eye, Loader2, MoreHorizontal, Search, Trash2 } from "lucide-react"
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "../ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
 import { Badge } from "../ui/badge"
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu"
 import { Button } from "../ui/button"
 import Paginate from "../common/Pagination"
-import useAuthStore from "@/stores/authStore"
+import parse from "html-react-parser"
+import { useEffect, useState } from "react"
+import type { SubjectResponse } from "@/types/subjectType"
+import type { DifficultyLevel } from "@/types/difficultyLevelType"
+import { apiGetSubjects } from "@/services/admin/subject"
+import { toast } from "sonner"
+import type { AxiosError } from "axios"
+import { apiGetDifficultyLevels, apiGetQuestionTypes } from "@/services/teacher/question"
+import { Dialog } from "../ui/dialog"
+import QuestionDetail from "../admin/question/QuestionDetail"
 
 interface QuestionTableProps {
-  questions: QuestionRequest[],
+  questions: QuestionItem[],
   searchTerm: string,
   setSearchTerm: (term: string) => void,
   subjectFilter: string,
@@ -22,50 +31,89 @@ interface QuestionTableProps {
   setDifficultyFilter: (difficulty: string) => void,
   page: number,
   totalPages: number,
-  handleEdit?: (question: QuestionRequest) => void,
+  handleEdit?: (question: QuestionItem) => void,
   handleDelete?: (questionId: string) => void,
   handlePageClick: (page: number) => void,
+  isLoading: boolean,
 }
 
-const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, typeFilter, setTypeFilter, difficultyFilter, setDifficultyFilter, page, totalPages, handleEdit, handleDelete, handlePageClick }: QuestionTableProps) => {
-
-  const filteredQuestions = questions.filter((question) => {
-    const matchesSearch = question.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = subjectFilter === "all" || question.subject === subjectFilter;
-    const matchesType = typeFilter === "all" || question.type_id === typeFilter;
-    const matchesDifficulty = difficultyFilter === "all" || question.difficulty === difficultyFilter;
-    return matchesSearch && matchesSubject && matchesType && matchesDifficulty;
-  })
-
-
-  const getTypeText = (type: string) => {
-    switch (type) {
-      case "single": return "Trắc nghiệm 1 đáp án";
-      case "multiple": return "Trắc nghiệm nhiều đáp án";
-      case "boolean": return "Đúng/Sai";
-      case "matching": return "Nối câu";
-      case "drag-drop": return "Kéo thả";
-      default: return type;
-    }
-  };
-
-  const getDifficultyText = (difficulty: string) => {
-    switch (difficulty) {
-      case "easy": return "Dễ";
-      case "medium": return "Trung bình";
-      case "hard": return "Khó";
-      default: return difficulty;
-    }
-  };
+const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, typeFilter, setTypeFilter, difficultyFilter, setDifficultyFilter, page, totalPages, handleEdit, handleDelete, handlePageClick, isLoading }: QuestionTableProps) => {
+  const [subjects, setSubjects] = useState<SubjectResponse | null>(null);
+  const [difficultyLevels, setDifficultyLevels] = useState<DifficultyLevel[]>([]);
+  const [questionTypes, setQuestionTypes] = useState<QuestionTypeResponse | null>(null);
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
+  const [isLoadingDifficultyLevels, setIsLoadingDifficultyLevels] = useState(false);
+  const [isLoadingQuestionTypes, setIsLoadingQuestionTypes] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState<QuestionItem | null>(null);
+  const [openDetail, setOpenDetail] = useState(false);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "easy": return "bg-green-100 text-green-800";
-      case "medium": return "bg-yellow-100 text-yellow-800";
-      case "hard": return "bg-red-100 text-red-800";
+      case "Dễ": return "bg-green-100 text-green-800";
+      case "Trung bình": return "bg-yellow-100 text-yellow-800";
+      case "Khó": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
+
+  const handleGetSubjects = async () => {
+    setIsLoadingSubjects(true);
+    try {
+      const response = await apiGetSubjects(1, "active", "", 100);
+      if (response.status === 200) {
+        setSubjects(response.data);
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingSubjects(false);
+    }
+  }
+
+  const handleGetDifficultyLevels = async () => {
+    setIsLoadingDifficultyLevels(true);
+    try {
+      const response = await apiGetDifficultyLevels();
+      if (response.status === 200) {
+        setDifficultyLevels(response.data.data);
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingDifficultyLevels(false);
+    }
+  }
+
+  const handleGetQuestionTypes = async () => {
+    setIsLoadingQuestionTypes(true);
+    try {
+      const response = await apiGetQuestionTypes();
+      if (response.status === 200) {
+        setQuestionTypes(response.data);
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingQuestionTypes(false);
+    }
+  }
+
+  useEffect(() => {
+    handleGetSubjects();
+    handleGetDifficultyLevels();
+    handleGetQuestionTypes();
+  }, []);
+
+  const handleViewDetail = (question: QuestionItem) => {
+    setSelectedQuestion(question);
+    setOpenDetail(true);
+  }
 
   return (
     <Card>
@@ -89,10 +137,20 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
               <SelectValue placeholder="Môn học" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả môn học</SelectItem>
-              <SelectItem value="Lập trình Web">Lập trình Web</SelectItem>
-              <SelectItem value="Cơ sở dữ liệu">Cơ sở dữ liệu</SelectItem>
-              <SelectItem value="Mạng máy tính">Mạng máy tính</SelectItem>
+              {
+                isLoadingSubjects ? (
+                  <SelectItem value="all">Đang tải...</SelectItem>
+                ) : (
+                  <>
+                    <SelectItem value="all">Tất cả môn học</SelectItem>
+                    {
+                      subjects?.data.map((subject) => (
+                        <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
+                      ))
+                    }
+                  </>
+                )
+              }
             </SelectContent>
           </Select>
           <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
@@ -100,10 +158,20 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
               <SelectValue placeholder="Độ khó" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              <SelectItem value="easy">Dễ</SelectItem>
-              <SelectItem value="medium">Trung bình</SelectItem>
-              <SelectItem value="hard">Khó</SelectItem>
+              {
+                isLoadingDifficultyLevels ? (
+                  <SelectItem value="all">Đang tải...</SelectItem>
+                ) : (
+                  <>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    {
+                      difficultyLevels.map((difficultyLevel) => (
+                        <SelectItem key={difficultyLevel.id} value={difficultyLevel.id}>{difficultyLevel.name}</SelectItem>
+                      ))
+                    }
+                  </>
+                )
+              }
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -111,10 +179,20 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
               <SelectValue placeholder="Loại câu hỏi" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Tất cả loại</SelectItem>
-              <SelectItem value="single">Trắc nghiệm 1 đáp án</SelectItem>
-              <SelectItem value="multiple">Trắc nghiệm nhiều đáp án</SelectItem>
-              <SelectItem value="boolean">Đúng/Sai</SelectItem>
+              {
+                isLoadingQuestionTypes ? (
+                  <SelectItem value="all">Đang tải...</SelectItem>
+                ) : (
+                  <>
+                    <SelectItem value="all">Tất cả loại</SelectItem>
+                    {
+                      questionTypes?.data.map((questionType) => (
+                        <SelectItem key={questionType.id} value={questionType.id}>{questionType.name}</SelectItem>
+                      ))
+                    }
+                  </>
+                )
+              }
             </SelectContent>
           </Select>
         </div>
@@ -125,63 +203,75 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
             <TableRow>
               <TableHead>Nội dung</TableHead>
               <TableHead>Môn học</TableHead>
-              <TableHead>Chủ đề</TableHead>
               <TableHead>Loại</TableHead>
               <TableHead>Độ khó</TableHead>
-              <TableHead>Trạng thái</TableHead>
+              <TableHead>Người tạo</TableHead>
               <TableHead>Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredQuestions.map((question) => (
-              <TableRow key={question.id}>
-                <TableCell className="max-w-xs">
-                  <div className="truncate" title={question.content}>
-                    {question.content}
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  <div className="flex justify-center items-center h-32">
+                    <Loader2 className="w-10 h-10 animate-spin" />
                   </div>
                 </TableCell>
-                <TableCell>{question.subject}</TableCell>
-                <TableCell>{question.topic}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{getTypeText(question.type_id)}</Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getDifficultyColor(question.difficulty)}>
-                    {getDifficultyText(question.difficulty)}
-                  </Badge>
-                </TableCell>
-                <TableCell>{question.is_public}</TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => {}}>
-                        <Eye className="mr-2 h-4 w-4 text-primary" />
-                        Xem chi tiết
-                      </DropdownMenuItem>
-                      {
-                        question.is_public === false && (
-                          <DropdownMenuItem onClick={() => handleEdit?.(question)}>
-                            <Edit className="mr-2 h-4 w-4 text-primary" />
-                            Chỉnh sửa
-                          </DropdownMenuItem>
-                        )
-                      }
-                      <DropdownMenuItem onClick={() => handleDelete?.(question.id)} className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                        Xóa
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              questions.map((question) => (
+                <TableRow key={question.id}>
+                  <TableCell className="max-w-xs">
+                    <div className="truncate" title={question.content}>
+                      {parse(question.content)}
+                    </div>
+                  </TableCell>
+                  <TableCell>{question.subject.name}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{question.question_type.name}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getDifficultyColor(question.difficulty_level.name)}>
+                      {question.difficulty_level.name}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{question.created_by.full_name}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewDetail(question)}>
+                          <Eye className="mr-2 h-4 w-4 text-primary" />
+                          Xem chi tiết
+                        </DropdownMenuItem>
+                        {
+                          question.is_public === false && (
+                            <DropdownMenuItem onClick={() => handleEdit?.(question)}>
+                              <Edit className="mr-2 h-4 w-4 text-primary" />
+                              Chỉnh sửa
+                            </DropdownMenuItem>
+                          )
+                        }
+                        {
+                          question.is_public === false && (
+                            <DropdownMenuItem onClick={() => handleDelete?.(question.id)} className="text-red-600">
+                              <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                              Xóa
+                            </DropdownMenuItem>
+                          )
+                        }
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
-          {filteredQuestions.length === 0 && (
+          {questions.length === 0 && !isLoading && (
             <TableBody>
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-gray-500">Không tìm thấy câu hỏi nào</TableCell>
@@ -190,6 +280,10 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
           )}
         </Table>
       </CardContent>
+
+      <Dialog open={openDetail} onOpenChange={setOpenDetail}>
+        <QuestionDetail question={selectedQuestion} />
+      </Dialog>
       <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
     </Card>
   )

@@ -8,14 +8,14 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuConten
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TableCell, TableBody, TableHead, TableHeader, TableRow, Table } from "@/components/ui/table"
-import type { StudyGroup } from "@/types/studyGroup"
+import type { StudyGroupInfo } from "@/types/studyGroupType"
 import type { Subject } from "@/types/subjectType"
 import type { Year } from "@/types/year_semesterType"
-import { Copy, Edit, GraduationCap, MoreHorizontal, Search, Trash2, Users } from "lucide-react"
+import { Copy, Edit, GraduationCap, Loader2, MoreHorizontal, Search, Trash2, Users } from "lucide-react"
 import { useState } from "react"
 
 interface StudyGroupTableProps {
-  studyGroups: StudyGroup[]
+  studyGroups: StudyGroupInfo[]
   subjects: Subject[]
   academicYears: Year[]
   searchTerm: string
@@ -26,31 +26,34 @@ interface StudyGroupTableProps {
   setYearFilter: (yearFilter: string) => void
   page: number
   totalPages: number
-  handleEdit: (studyGroup: StudyGroup) => void
+  handleEdit: (studyGroup: StudyGroupInfo) => void
   handleDelete: (studyGroupId: string) => void
   handlePageClick: (page: number) => void
   handleToggleStatus: (studyGroupId: string, isActive: boolean) => void
   copyInviteCode: (inviteCode: string) => void
+  isLoading: boolean
+  isLoadingSubjects: boolean
+  isLoadingAcademicYears: boolean
 }
 
-const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, yearFilter, setYearFilter, page, totalPages, handleEdit, handleDelete, handlePageClick, handleToggleStatus, copyInviteCode }: StudyGroupTableProps) => {
+const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, yearFilter, setYearFilter, page, totalPages, handleEdit, handleDelete, handlePageClick, handleToggleStatus, copyInviteCode, isLoading, isLoadingSubjects, isLoadingAcademicYears }: StudyGroupTableProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedClass, setSelectedClass] = useState<StudyGroup | null>(null)
+  const [selectedClass, setSelectedClass] = useState<StudyGroupInfo | null>(null)
 
   const filteredClasses = studyGroups.filter((classItem) => {
     const matchesSearch =
-      classItem.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      classItem.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      classItem.teacher_name.toLowerCase().includes(searchTerm.toLowerCase());
+      classItem.study_group_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      classItem.study_group_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      classItem.teacher_full_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject =
       subjectFilter === "all" ||
       subjects.find((s) => s.id === subjectFilter)?.name === classItem.subject_name;
-    const matchesAcademicYear = yearFilter === "all" || classItem.academic_year === yearFilter;
+    const matchesAcademicYear = yearFilter === "all" || classItem.academic_year_id === yearFilter;
     return matchesSearch && matchesSubject && matchesAcademicYear;
   });
 
 
-  const openDeleteDialog = (classItem: StudyGroup) => {
+  const openDeleteDialog = (classItem: StudyGroupInfo) => {
     setSelectedClass(classItem)
     setIsDeleteDialogOpen(true)
   }
@@ -75,7 +78,7 @@ const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, set
               className="pl-10"
             />
           </div>
-          <Select onValueChange={(value) => setSubjectFilter(value)}>
+          <Select onValueChange={(value) => setSubjectFilter(value)} disabled={isLoadingSubjects}>
             <SelectTrigger>
               <SelectValue placeholder="Lọc theo môn học" />
             </SelectTrigger>
@@ -86,7 +89,7 @@ const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, set
               ))}
             </SelectContent>
           </Select>
-          <Select onValueChange={(value) => setYearFilter(value)}>
+          <Select onValueChange={(value) => setYearFilter(value)} disabled={isLoadingAcademicYears}>
             <SelectTrigger>
               <SelectValue placeholder="Lọc theo năm học" />
             </SelectTrigger>
@@ -114,79 +117,87 @@ const StudyGroupTable = ({ studyGroups, subjects, academicYears, searchTerm, set
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredClasses.map((classItem) => (
-              <TableRow key={classItem.id}>
-                <TableCell className="font-medium">{classItem.code}</TableCell>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">{classItem.name}</div>
-                    {classItem.description && <div className="text-sm text-gray-500">{classItem.description}</div>}
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-8">
+                  <div className="flex justify-center items-center h-32">
+                    <Loader2 className="w-10 h-10 animate-spin" />
                   </div>
-                </TableCell>
-                <TableCell>{classItem.subject_name}</TableCell>
-                <TableCell>{classItem.teacher_name}</TableCell>
-                <TableCell>
-                  <div className="text-sm">
-                    <div>{classItem.academic_year}</div>
-                    <div className="text-gray-500">{classItem.semester_name}</div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <span>
-                      0 / {classItem.max_students}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <code className="bg-gray-100 px-2 py-1 rounded text-sm">{classItem.invite_code}</code>
-                    <Button variant="ghost" size="sm" onClick={() => copyInviteCode(classItem.invite_code)}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={classItem.is_active ? "default" : "secondary"}>
-                    {classItem.is_active ? "Hoạt động" : "Không hoạt động"}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(classItem)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Chỉnh sửa
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleToggleStatus(classItem.id, classItem.is_active)}>
-                        <GraduationCap className="mr-2 h-4 w-4" />
-                        {classItem.is_active ? "Vô hiệu hóa" : "Kích hoạt"}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => openDeleteDialog(classItem)} className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Xóa
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              filteredClasses.map((classItem) => (
+                <TableRow key={classItem.study_group_id}>
+                  <TableCell className="font-medium">{classItem.study_group_code}</TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{classItem.study_group_name}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{classItem.subject_name}</TableCell>
+                  <TableCell>{classItem.teacher_full_name}</TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div>{classItem.academic_year_code}</div>
+                      <div className="text-gray-500">{classItem.semester_name}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-gray-500" />
+                      <span>
+                        {classItem.student_count} / {classItem.study_group_max_students}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <code className="bg-gray-100 px-2 py-1 rounded text-sm">{classItem.study_group_invite_code}</code>
+                      <Button variant="ghost" size="sm" onClick={() => copyInviteCode(classItem.study_group_invite_code)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={classItem.study_group_is_active ? "default" : "secondary"}>
+                      {classItem.study_group_is_active ? "Hoạt động" : "Không hoạt động"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(classItem)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Chỉnh sửa
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleToggleStatus(classItem.study_group_id, classItem.study_group_is_active)}>
+                          <GraduationCap className="mr-2 h-4 w-4" />
+                          {classItem.study_group_is_active ? "Vô hiệu hóa" : "Kích hoạt"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openDeleteDialog(classItem)} className="text-red-600">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Xóa
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              )))}
           </TableBody>
         </Table>
-        {filteredClasses.length === 0 && (
+        {filteredClasses.length === 0 && !isLoading && (
           <div className="text-center py-8 text-gray-500">Không tìm thấy lớp học phần nào</div>
         )}
         <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
       </CardContent>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DeleteDialog itemName="lớp học phần" id={selectedClass?.id || ""} onDelete={handleDelete} />
+        <DeleteDialog itemName="lớp học phần" id={selectedClass?.study_group_id || ""} onDelete={handleDelete} />
       </AlertDialog>
 
     </Card>

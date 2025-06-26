@@ -1,7 +1,7 @@
 import UserFormDialog from "@/components/admin/user/UserFormDialog"
 import UserTable from "@/components/admin/user/UserTable"
-import { apiGetUsers } from "@/services/admin/user"
-import type { UserFormData, UserInfoResponse, UserResponse } from "@/types/userType"
+import { apiCreateUser, apiGetUsers } from "@/services/admin/user"
+import type { UserFormData, UserInfo, UserResponse } from "@/types/userType"
 import { zodResolver } from "@hookform/resolvers/zod"
 import type { AxiosError } from "axios"
 import { useEffect, useState } from "react"
@@ -13,18 +13,32 @@ const userSchema = z.object({
   code: z.string().min(1, "Vui lòng nhập mã người dùng"),
   email: z.string().optional(),
   full_name: z.string().min(1, "Vui lòng nhập họ và tên"),
-  role: z.enum(["admin", "teacher", "student"], {
+  role_code: z.enum(["admin", "teacher", "student"], {
     required_error: "Vui lòng chọn vai trò",
   }),
-  phone: z.string().optional(),
-  date_of_birth: z.date(),
+  phone_number: z.string().optional(),
+  date_of_birth: z.date().refine((date) => {
+    const today = new Date();
+    const age = today.getFullYear() - date.getFullYear();
+    const m = today.getMonth() - date.getMonth();
+    const d = today.getDate() - date.getDate();
+
+    const isAtLeast18 =
+      age > 18 || (age === 18 && (m > 0 || (m === 0 && d >= 0)));
+
+    return isAtLeast18;
+  }, {
+    message: "Người dùng phải ít nhất 18 tuổi",
+  }),
   gender: z.enum(["male", "female"]),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 })
 
 const UserManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState<UserInfoResponse | null>(null)
+  const [editingUser, setEditingUser] = useState<UserInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingSubmit, setIsLoadingSubmit] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
   const [page, setPage] = useState(1)
@@ -35,22 +49,23 @@ const UserManagement = () => {
     defaultValues: {
       code: "",
       full_name: "",
-      role: "student",
-      phone: "",
+      role_code: "student",
+      phone_number: "",
       date_of_birth: new Date(),
       gender: "male",
+      password: "",
     },
   })
 
   useEffect(() => {
     handleGetUsers()
-  }, [page, roleFilter])
+  }, [page, roleFilter, searchTerm])
 
   const handleGetUsers = async () => {
     setIsLoading(true)
     try {
       const apiRoleFilter = roleFilter === "" ? "all" : roleFilter;
-      const response = await apiGetUsers(page, apiRoleFilter)
+      const response = await apiGetUsers(page, apiRoleFilter, searchTerm)
       if (response.status === 200) {
         setUsers(response.data)
       }
@@ -64,10 +79,37 @@ const UserManagement = () => {
   }
 
   const handleSubmit = async (data: UserFormData) => {
-    console.log(data)
+    setIsLoadingSubmit(true)
+    try {
+      const formattedData = {
+        ...data,
+        date_of_birth: data.date_of_birth.toISOString().split("T")[0],
+      };
+      const response = await apiCreateUser(formattedData)
+      if (response.status === 200) {
+        toast.success("Tạo người dùng thành công")
+        handleGetUsers()
+        setIsDialogOpen(false)
+        form.reset({
+          code: "",
+          full_name: "",
+          role_code: "student",
+          phone_number: "",
+          date_of_birth: new Date(),
+          gender: "male",
+          password: "",
+        })
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingSubmit(false)
+    }
   }
 
-  const handleEdit = (user: UserInfoResponse) => {
+  const handleEdit = (user: UserInfo) => {
     setEditingUser(user as any)
     setIsDialogOpen(true)
   }
@@ -82,7 +124,6 @@ const UserManagement = () => {
 
   const handlePageClick = (page: number) => {
     setPage(page)
-    console.log(page)
   }
 
   return (
@@ -96,10 +137,10 @@ const UserManagement = () => {
           form={form}
           isDialogOpen={isDialogOpen}
           setIsDialogOpen={setIsDialogOpen}
-          editingUser={editingUser as any}
-          setEditingUser={setEditingUser as any}
+            editingUser={editingUser}
+          setEditingUser={setEditingUser}
           onSubmit={handleSubmit}
-          isLoading={isLoading}
+          isLoading={isLoadingSubmit}
         />
       </div>
       <div>

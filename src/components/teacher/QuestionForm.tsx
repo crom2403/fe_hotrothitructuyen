@@ -7,17 +7,19 @@ import { Button } from '../ui/button';
 import { Loader2 } from 'lucide-react';
 
 import MultipleChoiceForm from './MultipleChoiceForm';
-import type { QuestionRequest } from '@/types/questionType';
+import type { QuestionItem } from '@/types/questionType';
 import { SingleChoiceForm } from './SingleChoiceForm';
 import { Switch } from '../ui/switch';
 import type { DifficultyLevel } from '@/types/difficultyLevelType';
 import type { Subject } from '@/types/subjectType';
 import QuillEditor from '../common/QuillEditor';
+import InfoPopup from '../common/InfoPopup';
+import { useState } from 'react';
 
 interface QuestionFormProps {
   form: UseFormReturn<QuestionFormData>;
   onSubmit: (data: QuestionFormData) => void;
-  editingQuestion: QuestionRequest | null;
+  editingQuestion?: QuestionItem | null;
   isLoading: boolean;
   questionType: string;
   questionTypes: QuestionType[];
@@ -49,7 +51,8 @@ const QuestionForm = ({
   subjects,
   isLoadingSubjects,
 }: QuestionFormProps) => {
-
+  const [open, setOpen] = useState(false);
+  
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -186,11 +189,14 @@ const QuestionForm = ({
               <FormItem>
                 <FormControl>
                   <div className='flex items-center gap-2 justify-between'>
-                    <FormLabel className='text-md font-medium'>Muốn câu hỏi công khai?</FormLabel>
+                    <div className='flex items-center gap-2'>
+                      <FormLabel className='text-md font-medium'>Lưu vào ngân hàng câu hỏi?</FormLabel>
+                      <InfoPopup text="Khi lưu vào ngân hàng câu hỏi cần phải qua sự kiểm duyệt của quản trị viên" open={open} setOpen={setOpen} />
+                    </div>
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      className='data-[state=unchecked]:bg-gray-300 w-10 h-6'
+                      className='data-[state=unchecked]:bg-gray-300 cursor-pointer'
                     />
                   </div>
                 </FormControl>

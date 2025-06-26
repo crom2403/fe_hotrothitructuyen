@@ -14,10 +14,9 @@ const QuestionManagement = () => {
   const handleGetQuestionList = async () => {
     setIsLoading(true);
     try {
-      const response = await apiGetQuestionList(page, statusFilter, true);
+      const response = await apiGetQuestionList(page, statusFilter);
       if (response.status === 200) {
         setQuestions(response.data);
-        console.log(questions);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string, error: string }>;
@@ -75,7 +74,7 @@ const QuestionManagement = () => {
           isLoading={isLoading}
           setStatusFilter={setStatusFilter}
           page={page}
-          totalPages={questions?.last_page || 1}
+          totalPages={questions?.metadata.last_page || 1}
           handleApprove={handleApprove}
           handleReject={handleReject}
           handlePageClick={handlePageClick}

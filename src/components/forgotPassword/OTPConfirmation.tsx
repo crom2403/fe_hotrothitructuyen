@@ -43,7 +43,6 @@ const OTPConfirmation = () => {
   })
 
   const onSubmit = async (data: z.infer<typeof otpConfirmationSchema>) => {
-    console.log(data)
     setIsLoading(true)
     try {
       const response = await apiResetPassword({ email: data.email, new_password: data.new_password, code: data.code })

@@ -9,17 +9,16 @@ import {
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
 import QuestionForm from "./QuestionForm";
-import type { QuestionFormData, QuestionType } from "@/types/questionType";
+import type { QuestionFormData, QuestionItem, QuestionType } from "@/types/questionType";
 import type { UseFormReturn } from "react-hook-form";
-import type { QuestionRequest } from "@/types/questionType";
 import type { DifficultyLevel } from "@/types/difficultyLevelType";
 import type { Subject } from "@/types/subjectType";
 
 interface QuestionDialogProps {
   isDialogOpen: boolean;
   setIsDialogOpen: (open: boolean) => void;
-  editingQuestion: QuestionRequest | null;
-  setEditingQuestion: (question: QuestionRequest | null) => void;
+  editingQuestion?: QuestionItem | null;
+  setEditingQuestion?: (question: QuestionItem | null) => void;
   form: UseFormReturn<QuestionFormData>;
   onSubmit: (data: QuestionFormData) => void;
   isLoading: boolean;
@@ -64,7 +63,8 @@ const QuestionDialog = ({
         <Button
           className="bg-black hover:bg-black/80"
           onClick={() => {
-            setEditingQuestion(null);
+            setEditingQuestion?.(null);
+            setIsDialogOpen(true);
             form.reset();
           }}
         >

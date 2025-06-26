@@ -22,6 +22,7 @@ const SubjectManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSumbit, setIsLoadingSumbit] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -53,7 +54,7 @@ const SubjectManagement = () => {
   })
 
   const handleSubmit = async (data: SubjectFormData) => {
-    setIsLoading(true)
+    setIsLoadingSumbit(true)
     try {
       const response = await apiCreateSubject(data)
       if (response.status === 201) {
@@ -69,7 +70,7 @@ const SubjectManagement = () => {
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoadingSumbit(false)
     }
   }
 
@@ -144,7 +145,7 @@ const SubjectManagement = () => {
           editingSubject={editingSubject}
           setEditingSubject={setEditingSubject}
           onSubmit={handleSubmit}
-          isLoading={isLoading}
+          isLoading={isLoadingSumbit}
         />
       </div>
       <div>

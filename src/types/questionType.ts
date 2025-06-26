@@ -4,7 +4,7 @@ export interface QuestionRequest {
   type_id: string; 
   subject: string;
   topic: string;
-  difficulty: "easy" | "medium" | "hard"; // code
+  difficulty: "easy" | "medium" | "hard";
   answers: {
     content: string;
     is_correct: boolean;
@@ -17,7 +17,7 @@ export interface QuestionRequest {
 export interface Answer {
   id: string;
   content: string;
-  is_correct: number; // có thể dùng boolean nếu backend chuẩn
+  is_correct: number;
   order_index: number;
 }
 
@@ -26,7 +26,7 @@ export interface QuestionItem {
   content: string;
   created_at: string;
   review_status: "pending" | "approved" | "rejected";
-  is_public: number; // 0 hoặc 1
+  is_public: boolean;
   subject: {
     id: string;
     name: string;
@@ -48,10 +48,12 @@ export interface QuestionItem {
 
 export interface QuestionListResponse {
   data: QuestionItem[];
-  total: number;
-  size: number;
-  page: number;
-  last_page: number;
+  metadata: {
+    total: number;
+    size: number;
+    page: number;
+    last_page: number;
+  };
 }
 
 

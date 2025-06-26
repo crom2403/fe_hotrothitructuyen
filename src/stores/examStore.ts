@@ -11,7 +11,8 @@ export interface ExamTab1 {
   duration_minutes: number,
   total_questions: number,
   pass_points: number,
-  point_scale: number,
+  point_scale: string,
+  type: boolean,
 }
 
 export interface ExamTab2 {
@@ -46,7 +47,8 @@ interface ExamStore {
   setTab1Duration: (minutes: number) => void;
   setTab1TotalQuestions: (count: number) => void;
   setTab1PassPoints: (points: number) => void;
-  setTab1PointScale: (scale: number) => void;
+  setTab1PointScale: (scale: string) => void;
+  setTab1Type: (type: boolean) => void;
 
   // Tab 2 setters
   setExamType: (type: string) => void;
@@ -76,7 +78,8 @@ const useExamStore = create<ExamStore>()(
         duration_minutes: 0,
         total_questions: 0,
         pass_points: 0,
-        point_scale: 0,
+        point_scale: "",
+        type: false,
       },
       tab2Data: {
         exam_type: "",
@@ -121,6 +124,9 @@ const useExamStore = create<ExamStore>()(
       setTab1PointScale: (point_scale) =>
         set({ tab1Data: { ...get().tab1Data, point_scale } }),
 
+      setTab1Type: (type) =>
+        set({ tab1Data: { ...get().tab1Data, type } }),
+
       // Tab 2
       setExamType: (exam_type) =>
         set({ tab2Data: { ...get().tab2Data, exam_type } }),
@@ -156,7 +162,8 @@ const useExamStore = create<ExamStore>()(
           duration_minutes: 0,
           total_questions: 0,
           pass_points: 0,
-          point_scale: 0,
+          point_scale: "",
+          type: false,
         },
         tab2Data: {
           exam_type: "",

@@ -24,6 +24,7 @@ const AccessDeniedPage = lazy(() => import("@/components/accessDenied/AccessDeni
 const AdminStudyGroupManagement = lazy(() => import("@/features/admin/StudyGroupManagement"));
 const QuestionManagement = lazy(() => import("@/features/admin/QuestionManagement"));
 const CreateExam = lazy(() => import("@/features/teacher/CreateExam"));
+const TeacherStudyGroup = lazy(() => import("@/features/teacher/StudyGroup"));
 
 const AppRoutes = () => {
   return (
@@ -67,12 +68,19 @@ const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path={path.TEACHER.EXAM}
             element={
               <ProtectedRoute allowedRoles={["teacher"]}>
                 <CreateExam />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.TEACHER.STUDY_GROUP}
+            element={
+              <ProtectedRoute allowedRoles={["teacher"]}>
+                <TeacherStudyGroup />
               </ProtectedRoute>
             }
           />

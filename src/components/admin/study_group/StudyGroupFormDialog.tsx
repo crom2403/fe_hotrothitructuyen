@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Check, ChevronsUpDown, Loader2, Plus, Save } from "lucide-react"
-import type { StudyGroup, StudyGroupFormData } from "@/types/studyGroup"
+import type { StudyGroupFormData, StudyGroupInfo } from "@/types/studyGroupType"
 import type { UseFormReturn } from "react-hook-form"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -21,6 +21,8 @@ interface StudyGroupFormDialogProps {
   teachers: UserInfoResponse[]
   academicYears: Year[]
   semestersPerYear: Semester[]
+  teacherSearchTerm: string
+  setTeacherSearchTerm: (searchTerm: string) => void
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (data: StudyGroupFormData) => void
@@ -29,14 +31,13 @@ interface StudyGroupFormDialogProps {
   isLoadingTeachers: boolean
   isLoadingAcademicYears: boolean
   isLoadingSemesters: boolean
-  editingStudyGroup: StudyGroup | null
-  setEditingStudyGroup: (studyGroup: StudyGroup | null) => void
+  editingStudyGroup: StudyGroupInfo | null
+  setEditingStudyGroup: (studyGroup: StudyGroupInfo | null) => void
   onYearChange: (academic_year_id: string) => void
 }
 
-const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semestersPerYear, isOpen, onOpenChange, onSubmit, isLoading, isLoadingSubjects, isLoadingTeachers, isLoadingAcademicYears, isLoadingSemesters, editingStudyGroup, setEditingStudyGroup, onYearChange }: StudyGroupFormDialogProps) => {
+const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semestersPerYear, isOpen, onOpenChange, onSubmit, isLoading, isLoadingSubjects, isLoadingTeachers, isLoadingAcademicYears, isLoadingSemesters, editingStudyGroup, setEditingStudyGroup, onYearChange, teacherSearchTerm, setTeacherSearchTerm }: StudyGroupFormDialogProps) => {
   const [searchSubject, setSearchSubject] = useState("")
-  const [searchTeacher, setSearchTeacher] = useState("")
   const [openSubject, setOpenSubject] = useState(false)
   const [openTeacher, setOpenTeacher] = useState(false)
   const prevYearRef = useRef<string>("");
@@ -49,16 +50,12 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
     [subjects, searchSubject]
   );
 
-  const filteredTeachers = useMemo(
-    () =>
-      teachers.filter((teacher) => {
-        if (!teacher.name) return false;
-        const normalizedName = teacher.name.normalize("NFC").toLowerCase();
-        const normalizedSearch = searchTeacher.normalize("NFC").toLowerCase();
-        return normalizedName.includes(normalizedSearch);
-      }),
-    [teachers, searchTeacher]
-  );
+  // const filteredTeachers = useMemo(() => {
+  //   return teachers.filter((teacher) => {
+  //     if (!teacher.name) return false;
+  //     return teacher.name.toLowerCase().includes(teacherSearchTerm.toLowerCase());
+  //   });
+  // }, [teachers, teacherSearchTerm]);
 
   const selectedYear = form.watch("academic_year");
 
@@ -95,10 +92,10 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
               <div className="space-y-2">
                 <FormField
                   control={form.control}
-                  name="code"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mã lớp</FormLabel>
+                      <FormLabel>Tên lớp</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -126,21 +123,6 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
               </div>
             </div>
 
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tên lớp</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
             <div className="space-y-2">
               <FormField
                 control={form.control}
@@ -254,7 +236,7 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
                               ) : (
                                 <>
                                   {field.value
-                                    ? teachers.find((teacher) => teacher.id === field.value)?.name
+                                    ? teachers.find((teacher) => teacher.id === field.value)?.code + " - " + teachers.find((teacher) => teacher.id === field.value)?.name
                                     : "Chọn giáo viên"}
                                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </>
@@ -266,28 +248,28 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
                           <Command>
                             <CommandInput
                               placeholder="Tìm kiếm giáo viên..."
-                              value={searchTeacher}
-                              onValueChange={setSearchTeacher}
+                              value={teacherSearchTerm}
+                              onValueChange={setTeacherSearchTerm}
                             />
                             <CommandEmpty>Không tìm thấy giáo viên.</CommandEmpty>
                             <CommandGroup className="max-h-[200px] overflow-y-auto">
-                              {filteredTeachers.map((teacher) => (
+                              {teachers.map((teacher) => (
                                 <CommandItem
                                   key={teacher.id}
                                   value={teacher.id}
                                   onSelect={() => {
                                     form.setValue("teacher_id", teacher.id);
                                     setOpenTeacher(false);
-                                    setSearchTeacher("");
+                                    setTeacherSearchTerm("");
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       "mr-2 h-4 w-4",
-                                      field.value === teacher.code ? "opacity-100" : "opacity-0"
+                                      field.value === teacher.id ? "opacity-100" : "opacity-0"
                                     )}
                                   />
-                                  {teacher.name}
+                                  {teacher.code} - {teacher.name}
                                 </CommandItem>
                               ))}
                             </CommandGroup>
