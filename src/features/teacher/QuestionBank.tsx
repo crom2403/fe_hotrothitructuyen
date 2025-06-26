@@ -1,19 +1,20 @@
 import QuestionDialog from "@/components/teacher/QuestionDialog";
 import QuestionTable from "@/components/teacher/QuestionTable";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsTrigger, TabsList, TabsContent } from "@/components/ui/tabs";
 import { apiGetSubjects } from "@/services/admin/subject";
-import { apiCreateQuestion, apiGetDifficultyLevels, apiGetQuestionTypes } from "@/services/teacher/question";
+import { apiCreateQuestion, apiGetDifficultyLevels, apiGetQuestionBank, apiGetQuestionPrivate, apiGetQuestionTypes } from "@/services/teacher/question";
 import type { DifficultyLevel } from "@/types/difficultyLevelType";
-import type { QuestionRequest, QuestionFormData, QuestionTypeResponse } from "@/types/questionType";
+import type { QuestionFormData, QuestionTypeResponse, QuestionListResponse, QuestionItem } from "@/types/questionType";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { AxiosError } from "axios";
-import { Upload } from "lucide-react"
-import { useEffect, useState } from "react";
+import { Upload } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import type { SubjectResponse } from "@/types/subjectType";
+import { useApiCall } from "@/hooks/useApiCall";
 
 const questionSchema = z.object({
   content: z.string().min(1, "Nội dung câu hỏi không được để trống"),
@@ -25,73 +26,22 @@ const questionSchema = z.object({
   explanation: z.string().optional(),
   is_public: z.boolean().default(false),
 });
-export const questions: QuestionRequest[] = [
-  {
-    id: "1",
-    content: "<p>React là gì?</p>",
-    type_id: "a883bd65-4b9b-11f0-8936-862ccfb06bcd",
-    subject: "web",
-    topic: "React Basics",
-    difficulty: "easy",
-    answers: [
-      { content: "Thư viện JavaScript", is_correct: true, order_index: 0 },
-      { content: "Framework PHP", is_correct: false, order_index: 1 },
-      { content: "Ngôn ngữ lập trình", is_correct: false, order_index: 2 },
-      { content: "Cơ sở dữ liệu", is_correct: false, order_index: 3 },
-    ],
-    explanation: "<p>React là một thư viện JavaScript để xây dựng giao diện người dùng.</p>",
-    is_public: false,
-  },
-  {
-    id: "2",
-    content: "<p>Những công nghệ nào sau đây thuộc về Frontend?</p>",
-    type_id: "a883b649-4b9b-11f0-8936-862ccfb06bcd",
-    subject: "network",
-    topic: "Frontend Technologies",
-    difficulty: "medium",
-    answers: [
-      { content: "HTML", is_correct: true, order_index: 0 },
-      { content: "CSS", is_correct: true, order_index: 1 },
-      { content: "JavaScript", is_correct: true, order_index: 2 },
-      { content: "MySQL", is_correct: false, order_index: 3 },
-      { content: "React", is_correct: true, order_index: 4 },
-      { content: "Node.js", is_correct: false, order_index: 5 },
-    ],
-    is_public: false,
-  },
-  {
-    id: "3",
-    content: "<p>Những công nghệ nào sau đây thuộc về Backend?</p>",
-    type_id: "a883b649-4b9b-11f0-8936-862ccfb06bcd",
-    subject: "web",
-    topic: "Backend Technologies",
-    difficulty: "medium",
-    answers: [
-      { content: "HTML", is_correct: false, order_index: 0 },
-      { content: "CSS", is_correct: false, order_index: 1 },
-      { content: "JavaScript", is_correct: false, order_index: 2 },
-      { content: "MySQL", is_correct: true, order_index: 3 },
-      { content: "React", is_correct: false, order_index: 4 },
-      { content: "Node.js", is_correct: true, order_index: 5 },
-    ],
-    is_public: false,
-  },
-];
+
 const QuestionBank = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
-  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState("private_question");
+  const [searchTermBank, setSearchTermBank] = useState("");
+  const [searchTermPrivate, setSearchTermPrivate] = useState("");
+  const [subjectFilterBank, setSubjectFilterBank] = useState<string>("all");
+  const [subjectFilterPrivate, setSubjectFilterPrivate] = useState<string>("all");
+  const [difficultyFilterBank, setDifficultyFilterBank] = useState<string>("all");
+  const [difficultyFilterPrivate, setDifficultyFilterPrivate] = useState<string>("all");
+  const [typeFilterBank, setTypeFilterBank] = useState<string>("all");
+  const [typeFilterPrivate, setTypeFilterPrivate] = useState<string>("all");
+  const [pageBank, setPageBank] = useState(1);
+  const [pagePrivate, setPagePrivate] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<QuestionRequest | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingQuestionTypes, setIsLoadingQuestionTypes] = useState(false);
-  const [isLoadingDifficultyLevels, setIsLoadingDifficultyLevels] = useState(false);
-  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
-  const [page, setPage] = useState(1);
-  const [questionTypes, setQuestionTypes] = useState<QuestionTypeResponse | null>(null);
-  const [difficultyLevels, setDifficultyLevels] = useState<DifficultyLevel[]>([]);
-  const [subjects, setSubjects] = useState<SubjectResponse | null>(null);
+  const [editingQuestion, setEditingQuestion] = useState<QuestionItem | null>(null);
+  const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
 
   const form = useForm<QuestionFormData>({
     resolver: zodResolver(questionSchema),
@@ -107,62 +57,54 @@ const QuestionBank = () => {
     },
   });
 
+  const getQuestionsBank = useCallback(() => apiGetQuestionBank(pageBank, searchTermBank, subjectFilterBank, typeFilterBank, difficultyFilterBank), [
+    pageBank,
+    subjectFilterBank,
+    typeFilterBank,
+    difficultyFilterBank,
+  ]);
 
+  const getQuestionsPrivate = useCallback(() => apiGetQuestionPrivate(pagePrivate, searchTermPrivate, subjectFilterPrivate, typeFilterPrivate, difficultyFilterPrivate), [
+    pagePrivate,
+    subjectFilterPrivate,
+    typeFilterPrivate,
+    difficultyFilterPrivate,
+  ]);
 
-  const handleGetQuestionTypes = async () => {
-    setIsLoadingQuestionTypes(true);
-    try {
-      const response = await apiGetQuestionTypes();
-      setQuestionTypes(response.data);
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
-      toast.error(errorMessage);
-    } finally {
-      setIsLoadingQuestionTypes(false);
+  const { data: questionsBank, isLoading: isLoadingBank, refetch: refetchQuestionsBank, error: bankError } = useApiCall<QuestionListResponse>(getQuestionsBank);
+  const { data: questionsPrivate, isLoading: isLoadingPrivate, refetch: refetchQuestionsPrivate, error: privateError } = useApiCall<QuestionListResponse>(getQuestionsPrivate);
+  const { data: questionTypes, isLoading: isLoadingQuestionTypes, refetch: refetchQuestionTypes } = useApiCall<QuestionTypeResponse>(() => apiGetQuestionTypes());
+  const { data: difficultyLevels, isLoading: isLoadingDifficultyLevels, refetch: refetchDifficultyLevels } = useApiCall<{ data: DifficultyLevel[] }>(() => apiGetDifficultyLevels());
+  const { data: subjects, isLoading: isLoadingSubjects, refetch: refetchSubjects } = useApiCall<SubjectResponse>(() => apiGetSubjects(1, "active", "", 100));
+
+  useEffect(() => {
+    if (activeTab === "private_question") {
+      refetchQuestionsPrivate();
+    } else if (activeTab === "question_bank") {
+      refetchQuestionsBank();
     }
-  }
+  }, [activeTab, refetchQuestionsPrivate, refetchQuestionsBank]);
 
-  const handleGetDifficultyLevels = async () => {
-    setIsLoadingDifficultyLevels(true);
-    try {
-      const response = await apiGetDifficultyLevels();
-      setDifficultyLevels(response.data.data);
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
-      toast.error(errorMessage);
-    } finally {
-      setIsLoadingDifficultyLevels(false);
-    }
-  }
-
-  const handleGetSubjects = async () => {
-    setIsLoadingSubjects(true);
-    try {
-      const response = await apiGetSubjects(1, "active", "", 100);
-      setSubjects(response.data);
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
-      toast.error(errorMessage);
-    } finally {
-      setIsLoadingSubjects(false);
-    }
-  }
   useEffect(() => {
     if (isDialogOpen) {
-      handleGetQuestionTypes();
-      handleGetDifficultyLevels();
-      handleGetSubjects();
+      refetchQuestionTypes();
+      refetchDifficultyLevels();
+      refetchSubjects();
     }
   }, [isDialogOpen]);
+
+  useEffect(() => {
+    if (isDialogOpen) {
+      form.reset();
+      setEditingQuestion(null);
+    }
+  }, [isDialogOpen, form]);
 
   const typeId = form.watch("type_id");
   const questionType = questionTypes?.data.find((type) => type.id === typeId)?.code || "";
 
   const onSubmit = async (data: QuestionFormData) => {
-    setIsLoading(true);
+    setIsLoadingSubmit(true);
     try {
       const apiData = {
         subject_id: data.subject_id,
@@ -181,33 +123,23 @@ const QuestionBank = () => {
       if (response.status === 201) {
         toast.success("Tạo câu hỏi thành công");
         setIsDialogOpen(false);
-        setEditingQuestion(null);
-        form.reset({
-          content: "",
-          type_id: "",
-          subject_id: "",
-          difficulty_level_id: "",
-          options: ["", ""],
-          correctAnswers: [],
-          explanation: "",
-          is_public: false,
-        });
+        refetchQuestionsPrivate(); // Cập nhật private sau khi tạo
       } else {
         toast.error("Tạo câu hỏi thất bại");
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string, error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
       toast.error(errorMessage);
     } finally {
-      setIsLoading(false);
+      setIsLoadingSubmit(false);
     }
-  }
+  };
 
   const addOption = () => {
     const currentOptions = form.getValues("options");
     form.setValue("options", [...currentOptions, ""]);
-  }
+  };
 
   const removeOption = (index: number) => {
     const currentOptions = form.getValues("options");
@@ -220,14 +152,14 @@ const QuestionBank = () => {
         .map((answer) => (answer > index ? answer - 1 : answer));
       form.setValue("correctAnswers", newCorrectAnswers);
     }
-  }
+  };
 
   const updateOption = (index: number, value: string) => {
     const currentOptions = form.getValues("options");
     const newOptions = [...currentOptions];
     newOptions[index] = value;
     form.setValue("options", newOptions);
-  }
+  };
 
   const toggleCorrectAnswer = (index: number) => {
     const correctAnswers = form.getValues("correctAnswers");
@@ -243,31 +175,18 @@ const QuestionBank = () => {
     }
   };
 
-  const handleEdit = (question: QuestionRequest) => {
+  const handleEdit = (question: QuestionItem) => {
     setEditingQuestion(question);
-    // form.reset({
-    //   content: question.content,
-    //   type: question.type,
-    //   subject: question.subject,
-    //   topic: question.topic,
-    //   difficulty: question.difficulty,
-    //   points: question.points,
-    //   options: question.options,
-    //   correctAnswers: question.correctAnswers,
-    //   explanation: question.explanation || "",
-    //   is_private: question.is_private || false,
-    // });
     setIsDialogOpen(true);
-  }
+    // TODO: Implement form reset with question data
+  };
 
   const handleDelete = (questionId: string) => {
-    // setQuestions(questions.filter((question) => question.id !== questionId));
-  }
+    // TODO: Implement delete logic
+  };
 
-  const handlePageClick = (page: number) => {
-    setPage(page);
-  }
-
+  const handlePageClickBank = (page: number) => setPageBank(page);
+  const handlePageClickPrivate = (page: number) => setPagePrivate(page);
 
   return (
     <div className="space-y-6">
@@ -277,7 +196,7 @@ const QuestionBank = () => {
           <p className="text-gray-500">Quản lý và tạo các câu hỏi cho bài thi</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" >
+          <Button variant="outline">
             <Upload className="mr-2 h-4 w-4" />
             Import
           </Button>
@@ -288,9 +207,9 @@ const QuestionBank = () => {
             setEditingQuestion={setEditingQuestion}
             form={form}
             onSubmit={onSubmit}
-            isLoading={isLoading}
+            isLoading={isLoadingSubmit}
             questionType={questionType}
-            difficultyLevels={difficultyLevels}
+            difficultyLevels={difficultyLevels?.data || []}
             isLoadingDifficultyLevels={isLoadingDifficultyLevels}
             questionTypes={questionTypes?.data || []}
             isLoadingQuestionTypes={isLoadingQuestionTypes}
@@ -304,7 +223,7 @@ const QuestionBank = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="question_bank">
+      <Tabs defaultValue="private_question" onValueChange={setActiveTab}>
         <TabsList className="w-full space-x-4">
           <TabsTrigger value="private_question">Câu hỏi riêng</TabsTrigger>
           <TabsTrigger value="question_bank">Ngân hàng câu hỏi</TabsTrigger>
@@ -312,44 +231,46 @@ const QuestionBank = () => {
 
         <TabsContent value="private_question">
           <QuestionTable
-            questions={questions}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            subjectFilter={subjectFilter}
-            setSubjectFilter={setSubjectFilter}
-            typeFilter={typeFilter}
-            setTypeFilter={setTypeFilter}
-            difficultyFilter={difficultyFilter}
-            setDifficultyFilter={setDifficultyFilter}
-            page={page}
-            totalPages={100}
+            questions={questionsPrivate?.data || []}
+            searchTerm={searchTermPrivate}
+            setSearchTerm={setSearchTermPrivate}
+            subjectFilter={subjectFilterPrivate}
+            setSubjectFilter={setSubjectFilterPrivate}
+            typeFilter={typeFilterPrivate}
+            setTypeFilter={setTypeFilterPrivate}
+            difficultyFilter={difficultyFilterPrivate}
+            setDifficultyFilter={setDifficultyFilterPrivate}
+            page={pagePrivate}
+            totalPages={questionsPrivate?.metadata.last_page || 1}
             handleEdit={handleEdit}
             handleDelete={handleDelete}
-            handlePageClick={handlePageClick}
+            handlePageClick={handlePageClickPrivate}
+            isLoading={isLoadingPrivate}
           />
         </TabsContent>
 
         <TabsContent value="question_bank">
           <QuestionTable
-            questions={questions}
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            subjectFilter={subjectFilter}
-            setSubjectFilter={setSubjectFilter}
-            typeFilter={typeFilter}
-            setTypeFilter={setTypeFilter}
-            difficultyFilter={difficultyFilter}
-            setDifficultyFilter={setDifficultyFilter}
-            page={page}
-            totalPages={100}  
+            questions={questionsBank?.data || []}
+            searchTerm={searchTermBank}
+            setSearchTerm={setSearchTermBank}
+            subjectFilter={subjectFilterBank}
+            setSubjectFilter={setSubjectFilterBank}
+            typeFilter={typeFilterBank}
+            setTypeFilter={setTypeFilterBank}
+            difficultyFilter={difficultyFilterBank}
+            setDifficultyFilter={setDifficultyFilterBank}
+            page={pageBank}
+            totalPages={questionsBank?.metadata.last_page || 1}
             handleEdit={handleEdit}
             handleDelete={handleDelete}
-            handlePageClick={handlePageClick}
+            handlePageClick={handlePageClickBank}
+            isLoading={isLoadingBank}
           />
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
+  );
+};
 
-export default QuestionBank
+export default QuestionBank;

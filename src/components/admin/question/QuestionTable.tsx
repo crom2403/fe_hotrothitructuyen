@@ -82,6 +82,7 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
               <SelectItem value="pending">Chờ duyệt</SelectItem>
               <SelectItem value="approved">Đã duyệt</SelectItem>
               <SelectItem value="rejected">Từ chối</SelectItem>

@@ -1,7 +1,7 @@
 import StudyGroupFormDialog from "@/components/admin/study_group/StudyGroupFormDialog"
 import StudyGroupTable from "@/components/admin/study_group/StudyGroupTable"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import type { StudyGroup, StudyGroupFormData } from "@/types/studyGroup"
+import type { StudyGroupFormData, StudyGroupInfo, StudyGroupResponse } from "@/types/studyGroupType"
 import type { Semester, Year } from "@/types/year_semesterType"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useCallback, useEffect, useState } from "react"
@@ -14,11 +14,10 @@ import type { AxiosError } from "axios"
 import { toast } from "sonner"
 import { apiGetUsers } from "@/services/admin/user"
 import type { UserResponse } from "@/types/userType"
-import { apiCreateStudyGroup } from "@/services/admin/studyGroup"
+import { apiCreateStudyGroup, apiDeleteStudyGroup, apiGetAllStudyGroup } from "@/services/admin/studyGroup"
 
 
 const studyGroupSchema = z.object({
-  code: z.string().min(1, "Mã lớp không được để trống"),
   name: z.string().min(1, "Tên lớp không được để trống"),
   subject_id: z.string().min(1, "Vui lòng chọn môn học"),
   academic_year: z.string().min(1, "Vui lòng chọn năm học"),
@@ -30,13 +29,15 @@ const studyGroupSchema = z.object({
 
 const StudyGroupManagement = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const [editingStudyGroup, setEditingStudyGroup] = useState<StudyGroup | null>(null)
+  const [editingStudyGroup, setEditingStudyGroup] = useState<StudyGroupInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
   const [isLoadingAcademicYears, setIsLoadingAcademicYears] = useState(false);
   const [isLoadingSemesters, setIsLoadingSemesters] = useState(false);
+  const [isLoadingSubmit, setIsLoadingSubmit] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [teacherSearchTerm, setTeacherSearchTerm] = useState("")
   const [subjectFilter, setSubjectFilter] = useState("all")
   const [yearFilter, setYearFilter] = useState("all")
   const [page, setPage] = useState(1)
@@ -45,11 +46,11 @@ const StudyGroupManagement = () => {
   const [semestersPerYear, setSemestersPerYear] = useState<Semester[]>([]);
   const [academicYears, setAcademicYears] = useState<Year[]>([])
   const [teachers, setTeachers] = useState<UserResponse | null>(null)
+  const [studyGroups, setStudyGroups] = useState<StudyGroupResponse | null>(null)
 
   const form = useForm<z.infer<typeof studyGroupSchema>>({
     resolver: zodResolver(studyGroupSchema),
     defaultValues: {
-      code: "",
       name: "",
       subject_id: "",
       academic_year: "",
@@ -60,29 +61,36 @@ const StudyGroupManagement = () => {
     },
   })
 
-  const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([
-    {
-      id: "1",
-      code: "IT101_01",
-      name: "Lập trình Web - Lớp 01",
-      subject_name: "Lập trình Web",
-      semester_name: "Học kỳ 1",
-      academic_year: "2024-2025",
-      teacher_name: "TS. Nguyễn Văn A",
-      max_students: 40,
-      is_active: true,
-      invite_code: "IT101_2024",
-      description: "Lớp học lập trình web cơ bản",
-    },
-  ])
+  useEffect(() => {
+    handleGetStudyGroups()
+  }, [page, searchTerm, subjectFilter, yearFilter])
+
+  useEffect(() => {
+    handleGetSubjects()
+    handleGetAcademicYears()
+  }, [])
 
   useEffect(() => {
     if (isOpen) {
-      handleGetSubjects();
-      handleGetAcademicYears();
-      handleGetTeachers();
+      handleGetTeachers()
     }
-  }, [isOpen]);
+  }, [isOpen, teacherSearchTerm])
+
+  const handleGetStudyGroups = async () => {
+    setIsLoading(true)
+    try {
+      const response = await apiGetAllStudyGroup(page, searchTerm, subjectFilter, yearFilter)
+      if (response.status === 200) {
+        setStudyGroups(response.data)
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const handleGetSubjects = async () => {
     setIsLoadingSubjects(true);
@@ -141,7 +149,7 @@ const StudyGroupManagement = () => {
   const handleGetTeachers = async () => {
     setIsLoadingTeachers(true)
     try {
-      const response = await apiGetUsers(1, "teacher", 100)
+      const response = await apiGetUsers(1, "teacher", teacherSearchTerm, 100)
       if (response.status === 200) {
         setTeachers(response.data)
       }
@@ -155,26 +163,57 @@ const StudyGroupManagement = () => {
   }
 
   const handleSubmit = async (data: StudyGroupFormData) => {
-    setIsLoading(true)
+    setIsLoadingSubmit(true)
     setMessage("")
-    try{
-      const {academic_year, ...payload} = data
+    try {
+      const { academic_year, ...payload } = data
       console.log(payload)
       const response = await apiCreateStudyGroup(payload)
       if (response.status === 201) {
         toast.success("Lớp học phần đã được tạo thành công")
+        handleGetStudyGroups()
+        setIsOpen(false)
+        form.reset({
+          name: "",
+          subject_id: "",
+          academic_year: "",
+          semester_id: "",
+          teacher_id: "",
+          max_students: 0,
+          description: "",
+        })
       }
-      setIsOpen(false)
-      form.reset({
-        code: "",
-        name: "",
-        subject_id: "",
-        academic_year: "",
-        semester_id: "",
-        teacher_id: "",
-        max_students: 0,
-        description: "",
-      })
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingSubmit(false)
+    }
+  }
+
+  const handleEdit = (studyGroup: StudyGroupInfo) => {
+    setEditingStudyGroup(studyGroup)
+    form.reset({
+      name: studyGroup.study_group_name,
+      subject_id: subjectResponse?.data.find((s) => s.name === studyGroup.subject_name)?.id || "",
+      academic_year: studyGroup.academic_year_code,
+      semester_id: semestersPerYear.find((s) => s.name === studyGroup.semester_name)?.id || "",
+      teacher_id: teachers?.data.find((t) => t.name === studyGroup.teacher_full_name)?.id || "",
+      max_students: studyGroup.study_group_max_students,
+      description: studyGroup.study_group_description || "",
+    });
+    setIsOpen(true);
+  }
+
+  const handleDelete = async (studyGroupId: string) => {
+    setIsLoading(true)
+    try {
+      const response = await apiDeleteStudyGroup(studyGroupId)
+      if (response.status === 200) {
+        toast.success("Lớp học phần đã được xóa thành công")
+        handleGetStudyGroups()
+      }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
@@ -182,25 +221,6 @@ const StudyGroupManagement = () => {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleEdit = (studyGroup: StudyGroup) => {
-    setEditingStudyGroup(studyGroup)
-    form.reset({
-      code: studyGroup.code,
-      name: studyGroup.name,
-      subject_id: subjectResponse?.data.find((s) => s.name === studyGroup.subject_name)?.id || "",
-      academic_year: studyGroup.academic_year,
-      semester_id: semestersPerYear.find((s) => s.name === studyGroup.semester_name)?.id || "",
-      teacher_id: teachers?.data.find((t) => t.name === studyGroup.teacher_name)?.code || "",
-      max_students: studyGroup.max_students,
-      description: studyGroup.description || "",
-    });
-    setIsOpen(true);
-  }
-
-  const handleDelete = (studyGroupId: string) => {
-    console.log(studyGroupId)
   }
 
   const handlePageClick = (page: number) => {
@@ -229,10 +249,12 @@ const StudyGroupManagement = () => {
           teachers={teachers?.data || []}
           academicYears={academicYears}
           semestersPerYear={semestersPerYear}
+          teacherSearchTerm={teacherSearchTerm}
+          setTeacherSearchTerm={setTeacherSearchTerm}
           isOpen={isOpen}
           onOpenChange={setIsOpen}
           onSubmit={handleSubmit}
-          isLoading={isLoading}
+          isLoading={isLoadingSubmit}
           isLoadingSubjects={isLoadingSubjects}
           isLoadingTeachers={isLoadingTeachers}
           isLoadingAcademicYears={isLoadingAcademicYears}
@@ -249,7 +271,8 @@ const StudyGroupManagement = () => {
       )}
       <div>
         <StudyGroupTable
-          studyGroups={studyGroups}
+          isLoading={isLoading}
+          studyGroups={studyGroups?.data || []}
           subjects={subjectResponse?.data || []}
           academicYears={academicYears}
           searchTerm={searchTerm}
@@ -258,8 +281,10 @@ const StudyGroupManagement = () => {
           setSubjectFilter={setSubjectFilter}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
+          isLoadingSubjects={isLoadingSubjects}
+          isLoadingAcademicYears={isLoadingAcademicYears}
           page={page}
-          totalPages={100}
+          totalPages={studyGroups?.metadata.last_page || 1}
           handleEdit={handleEdit}
           handleDelete={handleDelete}
           handlePageClick={handlePageClick}

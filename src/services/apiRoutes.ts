@@ -11,7 +11,7 @@ const apiRoutes = {
   difficultyLevel: "/difficulty-levels",
   admin: {
     overview: "/admin/overview",
-    study_group: "/study-groups",
+    study_group: "/admin/study-groups",
     question: "/questions",
     user: "/admin/users",
     create_user: "/auth/register",
@@ -25,13 +25,14 @@ const apiRoutes = {
   },
   teacher: {
     overview: "/teacher/overview",
-    study_group: "/study-group/teacher",
+    study_group: "/teacher/study-groups",
     study_group_detail: "/study-group/detail",
     question: "/questions",
     user: "/teacher/user",
     module: "/teacher/module",
     assignment: "/teacher/assignment",
     exam: "/teacher/exam",
+    point_scale: "/point-scales/all",
     notification: "/teacher/notification",
   },
   student: {

@@ -1,3 +1,5 @@
+import BasicInfoTab from "@/components/teacher/CreateExam/BasicInfoTab"
+import QuestionsTab from "@/components/teacher/CreateExam/QuestionsTab"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Eye, Loader2, Save } from "lucide-react"
@@ -44,7 +46,10 @@ const CreateExam = () => {
           </TabsList>
 
           <TabsContent value="basic">
-            
+            <BasicInfoTab />
+          </TabsContent>
+          <TabsContent value="questions">
+            <QuestionsTab />
           </TabsContent>
         </Tabs>
       </div>

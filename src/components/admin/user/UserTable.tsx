@@ -1,4 +1,4 @@
-import type { User, UserInfoResponse } from "@/types/userType";
+import type { User, UserInfo } from "@/types/userType";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card";
 import { Edit, MoreHorizontal, Search, Unlock, Lock, Trash2, Eye, Loader2 } from "lucide-react";
 import { Input } from "../../ui/input";
@@ -9,19 +9,22 @@ import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../ui/dropdown-menu";
 import { Button } from "../../ui/button";
 import Paginate from "../../common/Pagination";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog } from "../../ui/dialog";
 import UserDetail from "./UserDetail";
+import { apiGetUserDetail } from "@/services/admin/user";
+import type { AxiosError } from "axios";
+import { toast } from "sonner";
 
 interface UserTableProps {
-  users: UserInfoResponse[];
+  users: UserInfo[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   roleFilter: string;
   setRoleFilter: (role: string) => void;
   page: number;
   totalPages: number;
-  handleEdit: (user: UserInfoResponse) => void;
+  handleEdit: (user: UserInfo) => void;
   handleToggleStatus: (userId: string) => Promise<void>;
   handleDelete: (userId: string) => Promise<void>;
   handlePageClick: (page: number) => void;
@@ -30,7 +33,9 @@ interface UserTableProps {
 
 const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, totalPages, handleEdit, handleToggleStatus, handleDelete, handlePageClick, isLoading }: UserTableProps) => {
   const [isOpenDetailUser, setIsOpenDetailUser] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<UserInfoResponse | null>(null)
+  const [inputSearch, setInputSearch] = useState(searchTerm)
+  const [userDetail, setUserDetail] = useState<User | null>(null)
+  const [isLoadingUserDetail, setIsLoadingUserDetail] = useState(false)
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -54,9 +59,31 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
     }
   };
 
-  const openDetailUser = (user: UserInfoResponse) => {
-    setSelectedUser(user)
-    setIsOpenDetailUser(true)
+  useEffect(() => {
+    setInputSearch(searchTerm);
+  }, [searchTerm]);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      setSearchTerm(inputSearch.trim());
+    }
+  };
+
+  const handleGetUserDetail = async (id: string) => {
+    setIsLoadingUserDetail(true)
+    try {
+      const response = await apiGetUserDetail(id)
+      if (response.status === 200) {
+        setUserDetail(response.data)
+        setIsOpenDetailUser(true)
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingUserDetail(false)
+    }
   }
 
   return (
@@ -71,8 +98,9 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Tìm kiếm theo tên, mã số hoặc email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={inputSearch}
+              onChange={(e) => setInputSearch(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               className="pl-10"
             />
           </div>
@@ -131,9 +159,11 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openDetailUser(user)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          Xem chi tiết
+                        <DropdownMenuItem onClick={() => handleGetUserDetail(user.id)}>
+                          <>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Xem chi tiết
+                          </>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(user)}>
                           <Edit className="mr-2 h-4 w-4" />
@@ -175,9 +205,9 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
         )}
         <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
 
-        {/* <Dialog open={isOpenDetailUser} onOpenChange={setIsOpenDetailUser}>
-          <UserDetail user={selectedUser} />
-        </Dialog> */}
+        <Dialog open={isOpenDetailUser} onOpenChange={setIsOpenDetailUser}>
+          <UserDetail user={userDetail} isLoading={isLoadingUserDetail} />
+        </Dialog>
       </CardContent>
     </Card>
   )

@@ -10,7 +10,7 @@ import { Label } from '../ui/label';
 import { Eye, EyeOff, Loader2, TriangleAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import path from '@/utils/path';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { apiGetCurrentUser, apiLogin } from '@/services/auth';
 import useAuthStore from '@/stores/authStore';
 import { toast } from 'sonner';
@@ -30,15 +30,45 @@ const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { login, getCurrentUser, currentUser } = useAuthStore()
+  const { login, getCurrentUser, rememberMe, setRememberMe, loginCredentials } = useAuthStore()
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      code: '',
-      password: '',
+      code: loginCredentials?.code || '',
+      password: loginCredentials?.password || '',
     },
   })
+
+  useEffect(() => {
+    if (loginCredentials) {
+      form.setValue('code', loginCredentials.code);
+      form.setValue('password', loginCredentials.password);
+    }
+  }, [loginCredentials, form]);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (useAuthStore.getState().accessToken) {
+        try {
+          const res = await apiGetCurrentUser();
+          if (res.status === 200) {
+            getCurrentUser(res.data);
+            if (res.data.role_code === "student") {
+              navigate(path.STUDENT.OVERVIEW);
+            } else if (res.data.role_code === "teacher") {
+              navigate(path.TEACHER.OVERVIEW);
+            } else if (res.data.role_code === "admin") {
+              navigate(path.ADMIN.OVERVIEW);
+            }
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      }
+    };
+    checkAuth();
+  }, [getCurrentUser, navigate]);
 
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     setIsLoading(true)
@@ -46,7 +76,7 @@ const Login = () => {
       const response = await apiLogin(data);
       if (response.status === 200) {
         const { access_token, refresh_token } = response.data.data;
-        login(access_token, refresh_token);
+        login(access_token, refresh_token, rememberMe, data);
         const res = await apiGetCurrentUser();
         if (res.status === 200) {
           const userData = res.data;
@@ -98,7 +128,7 @@ const Login = () => {
                         <div className='flex items-center gap-4'>
                           <Input
                             className='bg-gray-100 w-[400px]'
-                            placeholder='Mã sinh viên'
+                            placeholder='Mã tài khoản'
                             {...field}
                           />
                         </div>
@@ -150,7 +180,7 @@ const Login = () => {
                 </Button>
                 <div className='mt-4 flex justify-between items-center w-full'>
                   <div className="flex items-center gap-2">
-                    <Checkbox id="remember" />
+                    <Checkbox id="remember" checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked as boolean)} />
                     <Label htmlFor="remember">Ghi nhớ đăng nhập</Label>
                   </div>
                   <Button type='button' className='bg-gray-200 hover:bg-gray-300 text-black px-4 ml-4'

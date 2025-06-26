@@ -3,13 +3,17 @@ import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 import { Button } from "../ui/button"
-import { Camera, Eye, EyeOff, Loader2, Mail } from "lucide-react"
+import { Eye, EyeOff, Loader2, Mail } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form"
 import { Input } from "../ui/input"
-import { useState } from "react"
-import useAuthStore from "@/stores/authStore"
+import { useEffect, useState } from "react"
+import useAuthStore, { type CurrentUser } from "@/stores/authStore"
+import { toast } from "sonner"
+import { apiGetCurrentUser, apiGoogleVerify } from "@/services/auth"
+import type { AxiosError } from "axios"
+import GoogleVerificationDialog from "./GoogleVerificationDialog"
 
 const profileSchema = z.object({
   name: z.string(),
@@ -39,7 +43,11 @@ type PasswordFormData = z.infer<typeof passwordSchema>
 
 const Profile = () => {
   const [isLoading, setIsLoading] = useState(false)
-  const { currentUser } = useAuthStore()
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false)
+  const [isVerificationDialogOpen, setVerificationDialogOpen] = useState(false)
+  const [email, setEmail] = useState<string>("")
+  const { currentUser, getCurrentUser } = useAuthStore()
+  const [user, setUser] = useState<CurrentUser | null>(null)
   const [showPassword, setShowPassword] = useState({
     current: false,
     new: false,
@@ -68,17 +76,59 @@ const Profile = () => {
     },
   })
 
+  const handleCheckGoogle = async () => {
+    setIsLoadingGoogle(true)
+    try {
+      const email = profileForm.getValues("email");
+      const response = await apiGoogleVerify({ email: email });
+      if (response.status === 201) {
+        toast.success("Đã gửi mã OTP đến email")
+        setEmail(email || "")
+        setVerificationDialogOpen(true)
+      } else {
+        toast.error("Email không hợp lệ")
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingGoogle(false)
+    }
+  }
+
+  const handleGetCurrentUser = async () => {
+    setIsLoading(true)
+    try {
+      const response = await apiGetCurrentUser()
+      if (response.status === 200) {
+        getCurrentUser(response.data)
+        setUser(response.data)
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    handleGetCurrentUser()
+  }, [])
+
   return (
     <div className="max-w-4xl mx-auto p-5 space-y-6">
       <div className="flex gap-4 items-center">
         <Avatar className="w-20 h-20 bg-primary">
-          <AvatarImage src={currentUser?.avatar || "/placeholder.svg"} />
-          <AvatarFallback className="text-lg">{currentUser?.full_name}</AvatarFallback>
+          <AvatarImage src={user?.avatar || "/placeholder.svg"} />
+          <AvatarFallback className="text-lg">{user?.full_name}</AvatarFallback>
         </Avatar>
         <div>
-          <h1 className="text-2xl font-bold">{currentUser?.full_name}</h1>
-          <p className="text-gray-600">{currentUser?.role_code}</p>
-          <p className="text-sm text-gray-500">{currentUser?.email}</p>
+          <h1 className="text-2xl font-bold">{user?.full_name}</h1>
+          <p className="text-gray-600">{user?.role_code}</p>
+          <p className="text-sm text-gray-500">{user?.email}</p>
         </div>
         {/* <Button variant={"outline"} className="flex items-center gap-2">
           <Camera className="h-4 w-4" />
@@ -100,7 +150,7 @@ const Profile = () => {
             </CardHeader>
             <CardContent>
               <Form {...profileForm}>
-                <form className="space-y-4" action="POST">
+                <form className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={profileForm.control}
@@ -201,15 +251,19 @@ const Profile = () => {
                               )}
                             />
                             <div className="flex items-end justify-end">
-                              <Button variant={"outline"} className="flex items-center gap-2">
+                              <Button variant={"outline"}
+                                type="button"
+                                className="flex items-center gap-2 w-full"
+                                onClick={() => handleCheckGoogle()}
+                                disabled={isLoadingGoogle}
+                              >
                                 <Mail className="h-4 w-4" />
-                                Liên kết Google
+                                {isLoadingGoogle ? <Loader2 className="h-4 w-4 animate-spin" /> : "Liên kết Google"}
                               </Button>
                             </div>
                           </div>
                         )
                       }
-
                     </div>
                   </div>
 
@@ -331,6 +385,12 @@ const Profile = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      <GoogleVerificationDialog
+        open={isVerificationDialogOpen}
+        onOpenChange={setVerificationDialogOpen}
+        email={email}
+        onVerificationSuccess={handleGetCurrentUser}
+      />
     </div>
   )
 }

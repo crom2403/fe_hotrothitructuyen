@@ -24,9 +24,16 @@ export interface CurrentUser {
 interface AuthStore {
   accessToken: string,
   refreshToken: string,
-  login: (accessToken: string, refreshToken: string) => void
-  currentUser: CurrentUser | null
+  currentUser: CurrentUser | null,
+  rememberMe: boolean,
+  loginCredentials: {
+    code: string,
+    password: string
+  } | null,
+  setRememberMe: (rememberMe: boolean) => void,
+  login: (accessToken: string, refreshToken: string, rememberMe: boolean, credentials: { code: string, password: string }) => void
   getCurrentUser: (currentUser: CurrentUser) => void
+  clearCredentials: () => void
   logout: () => void
 }
 
@@ -36,13 +43,32 @@ const useAuthStore = create<AuthStore>()(
       accessToken: "",
       refreshToken: "",
       currentUser: null,
-      login: (accessToken: string, refreshToken: string) => {
-        set({ accessToken, refreshToken })
+      rememberMe: false,
+      loginCredentials: null,
+      login: (accessToken: string, refreshToken: string, rememberMe: boolean, credentials: { code: string, password: string }) => {
+        set({ accessToken, refreshToken, rememberMe })
         localStorage.setItem("accessToken", accessToken)
         localStorage.setItem("refreshToken", refreshToken)
+        if (rememberMe) {
+          set({ loginCredentials: credentials }); 
+          localStorage.setItem("loginCredentials", JSON.stringify(credentials))
+        } else {
+          set({ loginCredentials: null }); 
+          localStorage.removeItem("loginCredentials")
+        }
       },
       getCurrentUser: (currentUser: CurrentUser) => {
         set({ currentUser })
+      },
+      setRememberMe: (rememberMe: boolean) => {
+        set({ rememberMe })
+        if(!rememberMe) {
+          set({ loginCredentials: null })
+          localStorage.removeItem("loginCredentials")
+        }
+      },
+      clearCredentials: () => {
+        set({ loginCredentials: null })
       },
       logout: () => {
         set({ currentUser: null, accessToken: "", refreshToken: "" })
