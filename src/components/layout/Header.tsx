@@ -31,7 +31,7 @@ const Header = () => {
   }
 
   return (
-    <header className="border-b bg-white">
+    <header className="border-b bg-white sticky top-0 z-50">
       <div className="flex h-16 items-center justify-between px-6">
         <div className="flex items-center space-x-4">
           <SidebarTrigger />
@@ -61,14 +61,14 @@ const Header = () => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(path.PROFILE)}>
                 <User className="mr-2 h-4 w-4" />
-                <span onClick={() => navigate(path.PROFILE)}>Hồ sơ cá nhân</span>
+                <span>Hồ sơ cá nhân</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem onClick={() => navigate(path.SETTINGS)}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Cài đặt</span>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />

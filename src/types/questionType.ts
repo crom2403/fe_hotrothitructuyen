@@ -19,6 +19,9 @@ export interface Answer {
   content: string;
   is_correct: number;
   order_index: number;
+  match_pair?: string | null;
+  hotspot_coords?: string | null;
+  drag_drop_zone?: string | null;
 }
 
 export interface QuestionItem {

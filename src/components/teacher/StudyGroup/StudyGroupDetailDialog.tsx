@@ -1,52 +1,66 @@
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogTitle, DialogContent, DialogHeader, DialogDescription } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import type { StudyGroupDetail } from "@/types/studyGroupType"
-import { Trash2 } from "lucide-react"
-import { useState } from "react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogTitle, DialogContent, DialogHeader, DialogDescription } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import useAuthStore from "@/stores/authStore";
+import type { StudyGroupDetail } from "@/types/studyGroupType";
+import { useEffect, useState } from "react";
 
 interface StudyGroupDetailDialogProps {
-  studyGroup: StudyGroupDetail | null
-  open: boolean
-  setOpen: (open: boolean) => void
-  onRemoveStudent?: (studentCodes: string[]) => void
+  studyGroup: StudyGroupDetail | null;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onRemoveStudent?: (studentCodes: string[]) => void;
 }
 
 const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent }: StudyGroupDetailDialogProps) => {
-  const formatDate = (iso: string): string => new Date(iso).toLocaleDateString("vi-VN")
-  if (!studyGroup) return null
+  const { currentUser } = useAuthStore();
 
-  const [selectedStudentCodes, setSelectedStudentCodes] = useState<string[]>([])
-  const [selectAll, setSelectAll] = useState(false)
+  const formatDate = (iso: string): string => new Date(iso).toLocaleDateString("vi-VN");
+
+  const [selectedStudentCodes, setSelectedStudentCodes] = useState<string[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+
+  useEffect(() => {
+    if (!studyGroup) {
+      setSelectedStudentCodes([]);
+      setSelectAll(false);
+    } else if (studyGroup.students.length > 0) {
+      setSelectAll(selectedStudentCodes.length === studyGroup.students.length);
+    }
+  }, [studyGroup, selectedStudentCodes.length]);
 
   const handleToggleSelectAll = () => {
     if (selectAll) {
-      setSelectedStudentCodes([])
+      setSelectedStudentCodes([]);
     } else {
-      setSelectedStudentCodes(studyGroup.students.map(student => student.student.code))
+      setSelectedStudentCodes(studyGroup?.students.map(student => student.student.code) || []);
     }
-    setSelectAll(!selectAll)
-  }
+    setSelectAll(!selectAll);
+  };
 
   const handleToggleStudent = (studentCode: string) => {
     setSelectedStudentCodes(prev =>
       prev.includes(studentCode)
         ? prev.filter(code => code !== studentCode)
         : [...prev, studentCode]
-    )
-    setSelectAll(selectedStudentCodes.length + 1 === studyGroup.students.length && !selectedStudentCodes.includes(studentCode))
-  }
+    );
+    setSelectAll(
+      studyGroup?.students.length === selectedStudentCodes.length + 1 && !selectedStudentCodes.includes(studentCode)
+    );
+  };
 
   const handleRemoveSelected = () => {
     if (onRemoveStudent && selectedStudentCodes.length > 0) {
-      onRemoveStudent(selectedStudentCodes)
-      setSelectedStudentCodes([])
-      setSelectAll(false)
+      onRemoveStudent(selectedStudentCodes);
+      setSelectedStudentCodes([]);
+      setSelectAll(false);
     }
-  }
+  };
+
+  if (!studyGroup) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -102,13 +116,15 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent }: 
         <div>
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-lg font-semibold">Danh sách sinh viên ({studyGroup.students.length})</h3>
-            <Button
-              variant="destructive"
-              onClick={handleRemoveSelected}
-              disabled={selectedStudentCodes.length === 0}
-            >
-              Xóa sinh viên
-            </Button>
+            {currentUser?.role_code === "teacher" && (
+              <Button
+                variant="destructive"
+                onClick={handleRemoveSelected}
+                disabled={selectedStudentCodes.length === 0}
+              >
+                Xóa sinh viên
+              </Button>
+            )}
           </div>
           <ScrollArea className="h-fit rounded-md border">
             <Table>
@@ -153,7 +169,7 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent }: 
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default StudyGroupDetailDialog
+export default StudyGroupDetailDialog;
