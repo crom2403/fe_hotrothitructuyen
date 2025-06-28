@@ -7,6 +7,7 @@ import Loading from "../../public/loading.gif"
 import OTPConfirmation from "@/components/forgotPassword/OTPConfirmation";
 import PermissionRole from "@/features/admin/PermissionRole";
 import PermissionUser from "@/features/admin/PermissionUser";
+import AssignSubject from "@/features/admin/AssignSubject";
 
 
 
@@ -101,6 +102,14 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <UserManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.ADMIN.ASSIGN_TEACHER}
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AssignSubject />
               </ProtectedRoute>
             }
           />

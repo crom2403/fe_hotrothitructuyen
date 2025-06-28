@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../ui/dropdown-menu";
 import { Button } from "../../ui/button";
 import Paginate from "../../common/Pagination";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Dialog } from "../../ui/dialog";
 import UserDetail from "./UserDetail";
 import { apiGetUserDetail } from "@/services/admin/user";
@@ -33,18 +33,8 @@ interface UserTableProps {
 
 const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, totalPages, handleEdit, handleToggleStatus, handleDelete, handlePageClick, isLoading }: UserTableProps) => {
   const [isOpenDetailUser, setIsOpenDetailUser] = useState(false)
-  const [inputSearch, setInputSearch] = useState(searchTerm)
   const [userDetail, setUserDetail] = useState<User | null>(null)
   const [isLoadingUserDetail, setIsLoadingUserDetail] = useState(false)
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === "all" || user.role_code === roleFilter;
-    return matchesSearch && matchesRole;
-  });
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -56,16 +46,6 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
         return "secondary";
       default:
         return "outline";
-    }
-  };
-
-  useEffect(() => {
-    setInputSearch(searchTerm);
-  }, [searchTerm]);
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      setSearchTerm(inputSearch.trim());
     }
   };
 
@@ -98,9 +78,8 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               placeholder="Tìm kiếm theo tên, mã số hoặc email..."
-              value={inputSearch}
-              onChange={(e) => setInputSearch(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -138,7 +117,7 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
                 </TableCell>
               </TableRow>
             ) : (
-              filteredUsers.map((user) => (
+              users.map((user) => (
                 <TableRow key={user.code}>
                   <TableCell className="font-medium">{user.code}</TableCell>
                   <TableCell>{user.name}</TableCell>
@@ -196,7 +175,7 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
             )}
           </TableBody>
         </Table>
-        {filteredUsers.length === 0 && !isLoading && (
+        {users.length === 0 && !isLoading && (
           <TableBody>
             <TableRow>
               <TableCell colSpan={7} className="text-center py-8 text-gray-500">Không tìm thấy người dùng nào</TableCell>

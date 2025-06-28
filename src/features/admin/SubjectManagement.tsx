@@ -2,6 +2,7 @@ import SubjectFormDialog from "@/components/admin/subject/SubjectFormDialog";
 import SubjectTable from "@/components/admin/subject/SubjectTable";
 import { apiCreateSubject, apiDeleteSubject, apiGetSubjects, apiToggleStatusSubject } from "@/services/admin/subject";
 import type { Subject, SubjectFormData, SubjectResponse } from "@/types/subjectType";
+import { useDebounce } from "@/utils/functions";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { AxiosError } from "axios";
 import { useEffect, useState } from "react";
@@ -27,14 +28,14 @@ const SubjectManagement = () => {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
   const [subjectResponse, setSubjectResponse] = useState<SubjectResponse | null>(null);
-
+  const debouncedSearchTerm = useDebounce(searchTerm, 800)
   useEffect(() => {
     handleGetSubjects()
-  }, [page, statusFilter, searchTerm])
+  }, [page, statusFilter, debouncedSearchTerm])
 
   const handleGetSubjects = async () => {
     setIsLoading(true)
-    const response = await apiGetSubjects(page, statusFilter, searchTerm)
+    const response = await apiGetSubjects(page, statusFilter, debouncedSearchTerm)
     if (response.status === 200) {
       setSubjectResponse(response.data)
     }
@@ -88,7 +89,6 @@ const SubjectManagement = () => {
   }
 
   const handleDelete = async (subjectId: string) => {
-    console.log(subjectId)
     setIsLoading(true)
     try {
       const response = await apiDeleteSubject(subjectId)
@@ -110,7 +110,6 @@ const SubjectManagement = () => {
   const handleToggleStatus = async (subjectId: string, is_active: boolean) => {
     setIsLoading(true);
     try {
-      console.log("Toggling status for subject:", { subjectId, newStatus: !is_active });
       const response = await apiToggleStatusSubject(subjectId, !is_active);
       if (response.status === 200) {
         toast.success("Cập nhật trạng thái thành công");

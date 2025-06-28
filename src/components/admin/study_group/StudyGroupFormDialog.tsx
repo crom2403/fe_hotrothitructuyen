@@ -1,24 +1,27 @@
 import { Button } from "@/components/ui/button"
-import { Check, ChevronsUpDown, Loader2, Plus, Save } from "lucide-react"
+import { Check, ChevronsUpDown, Loader2, Plus, Save, Search } from "lucide-react"
 import type { StudyGroupFormData, StudyGroupInfo } from "@/types/studyGroupType"
 import type { UseFormReturn } from "react-hook-form"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { useEffect, useMemo, useRef, useState } from "react"
-import type { Subject } from "@/types/subjectType"
+import { useEffect, useRef, useState } from "react"
+import type { AssignedSubjectByTeacher, Subject } from "@/types/subjectType"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
-import type { UserInfoResponse } from "@/types/userType"
+import type { UserInfo } from "@/types/userType"
 import type { Semester, Year } from "@/types/year_semesterType"
 import { Select, SelectItem, SelectContent, SelectValue, SelectTrigger } from "@/components/ui/select"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { apiGetAssignedSubjectByTeacher } from "@/services/admin/subject"
+import type { AxiosError } from "axios"
+import { toast } from "sonner"
 
 interface StudyGroupFormDialogProps {
   form: UseFormReturn<StudyGroupFormData>
   subjects: Subject[]
-  teachers: UserInfoResponse[]
+  teachers: UserInfo[]
   academicYears: Year[]
   semestersPerYear: Semester[]
   teacherSearchTerm: string
@@ -40,24 +43,34 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
   const [searchSubject, setSearchSubject] = useState("")
   const [openSubject, setOpenSubject] = useState(false)
   const [openTeacher, setOpenTeacher] = useState(false)
+  const [assignedSubjects, setAssignedSubjects] = useState<AssignedSubjectByTeacher[]>([]);
+  const [isLoadingAssignedSubjects, setIsLoadingAssignedSubjects] = useState(false);
   const prevYearRef = useRef<string>("");
 
-  const filteredSubjects = useMemo(
-    () =>
-      subjects.filter((subject) =>
-        subject.name.toLowerCase().includes(searchSubject.toLowerCase())
-      ),
-    [subjects, searchSubject]
-  );
-
-  // const filteredTeachers = useMemo(() => {
-  //   return teachers.filter((teacher) => {
-  //     if (!teacher.name) return false;
-  //     return teacher.name.toLowerCase().includes(teacherSearchTerm.toLowerCase());
-  //   });
-  // }, [teachers, teacherSearchTerm]);
 
   const selectedYear = form.watch("academic_year");
+  const selectedTeacher = form.watch("teacher_id");
+
+  const handleGetAssignedSubjects = async () => {
+    if (!selectedTeacher) return;
+    setIsLoadingAssignedSubjects(true);
+    try {
+      const response = await apiGetAssignedSubjectByTeacher(selectedTeacher);
+      setAssignedSubjects(response.data);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingAssignedSubjects(false);
+    }
+  }
+
+  useEffect(() => {
+    if (selectedTeacher) {
+      handleGetAssignedSubjects();
+    }
+  }, [selectedTeacher, isOpen]);
 
   useEffect(() => {
     if (selectedYear && isOpen && selectedYear !== prevYearRef.current) {
@@ -142,77 +155,6 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
               <div className="space-y-2">
                 <FormField
                   control={form.control}
-                  name="subject_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Môn học</FormLabel>
-                      <Popover open={openSubject} onOpenChange={setOpenSubject}>
-                        <PopoverTrigger>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "w-full justify-between",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              {isLoadingSubjects ? (
-                                <>
-                                  <span>Đang tải...</span>
-                                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                                </>
-                              ) : (
-                                <>
-                                  {field.value
-                                    ? subjects.find((subject) => subject.id === field.value)?.name
-                                    : "Chọn môn học"}
-                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[400px] max-h-[300px] overflow-y-auto">
-                          <Command>
-                            <CommandInput
-                              placeholder="Tìm kiếm môn học..."
-                              value={searchSubject}
-                              onValueChange={setSearchSubject}
-                            />
-                            <CommandEmpty>Không tìm thấy môn học.</CommandEmpty>
-                            <CommandGroup className="max-h-[200px] overflow-y-auto">
-                              {filteredSubjects.map((subject) => (
-                                <CommandItem
-                                  key={subject.id}
-                                  value={subject.id}
-                                  onSelect={() => {
-                                    form.setValue("subject_id", subject.id);
-                                    setOpenSubject(false);
-                                    setSearchSubject("");
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      field.value === subject.id ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {subject.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="space-y-2">
-                <FormField
-                  control={form.control}
                   name="teacher_id"
                   render={({ field }) => (
                     <FormItem>
@@ -245,35 +187,42 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-[400px] max-h-[300px] overflow-y-auto">
-                          <Command>
-                            <CommandInput
-                              placeholder="Tìm kiếm giáo viên..."
+                          <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <Input
+                              type="text"
+                              placeholder="Tìm kiếm theo tên, mã giảng viên..."
                               value={teacherSearchTerm}
-                              onValueChange={setTeacherSearchTerm}
+                              onChange={(e) => setTeacherSearchTerm(e.target.value)}
+                              className="pl-10"
                             />
-                            <CommandEmpty>Không tìm thấy giáo viên.</CommandEmpty>
-                            <CommandGroup className="max-h-[200px] overflow-y-auto">
-                              {teachers.map((teacher) => (
-                                <CommandItem
-                                  key={teacher.id}
-                                  value={teacher.id}
-                                  onSelect={() => {
-                                    form.setValue("teacher_id", teacher.id);
-                                    setOpenTeacher(false);
-                                    setTeacherSearchTerm("");
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      field.value === teacher.id ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {teacher.code} - {teacher.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </Command>
+                          </div>
+                          <div className="max-h-[300px] overflow-y-auto">
+                            {isLoadingTeachers ? (
+                              <div className="flex items-center justify-center h-full">
+                                <Loader2 className="w-7 h-7 animate-spin" />
+                              </div>
+                            ) : (
+                              <ScrollArea className="h-40 w-full">
+                                {teachers.map((teacher) => (
+                                  <div key={teacher.id} className="p-2 hover:bg-gray-100 cursor-pointer rounded-md flex items-center"
+                                    onClick={() => {
+                                      form.setValue("teacher_id", teacher.id);
+                                      setOpenTeacher(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value === teacher.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {teacher.code} - {teacher.name}
+                                  </div>
+                                ))}
+                              </ScrollArea>
+                            )}
+                          </div>
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
@@ -281,6 +230,42 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
                   )}
                 />
               </div>
+
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="subject_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Môn học</FormLabel>
+                      <Select
+                        onValueChange={(value) => form.setValue("subject_id", value)}
+                        value={field.value}
+                        disabled={!selectedTeacher}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={isLoadingAssignedSubjects ? "Đang tải môn học..." : "Chọn môn học"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {assignedSubjects.length > 0 ? (
+                            assignedSubjects.map((subject) => (
+                              <SelectItem key={subject.id} value={subject.id}>
+                                {subject.subject.code} - {subject.subject.name}
+                              </SelectItem>
+                            ))) : (
+                            <div className="flex items-center justify-center h-full">
+                              <p className="text-gray-500">Không có môn học</p>
+                            </div>
+                          )
+                          }
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import Paginate from "@/components/common/Pagination"
 import { Badge } from "@/components/ui/badge"
 import SubjectDetail from "@/components/admin/subject/SubjectDetail"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Dialog } from "@/components/ui/dialog"
 import DeleteDialog from "@/components/common/DeleteDialog"
 import { AlertDialog } from "@/components/ui/alert-dialog"
@@ -34,19 +34,6 @@ const SubjectTable = ({ subjects, subjectCount, searchTerm, setSearchTerm, statu
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [inputSearch, setInputSearch] = useState(searchTerm)
-
-  const filteredSubjects = subjects.filter((subject) => {
-    const matchesSearch = subject.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCode = subject.code.toLowerCase().includes(searchTerm.toLowerCase());
-    let matchesStatus = true;
-    if (statusFilter === "active") {
-      matchesStatus = subject.is_active === true;
-    } else if (statusFilter === "inactive") {
-      matchesStatus = subject.is_active === false;
-    }
-    return matchesSearch || matchesCode && matchesStatus;
-  })
 
   const getStatusBadge = (status: boolean) => {
     if (status === true) {
@@ -55,16 +42,6 @@ const SubjectTable = ({ subjects, subjectCount, searchTerm, setSearchTerm, statu
       return <Badge variant="outline" className="bg-gray-300 text-black">Không hoạt động</Badge>
     }
   }
-
-  useEffect(() => {
-    setInputSearch(searchTerm);
-  }, [searchTerm]);
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      setSearchTerm(inputSearch.trim());
-    }
-  };
 
   const openDetailDialog = (subject: Subject) => {
     setSelectedSubject(subject)
@@ -89,10 +66,9 @@ const SubjectTable = ({ subjects, subjectCount, searchTerm, setSearchTerm, statu
             <Input
               type="text"
               placeholder="Tìm kiếm môn học"
-              value={inputSearch}
-              onChange={(e) => setInputSearch(e.target.value)}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
-              onKeyDown={handleSearchKeyDown}
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -128,7 +104,7 @@ const SubjectTable = ({ subjects, subjectCount, searchTerm, setSearchTerm, statu
             </TableCell>
           </TableRow> : (
             <TableBody>
-              {filteredSubjects.map((subject) => (
+              {subjects.map((subject) => (
                 <TableRow key={subject.id}>
                   <TableCell>{subject.code}</TableCell>
                   <TableCell>{subject.name}</TableCell>
@@ -171,6 +147,7 @@ const SubjectTable = ({ subjects, subjectCount, searchTerm, setSearchTerm, statu
             </TableBody>
           )}
         </Table>
+        {subjects.length === 0 && !isLoading && <div className="text-center py-8 text-gray-500">Không tìm thấy môn học nào</div>}
         <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
 
         <Dialog open={isDetailDialogOpen} onOpenChange={setIsDetailDialogOpen}>

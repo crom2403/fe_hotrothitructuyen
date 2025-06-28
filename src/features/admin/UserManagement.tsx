@@ -2,6 +2,7 @@ import UserFormDialog from "@/components/admin/user/UserFormDialog"
 import UserTable from "@/components/admin/user/UserTable"
 import { apiCreateUser, apiGetUsers } from "@/services/admin/user"
 import type { UserFormData, UserInfo, UserResponse } from "@/types/userType"
+import { useDebounce } from "@/utils/functions"
 import { zodResolver } from "@hookform/resolvers/zod"
 import type { AxiosError } from "axios"
 import { useEffect, useState } from "react"
@@ -43,6 +44,7 @@ const UserManagement = () => {
   const [roleFilter, setRoleFilter] = useState("all")
   const [page, setPage] = useState(1)
   const [users, setUsers] = useState<UserResponse | null>(null)
+  const debouncedSearchTerm = useDebounce(searchTerm, 800)
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -59,13 +61,13 @@ const UserManagement = () => {
 
   useEffect(() => {
     handleGetUsers()
-  }, [page, roleFilter, searchTerm])
+  }, [page, roleFilter, debouncedSearchTerm])
 
   const handleGetUsers = async () => {
     setIsLoading(true)
     try {
       const apiRoleFilter = roleFilter === "" ? "all" : roleFilter;
-      const response = await apiGetUsers(page, apiRoleFilter, searchTerm)
+      const response = await apiGetUsers(page, apiRoleFilter, debouncedSearchTerm)
       if (response.status === 200) {
         setUsers(response.data)
       }

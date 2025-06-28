@@ -9,7 +9,7 @@ import { apiAddStudentToStudyGroup, apiGetStudyGroup } from '@/services/teacher/
 import type { StudyGroupInfo, StudyGroupResponse } from '@/types/studyGroupType'
 import type { UserInfo, UserResponse } from '@/types/userType'
 import type { AxiosError } from 'axios'
-import { Import, Loader2, Search, UserPlus, X } from 'lucide-react'
+import { Import, Loader2, Search, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
