@@ -11,8 +11,10 @@ const ExamModeSelector = ({ examMode, setExamMode }: ExamModeSelectorProps) => {
 
   const handleModeChange = (mode: "manual" | "auto" | "AI") => {
     setExamMode(mode);
-    setExamType(mode);
+    setExamType(mode === "manual" ? "manual" : mode === "auto" ? "auto" : "AI");
   };
+
+  
 
   return (
     <div className="grid grid-cols-3 gap-4">

@@ -5,6 +5,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import MainLayout from "@/components/layout/MainLayout";
 import Loading from "../../public/loading.gif"
 import OTPConfirmation from "@/components/forgotPassword/OTPConfirmation";
+import PermissionRole from "@/features/admin/PermissionRole";
+import PermissionUser from "@/features/admin/PermissionUser";
 
 
 
@@ -134,7 +136,22 @@ const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path={path.ADMIN.PERMISSTION_ROLE}
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <PermissionRole />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.ADMIN.PERMISSTION_USER}
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <PermissionUser />
+              </ProtectedRoute>
+            }
+          />
           {/* Student routes */}
           <Route
             path={path.STUDENT.OVERVIEW}

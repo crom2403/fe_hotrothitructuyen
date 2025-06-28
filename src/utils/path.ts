@@ -17,7 +17,8 @@ const path = {
     ASSIGNMENT: "/admin/assignment", // Phân công
     EXAM: "/admin/exam", // Đề kiểm tra
     NOTIFICATION: "/admin/notification", // Thông báo
-    PERMISSTION: "/admin/permission", // Phân quyền
+    PERMISSTION_ROLE: "/admin/permission_role", // Phân quyền
+    PERMISSTION_USER: "/admin/permission_user", // Phân quyền
   },
   TEACHER: {
     OVERVIEW: "/teacher/overview",

@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import type { QuestionFormData } from "@/types/questionType";
 import { Plus, Trash2 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
-
+import { useWatch } from "react-hook-form";
 
 interface SingleChoiceFormProps {
   form: UseFormReturn<QuestionFormData>;
@@ -22,11 +22,31 @@ export function SingleChoiceForm({
   updateOption,
   toggleCorrectAnswer,
 }: SingleChoiceFormProps) {
+  // Theo dõi correctAnswers để đồng bộ radio button
+  const correctAnswers = useWatch({
+    control: form.control,
+    name: "correctAnswers",
+    defaultValue: [],
+  });
+
+  // Theo dõi options để giới hạn số lượng
+  const options = useWatch({
+    control: form.control,
+    name: "options",
+    defaultValue: [],
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <FormLabel>Phương án trả lời</FormLabel>
-        <Button type="button" variant="outline" size="sm" onClick={addOption}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addOption}
+          disabled={options.length >= 4}
+        >
           <Plus className="mr-2 h-4 w-4" />
           Thêm phương án
         </Button>
@@ -43,14 +63,26 @@ export function SingleChoiceForm({
                   <FormField
                     control={form.control}
                     name="correctAnswers"
-                    render={({ field: correctField }) => (
+                    render={() => (
                       <FormControl>
                         <RadioGroup
-                          value={correctField.value[0]?.toString() || ""}
-                          onValueChange={(value) => toggleCorrectAnswer(Number.parseInt(value))}
+                          value={correctAnswers[0]?.toString() || ""} // Controlled component
+                          onValueChange={(value) => {
+                            const newIndex = Number.parseInt(value);
+                            if (!isNaN(newIndex)) {
+                              form.setValue("correctAnswers", [newIndex]); // Cập nhật trực tiếp qua form
+                              toggleCorrectAnswer(newIndex); // Gọi hàm toggle để đồng bộ
+                            }
+                          }}
+                          className="space-y-2"
                         >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value={index.toString()} id={`option-${index}`} className="border-gray-700" />
+                            <RadioGroupItem
+                              value={index.toString()}
+                              id={`option-${index}`}
+                              className="border-gray-700"
+                            />
+                            <label htmlFor={`option-${index}`}></label>
                           </div>
                         </RadioGroup>
                       </FormControl>

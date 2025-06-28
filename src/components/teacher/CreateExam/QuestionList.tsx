@@ -3,13 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useApiCall } from "@/hooks/useApiCall";
-import { apiGetSubjects } from "@/services/admin/subject";
 import { apiGetDifficultyLevels, apiGetQuestionBank, apiGetQuestionPrivate, apiGetQuestionTypes } from "@/services/teacher/question";
 import type { DifficultyLevel } from "@/types/difficultyLevelType";
-import type { QuestionItem, QuestionListResponse, QuestionTypeResponse } from "@/types/questionType";
-import type { SubjectResponse } from "@/types/subjectType";
+import type { QuestionItem, QuestionListResponse, QuestionTypeResponse } from "@/types/questionType"; 
 import { Filter, Loader2, Plus } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import { Search, X } from "lucide-react";
@@ -17,13 +15,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import parse from "html-react-parser";
+import QuestionFormDialog from "../QuestionFormDialog";
+import Pagination from "@/components/common/Pagination";
+import { setQuestionsToCache } from "@/utils/questionCache";
 
 interface QuestionBankProps {
   selectedQuestions: QuestionItem[];
   addQuestionToExam: (question: QuestionItem) => void;
+  selectedSubjectId: string;
 }
 
-const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProps) => {
+const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId }: QuestionBankProps) => {
   const [availableQuestions, setAvailableQuestions] = useState<QuestionListResponse | null>(null);
   const [privateQuestions, setPrivateQuestions] = useState<QuestionListResponse | null>(null);
   const [isLoadingAvailableQuestions, setIsLoadingAvailableQuestions] = useState(false);
@@ -31,15 +33,16 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
 
   const [activeTab, setActiveTab] = useState("question_bank");
   const [searchTerm, setSearchTerm] = useState("");
-  const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
   const [activeFiltersCount, setActiveFiltersCount] = useState(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pageBank, setPageBank] = useState(1);
+  const [pagePrivate, setPagePrivate] = useState(1);
 
   const { data: questionTypes, isLoading: isLoadingQuestionTypes, refetch: refetchQuestionTypes } = useApiCall<QuestionTypeResponse>(() => apiGetQuestionTypes());
   const { data: difficultyLevels, isLoading: isLoadingDifficultyLevels, refetch: refetchDifficultyLevels } = useApiCall<{ data: DifficultyLevel[] }>(() => apiGetDifficultyLevels());
-  const { data: subjects, isLoading: isLoadingSubjects, refetch: refetchSubjects } = useApiCall<SubjectResponse>(() => apiGetSubjects(1, "active", "", 100));
 
 
   const getDifficultyColor = (difficulty: string) => {
@@ -58,9 +61,10 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
   const handleGetQuestionsBank = async () => {
     setIsLoadingAvailableQuestions(true);
     try {
-      const response = await apiGetQuestionBank(1, searchTerm, subjectFilter, typeFilter, difficultyFilter, 100);
+      const response = await apiGetQuestionBank(pageBank, searchTerm, selectedSubjectId, typeFilter, difficultyFilter);
       if (response.status === 200) {
         setAvailableQuestions(response.data);
+        setQuestionsToCache(response.data.data);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string, error: string }>;
@@ -74,9 +78,10 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
   const handleGetQuestionsPrivate = async () => {
     setIsLoadingPrivateQuestions(true);
     try {
-      const response = await apiGetQuestionPrivate(1, searchTerm, subjectFilter, typeFilter, difficultyFilter, 100);
+      const response = await apiGetQuestionPrivate(pagePrivate, searchTerm, selectedSubjectId, typeFilter, difficultyFilter);
       if (response.status === 200) {
         setPrivateQuestions(response.data);
+        setQuestionsToCache(response.data.data);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string, error: string }>;
@@ -90,11 +95,10 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
   useEffect(() => {
     setActiveFiltersCount(
       (searchTerm ? 1 : 0) +
-      (subjectFilter !== "all" ? 1 : 0) +
       (typeFilter !== "all" ? 1 : 0) +
       (difficultyFilter !== "all" ? 1 : 0)
     );
-  }, [searchTerm, subjectFilter, typeFilter, difficultyFilter]);
+  }, [searchTerm, typeFilter, difficultyFilter]);
 
   useEffect(() => {
     if (activeTab === "question_bank") {
@@ -102,21 +106,23 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
     } else if (activeTab === "question_private") {
       handleGetQuestionsPrivate();
     }
-  }, [activeTab, searchTerm, subjectFilter, typeFilter, difficultyFilter]);
+  }, [activeTab, searchTerm, typeFilter, difficultyFilter]);
 
   useEffect(() => {
     refetchQuestionTypes();
     refetchDifficultyLevels();
-    refetchSubjects();
   }, []);
 
   const clearAllFilters = () => {
     setSearchTerm("");
-    setSubjectFilter("all");
     setTypeFilter("all");
     setDifficultyFilter("all");
     setShowFilters(false);
   };
+
+
+  const handlePageClickBank = (page: number) => setPageBank(page);
+  const handlePageClickPrivate = (page: number) => setPagePrivate(page);
 
   return (
     <Card>
@@ -126,11 +132,16 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
             <CardTitle>Danh sách câu hỏi</CardTitle>
             <CardDescription>Tìm kiếm và chọn câu hỏi từ danh sách</CardDescription>
           </div>
-          <div>
+          <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
               <Filter className="h-4 w-4 mr-2" />
               Bộ lọc {activeFiltersCount > 0 && `(${activeFiltersCount})`}
             </Button>
+            <QuestionFormDialog
+              isDialogOpen={isDialogOpen}
+              setIsDialogOpen={setIsDialogOpen}
+              refetchQuestionsPrivate={handleGetQuestionsPrivate}
+            />
           </div>
         </div>
       </CardHeader>
@@ -169,19 +180,6 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
                 )}
               </div>
               <div className="grid grid-cols-1 gap-2">
-                <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Môn học" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả môn học</SelectItem>
-                    {subjects?.data.map((subject) => (
-                      <SelectItem key={subject.id} value={subject.id}>
-                        {subject.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Loại câu hỏi" />
@@ -223,16 +221,6 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
                   <X className="h-4 w-4 ml-1 cursor-pointer" />
                 </Badge>
               )}
-              {subjectFilter !== "all" && (
-                <Badge variant="secondary" className="text-xs"
-                  onClick={() => setSubjectFilter("all")}
-                >
-                  {subjects?.data.find((s) => s.id === subjectFilter)?.name}
-                  <X
-                    className="h-3 w-3 ml-1 cursor-pointer"
-                  />
-                </Badge>
-              )}
               {typeFilter !== "all" && (
                 <Badge variant="secondary" className="text-xs"
                   onClick={() => setTypeFilter("all")}
@@ -268,44 +256,47 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
             ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {availableQuestions?.data
-                  .filter((question) =>
-                    question.content.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
-                  .map((question) => (
-                    <div key={question.id} className="border rounded-lg p-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{parse(question.content)}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">
-                              {question.question_type.name}
-                            </Badge>
-                            <Badge
-                              className={`text-xs ${getDifficultyColor(
-                                question.difficulty_level.name
-                              )}`}
-                            >
-                              {question.difficulty_level.name}
-                            </Badge>
+              <div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {availableQuestions?.data
+                    .filter((question) =>
+                      question.content.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map((question) => (
+                      <div key={question.id} className="border rounded-lg p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{parse(question.content)}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="outline" className="text-xs">
+                                {question.question_type.name}
+                              </Badge>
+                              <Badge
+                                className={`text-xs ${getDifficultyColor(
+                                  question.difficulty_level.name
+                                )}`}
+                              >
+                                {question.difficulty_level.name}
+                              </Badge>
+                            </div>
                           </div>
+                          <Button
+                            size="sm"
+                            onClick={() => addQuestionToExam(question)}
+                            disabled={selectedQuestions.some((q) => q.id === question.id)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => addQuestionToExam(question)}
-                          disabled={selectedQuestions.some((q) => q.id === question.id)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
                       </div>
+                    ))}
+                  {availableQuestions?.data.length === 0 && (
+                    <div className="flex items-center justify-center h-52">
+                      <p className="text-sm text-gray-500">Không có câu hỏi nào</p>
                     </div>
-                  ))}
-                {availableQuestions?.data.length === 0 && (
-                  <div className="flex items-center justify-center h-52">
-                    <p className="text-sm text-gray-500">Không có câu hỏi nào</p>
-                  </div>
-                )}
+                  )}
+                </div>
+                <Pagination page={pageBank} totalPages={availableQuestions?.metadata.last_page || 1} onPageChange={handlePageClickBank} />
               </div>
             )}
           </TabsContent>
@@ -315,44 +306,47 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam }: QuestionBankProp
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
             ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {privateQuestions?.data
-                  .filter((question) =>
-                    question.content.toLowerCase().includes(searchTerm.toLowerCase())
-                  )
-                  .map((question) => (
-                    <div key={question.id} className="border rounded-lg p-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{parse(question.content)}</p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">
-                              {question.question_type.name}
-                            </Badge>
-                            <Badge
-                              className={`text-xs ${getDifficultyColor(
-                                question.difficulty_level.name
-                              )}`}
-                            >
-                              {question.difficulty_level.name}
-                            </Badge>
+              <div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {privateQuestions?.data
+                    .filter((question) =>
+                      question.content.toLowerCase().includes(searchTerm.toLowerCase())
+                    )
+                    .map((question) => (
+                      <div key={question.id} className="border rounded-lg p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="font-medium text-sm">{parse(question.content)}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="outline" className="text-xs">
+                                {question.question_type.name}
+                              </Badge>
+                              <Badge
+                                className={`text-xs ${getDifficultyColor(
+                                  question.difficulty_level.name
+                                )}`}
+                              >
+                                {question.difficulty_level.name}
+                              </Badge>
+                            </div>
                           </div>
+                          <Button
+                            size="sm"
+                            onClick={() => addQuestionToExam(question)}
+                            disabled={selectedQuestions.some((q) => q.id === question.id)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => addQuestionToExam(question)}
-                          disabled={selectedQuestions.some((q) => q.id === question.id)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
                       </div>
+                    ))}
+                  {privateQuestions?.data.length === 0 && (
+                    <div className="flex items-center justify-center h-52">
+                      <p className="text-sm text-gray-500">Không có câu hỏi nào</p>
                     </div>
-                  ))}
-                {privateQuestions?.data.length === 0 && (
-                  <div className="flex items-center justify-center h-52">
-                    <p className="text-sm text-gray-500">Không có câu hỏi nào</p>
-                  </div>
-                )}
+                  )}
+                </div>
+                <Pagination page={pagePrivate} totalPages={privateQuestions?.metadata.last_page || 1} onPageChange={handlePageClickPrivate} />
               </div>
             )}
           </TabsContent>

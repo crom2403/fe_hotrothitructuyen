@@ -1,13 +1,53 @@
-import BasicInfoTab from "@/components/teacher/CreateExam/BasicInfoTab"
-import QuestionsTab from "@/components/teacher/CreateExam/QuestionsTab"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Eye, Loader2, Save } from "lucide-react"
-import { useState } from "react"
+import BasicInfoTab from "@/components/teacher/CreateExam/BasicInfoTab";
+import QuestionsTab from "@/components/teacher/CreateExam/QuestionsTab";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Eye, Loader2, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import useExamStore from "@/stores/examStore";
+import { SettingsTab } from "@/components/teacher/CreateExam/SettingTab";
+import { PreviewTab } from "@/components/teacher/CreateExam/PreviewTab";
+import type { QuestionItem } from "@/types/questionType";
+import { apiGetQuestionById } from "@/services/teacher/question";
+import { getQuestionsByIds } from "@/utils/questionCache";
 
 const CreateExam = () => {
-  const [isLoading, setIsLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState("basic")
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("basic");
+  const { tab1Data, tab2Data, tab3Data } = useExamStore();
+  const [selectedQuestions, setSelectedQuestions] = useState<QuestionItem[]>([]);
+
+  const isSubjectSelected = !!tab1Data.subject;
+
+  useEffect(() => {
+    const loadSelectedQuestions = async () => {
+      setIsLoading(true);
+      try {
+        const questionIds = tab2Data.list_questions.map((q) => q.question_id);
+        if (questionIds.length > 0) {
+          const cachedQuestions = getQuestionsByIds(questionIds);
+          if (cachedQuestions.length === questionIds.length) {
+            setSelectedQuestions(cachedQuestions);
+          } else {
+            const promises = questionIds.map((id) => apiGetQuestionById(id));
+            const questions = await Promise.all(promises);
+            setSelectedQuestions(questions.map((q) => q.data));
+          }
+        } else {
+          setSelectedQuestions([]);
+        }
+      } catch (error) {
+        console.error("Failed to load selected questions:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadSelectedQuestions();
+  }, [tab2Data.list_questions]);
+
+  const handleSaveExam = () => {
+    console.log("save exam", tab1Data, tab2Data, tab3Data);
+  };
 
   return (
     <div className="space-y-6">
@@ -21,7 +61,11 @@ const CreateExam = () => {
             <Eye className="mr-2 h-4 w-4" />
             Xem trước
           </Button>
-          <Button onClick={() => { }} className="bg-black hover:bg-black/80 " disabled={isLoading}>
+          <Button
+            onClick={handleSaveExam}
+            className="bg-black hover:bg-black/80"
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -40,7 +84,9 @@ const CreateExam = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
-            <TabsTrigger value="questions">Chọn câu hỏi</TabsTrigger>
+            <TabsTrigger value="questions" disabled={!isSubjectSelected}>
+              Chọn câu hỏi
+            </TabsTrigger>
             <TabsTrigger value="settings">Cài đặt</TabsTrigger>
             <TabsTrigger value="preview">Xem trước</TabsTrigger>
           </TabsList>
@@ -49,12 +95,18 @@ const CreateExam = () => {
             <BasicInfoTab />
           </TabsContent>
           <TabsContent value="questions">
-            <QuestionsTab />
+            <QuestionsTab selectedSubjectId={tab1Data.subject} />
+          </TabsContent>
+          <TabsContent value="settings">
+            <SettingsTab />
+          </TabsContent>
+          <TabsContent value="preview">
+            <PreviewTab selectedQuestions={selectedQuestions} />
           </TabsContent>
         </Tabs>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CreateExam
+export default CreateExam;
