@@ -1,8 +1,13 @@
-
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import emoji from "../../../public/images/svg/sad-face.svg"
+import { Button } from "../ui/button";
 
 const NotFoundPage = () => {
+  const navigate = useNavigate()
+  const handleGoBack = () => {
+    navigate(-1)
+  }
+
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="bg-white">
@@ -15,12 +20,12 @@ const NotFoundPage = () => {
           <p className="mb-4 text-center text-gray-500 md:text-lg">
             Trang bạn đang tìm kiếm không tồn tại.
           </p>
-          <Link
-            to="/"
+          <Button
+            onClick={handleGoBack}
             className="px-5 py-2 rounded-md text-blue-100 bg-blue-600 hover:bg-blue-700"
           >
-            Về trang chủ
-          </Link>
+            Về trang trước
+          </Button>
         </div>
       </div>
     </div>

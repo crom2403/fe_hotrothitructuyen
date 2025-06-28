@@ -61,3 +61,5 @@ export const apiGetQuestionPrivate = async (
   }
   return instance.get(query);
 }
+
+export const apiGetQuestionById = async (id: string) => instance.get(apiRoutes.teacher.question + `/${id}`)

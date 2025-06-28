@@ -15,7 +15,7 @@ import { AxiosError } from "axios"
 import { toast } from "sonner"
 import { apiGetAcademicYears } from "@/services/admin/yearSemester"
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { apiGetStudyGroupDetail } from "@/services/teacher/studyGroup"
+import { apiGetStudyGroupDetail, apiRemoveStudentFromStudyGroup } from "@/services/teacher/studyGroup"
 import StudyGroupDetailDialog from "./StudyGroupDetailDialog"
 
 interface StudyGroupTableProps {
@@ -98,8 +98,22 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
     }
   }
 
-  const handleRemoveStudent = (studentCodes: string[]) => {
+  const handleRemoveStudent = async (studentCodes: string[]) => {
     console.log(studentCodes)
+    try{
+      const response = await apiRemoveStudentFromStudyGroup(studyGroupDetail?.id || "", studentCodes)
+      if(response.status === 200){
+        toast.success("Xóa sinh viên thành công")
+        handleGetStudyGroup()
+        setOpenDetail(false)
+      }
+    }catch(error){
+      const axiosError = error as AxiosError<{ message: string, error: string }>
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra'
+      toast.error(errorMessage)
+    }finally{
+      setIsLoadingDetail(false)
+    }
   }
 
   return (

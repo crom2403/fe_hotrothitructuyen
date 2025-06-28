@@ -17,7 +17,7 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 const BasicInfoTab = () => {
-  const { tab1Data, setTab1Name, setTab1Subject, setTab1Group, setTab1Description, setTab1StartTime, setTab1EndTime, setTab1Duration, setTab1TotalQuestions, setTab1PassPoints, setTab1PointScale, setTab1Type } = useExamStore()
+  const { tab1Data, setTab1Name, setTab1Subject, setTab1Group, setTab1Description, setTab1StartTime, setTab1EndTime, setTab1Duration, setTab1TotalQuestions, setTab1PassPoints, setTab1PointScale, setTab1Type, setPointScaleName } = useExamStore()
   const [subjects, setSubjects] = useState<SubjectResponse | null>(null)
   const [pointScales, setPointScales] = useState<PointScale[]>([])
   const [studyGroups, setStudyGroups] = useState<StudyGroupResponse | null>(null)
@@ -249,7 +249,10 @@ const BasicInfoTab = () => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="point_scale">Thang điểm</Label>
-            <Select value={tab1Data.point_scale} onValueChange={setTab1PointScale}>
+            <Select value={tab1Data.point_scale} onValueChange={(value) => {
+              setTab1PointScale(value)
+              setPointScaleName(value)
+            }}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Chọn thang điểm" />
               </SelectTrigger>

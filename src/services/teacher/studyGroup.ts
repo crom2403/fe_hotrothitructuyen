@@ -14,3 +14,5 @@ export const apiAddStudentToStudyGroup = async (
   study_group_id: string, data: object) => instance.post(apiRoutes.teacher.study_group + `/${study_group_id}/add-student`, data)
 
 export const apiGetStudyGroupDetail = async (study_group_id: string) => instance.get(apiRoutes.teacher.study_group + `/${study_group_id}`)
+
+export const apiRemoveStudentFromStudyGroup = async (study_group_id: string, student_codes: string[]) => instance.delete(apiRoutes.teacher.study_group + `/${study_group_id}/remove-student`, { data: { student_codes } })

@@ -64,7 +64,7 @@ const StudyGroupTable = ({
   };
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>Danh sách lớp học phần</CardTitle>
         <CardDescription>Tổng cộng {studyGroups.length} lớp học phần</CardDescription>
@@ -109,6 +109,7 @@ const StudyGroupTable = ({
           </Select>
         </div>
 
+        <div className="overflow-x-auto max-w-[1130px]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -195,9 +196,10 @@ const StudyGroupTable = ({
                   </TableCell>
                 </TableRow>
               ))
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
+        </div>
         {studyGroups.length === 0 && !isLoading && <div className="text-center py-8 text-gray-500">Không tìm thấy lớp học phần nào</div>}
         <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
       </CardContent>

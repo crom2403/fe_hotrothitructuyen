@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Brain, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, Monitor, PenTool, Settings, Trophy, Users } from 'lucide-react';
+import { BarChart3, BookOpen, Brain, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, Monitor, PenTool, Settings, Shield, ShieldUser, Trophy, Users } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import Logo from '../../../public/images/svg/logo.svg'
 import LogoMini from '../../../public/images/svg/logo-mini.svg'
@@ -24,6 +24,8 @@ const AppSidebar = () => {
           { id: "classes", label: "Lớp học phần", icon: GraduationCap, path: path.ADMIN.STUDY_GROUP },
           { id: "questions", label: "Quản lý câu hỏi", icon: Database, path: path.ADMIN.QUESTION },
           // { id: "settings", label: "Cài đặt hệ thống", icon: Settings },
+          { id: "permission_role", label: "Phân quyền vai trò", icon: Shield, path: path.ADMIN.PERMISSTION_ROLE },
+          { id: "permission_user", label: "Phân quyền người dùng", icon: ShieldUser, path: path.ADMIN.PERMISSTION_USER },
         ]
       case "teacher":
         return [
