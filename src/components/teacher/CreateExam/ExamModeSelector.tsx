@@ -6,15 +6,15 @@ interface ExamModeSelectorProps {
   examMode: "manual" | "auto" | "AI";
   setExamMode: (mode: "manual" | "auto" | "AI") => void;
 }
+
 const ExamModeSelector = ({ examMode, setExamMode }: ExamModeSelectorProps) => {
-  const { setExamType } = useExamStore();
+  const { setExamType, tab2Data } = useExamStore();
 
   const handleModeChange = (mode: "manual" | "auto" | "AI") => {
     setExamMode(mode);
     setExamType(mode === "manual" ? "manual" : mode === "auto" ? "auto" : "AI");
+    console.log("Updated examType to:", mode); // Debug log
   };
-
-  
 
   return (
     <div className="grid grid-cols-3 gap-4">
@@ -43,7 +43,7 @@ const ExamModeSelector = ({ examMode, setExamMode }: ExamModeSelectorProps) => {
         AI hỗ trợ
       </Button>
     </div>
-  )
-}
+  );
+};
 
-export default ExamModeSelector
+export default ExamModeSelector;

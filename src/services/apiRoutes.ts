@@ -31,7 +31,7 @@ const apiRoutes = {
     user: "/teacher/user",
     module: "/teacher/module",
     assignment: "/teacher/assignment",
-    exam: "/teacher/exam",
+    exam: "/exams",
     point_scale: "/point-scales/all",
     notification: "/teacher/notification",
   },
