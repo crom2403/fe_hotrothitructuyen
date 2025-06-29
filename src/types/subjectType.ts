@@ -27,3 +27,43 @@ export interface SubjectResponse {
     total: number;
   };
 }
+
+export interface AssignedSubject {
+  id: string
+  assigned_at: string
+  subject: {
+    id: string
+    code: string
+    name: string
+  }
+  teacher: {
+    id: string
+    code: string
+    full_name: string
+  }
+  assigned_by: {
+    id: string
+    code: string
+    full_name: string
+  }
+}
+
+export interface AssignedSubjectResponse {
+  data: AssignedSubject[];
+  metadata: {
+    size: number;
+    page: number;
+    last_page: number;
+    total: number;
+  };
+}
+
+export interface AssignedSubjectByTeacher {
+  id: string
+  assigned_at: string
+  subject: {
+    id: string
+    code: string
+    name: string
+  }
+}

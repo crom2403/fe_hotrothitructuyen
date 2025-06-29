@@ -38,7 +38,7 @@ const SelectedQuestions = ({ selectedQuestions, setSelectedQuestions, removeQues
             <div
               {...provided.droppableProps}
               ref={provided.innerRef}
-              className="space-y-2 max-h-96 overflow-y-auto"
+              className="space-y-2 min-h-96 overflow-y-auto"
             >
               {selectedQuestions.map((question, index) => (
                 <Draggable key={question.id} draggableId={question.id} index={index}>

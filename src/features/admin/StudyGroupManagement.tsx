@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import type { SubjectResponse } from "@/types/subjectType";
+import type { AssignedSubjectByTeacher, SubjectResponse } from "@/types/subjectType";
 import { apiGetSubjects } from "@/services/admin/subject";
 import { apiGetAcademicYears, apiGetSemestersByYear } from "@/services/admin/yearSemester";
 import type { AxiosError } from "axios";
@@ -15,23 +15,7 @@ import { toast } from "sonner";
 import { apiGetUsers } from "@/services/admin/user";
 import type { UserResponse } from "@/types/userType";
 import { apiCreateStudyGroup, apiDeleteStudyGroup, apiGetAllStudyGroup } from "@/services/admin/studyGroup";
-
-// Custom debounce hook
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
+import { useDebounce } from "@/utils/functions";
 
 const studyGroupSchema = z.object({
   name: z.string().min(1, "Tên lớp không được để trống"),
@@ -64,7 +48,6 @@ const StudyGroupManagement = () => {
   const [teachers, setTeachers] = useState<UserResponse | null>(null);
   const [studyGroups, setStudyGroups] = useState<StudyGroupResponse | null>(null);
 
-  // Debounce search term with 0.8-second delay
   const debouncedSearchTerm = useDebounce(searchTerm, 800);
 
   const form = useForm<z.infer<typeof studyGroupSchema>>({
@@ -82,7 +65,7 @@ const StudyGroupManagement = () => {
 
   useEffect(() => {
     handleGetStudyGroups();
-  }, [page, debouncedSearchTerm, subjectFilter, yearFilter]); // Use debounced search term
+  }, [page, debouncedSearchTerm, subjectFilter, yearFilter]);
 
   useEffect(() => {
     handleGetSubjects();

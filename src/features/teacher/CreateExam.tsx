@@ -10,6 +10,9 @@ import { PreviewTab } from "@/components/teacher/CreateExam/PreviewTab";
 import type { QuestionItem } from "@/types/questionType";
 import { apiGetQuestionById } from "@/services/teacher/question";
 import { getQuestionsByIds } from "@/utils/questionCache";
+import ExamPreview from "@/components/teacher/CreateExam/ExamPreview";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
 
 const CreateExam = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,8 +48,24 @@ const CreateExam = () => {
     loadSelectedQuestions();
   }, [tab2Data.list_questions]);
 
-  const handleSaveExam = () => {
-    console.log("save exam", tab1Data, tab2Data, tab3Data);
+  const handleSaveExam = async() => {
+    setIsLoading(true);
+    try{
+      const examData = {
+        name: tab1Data.name,
+        subject_id: tab1Data.subject,
+        description: tab1Data.description,
+        start_time: tab1Data.start_time,
+        end_time: tab1Data.end_time,
+        duration_minutes: tab1Data.duration_minutes,
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -57,10 +76,7 @@ const CreateExam = () => {
           <p className="text-gray-500">Tạo đề thi từ ngân hàng câu hỏi hoặc tự động bằng AI</p>
         </div>
         <div className="space-x-2">
-          <Button variant="outline">
-            <Eye className="mr-2 h-4 w-4" />
-            Xem trước
-          </Button>
+          <ExamPreview selectedQuestions={selectedQuestions} />
           <Button
             onClick={handleSaveExam}
             className="bg-black hover:bg-black/80"

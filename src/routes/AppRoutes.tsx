@@ -7,6 +7,7 @@ import Loading from '../../public/loading.gif';
 import OTPConfirmation from '@/components/forgotPassword/OTPConfirmation';
 import PermissionRole from '@/features/admin/PermissionRole';
 import PermissionUser from '@/features/admin/PermissionUser';
+import AssignSubject from '@/features/admin/AssignSubject';
 
 // Lazy load components
 const Login = lazy(() => import('@/components/login/login'));
@@ -50,7 +51,7 @@ const AppRoutes = () => {
         <Route path={path.FORGOT_PASSWORD} element={<ForgotPassword />} />
         <Route path={path.ACCESS_DENIED} element={<AccessDeniedPage />} />
         <Route path={path.OTP_CONFIRMATION} element={<OTPConfirmation />} />
-        <Route path={path.PUBLIC} element={<LovableBackdrop />} />
+        <Route path={path.PUBLIC} element={<IEduLandingPage />} />
         <Route
           path={path.STUDENT.EXAM_TAKING}
           element={
@@ -115,6 +116,14 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <UserManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.ADMIN.ASSIGN_TEACHER}
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AssignSubject />
               </ProtectedRoute>
             }
           />

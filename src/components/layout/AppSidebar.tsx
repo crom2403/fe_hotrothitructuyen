@@ -1,4 +1,5 @@
-import { BarChart3, Bell, BookOpen, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, Monitor, PenTool, Settings, Shield, ShieldUser, Trophy, Users } from 'lucide-react';
+import { BarChart3, Bell, BookOpen, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, PenTool, Shield, ShieldUser, Trophy, Users } from 'lucide-react';
+
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import Logo from '../../../public/images/svg/logo.svg';
 import LogoMini from '../../../public/images/svg/logo-mini.svg';
