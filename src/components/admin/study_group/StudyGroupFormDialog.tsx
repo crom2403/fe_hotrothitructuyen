@@ -20,7 +20,6 @@ import { toast } from "sonner"
 
 interface StudyGroupFormDialogProps {
   form: UseFormReturn<StudyGroupFormData>
-  subjects: Subject[]
   teachers: UserInfo[]
   academicYears: Year[]
   semestersPerYear: Semester[]
@@ -30,7 +29,6 @@ interface StudyGroupFormDialogProps {
   onOpenChange: (open: boolean) => void
   onSubmit: (data: StudyGroupFormData) => void
   isLoading: boolean
-  isLoadingSubjects: boolean
   isLoadingTeachers: boolean
   isLoadingAcademicYears: boolean
   isLoadingSemesters: boolean
@@ -39,9 +37,7 @@ interface StudyGroupFormDialogProps {
   onYearChange: (academic_year_id: string) => void
 }
 
-const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semestersPerYear, isOpen, onOpenChange, onSubmit, isLoading, isLoadingSubjects, isLoadingTeachers, isLoadingAcademicYears, isLoadingSemesters, editingStudyGroup, setEditingStudyGroup, onYearChange, teacherSearchTerm, setTeacherSearchTerm }: StudyGroupFormDialogProps) => {
-  const [searchSubject, setSearchSubject] = useState("")
-  const [openSubject, setOpenSubject] = useState(false)
+const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear, isOpen, onOpenChange, onSubmit, isLoading, isLoadingTeachers, isLoadingAcademicYears, isLoadingSemesters, editingStudyGroup, setEditingStudyGroup, onYearChange, teacherSearchTerm, setTeacherSearchTerm }: StudyGroupFormDialogProps) => {
   const [openTeacher, setOpenTeacher] = useState(false)
   const [assignedSubjects, setAssignedSubjects] = useState<AssignedSubjectByTeacher[]>([]);
   const [isLoadingAssignedSubjects, setIsLoadingAssignedSubjects] = useState(false);
@@ -249,7 +245,7 @@ const StudyGroupFormDialog = ({ form, subjects, teachers, academicYears, semeste
                         <SelectContent>
                           {assignedSubjects.length > 0 ? (
                             assignedSubjects.map((subject) => (
-                              <SelectItem key={subject.id} value={subject.id}>
+                              <SelectItem key={subject.id} value={subject.subject.id}>
                                 {subject.subject.code} - {subject.subject.name}
                               </SelectItem>
                             ))) : (

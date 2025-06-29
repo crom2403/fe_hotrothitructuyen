@@ -11,14 +11,14 @@ import { Loader2, Plus } from "lucide-react";
 import type { QuestionFormData, QuestionItem, QuestionTypeResponse } from "@/types/questionType";
 import { useForm } from "react-hook-form";
 import type { DifficultyLevel } from "@/types/difficultyLevelType";
-import type { SubjectResponse } from "@/types/subjectType";
+import type { AssignedSubjectByTeacher, SubjectResponse } from "@/types/subjectType";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { Switch } from "../ui/switch";
 import { useEffect, useState } from "react";
 import { useApiCall } from "@/hooks/useApiCall";
-import { apiGetSubjects } from "@/services/admin/subject";
+import { apiGetAssignedSubjectByTeacher, apiGetSubjects } from "@/services/admin/subject";
 import { apiCreateQuestion, apiGetDifficultyLevels, apiGetQuestionTypes } from "@/services/teacher/question";
 import QuillEditor from "../common/QuillEditor";
 import { SingleChoiceForm } from "./SingleChoiceForm";
@@ -28,6 +28,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
+import useAuthStore from "@/stores/authStore";
 
 const questionSchema = z.object({
   content: z.string().min(1, "Nội dung câu hỏi không được để trống"),
@@ -57,10 +58,12 @@ const QuestionFormDialog = ({
 }: QuestionFormDialogProps) => {
   const { data: questionTypes, isLoading: isLoadingQuestionTypes, refetch: refetchQuestionTypes } = useApiCall<QuestionTypeResponse>(() => apiGetQuestionTypes());
   const { data: difficultyLevels, isLoading: isLoadingDifficultyLevels, refetch: refetchDifficultyLevels } = useApiCall<{ data: DifficultyLevel[] }>(() => apiGetDifficultyLevels());
-  const { data: subjects, isLoading: isLoadingSubjects, refetch: refetchSubjects } = useApiCall<SubjectResponse>(() => apiGetSubjects(1, "active", "", 100));
 
   const [open, setOpen] = useState(false);
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
+  const { currentUser } = useAuthStore();
+  const [assignedSubjects, setAssignedSubjects] = useState<AssignedSubjectByTeacher[]>([]);
+  const [isLoadingAssignedSubjects, setIsLoadingAssignedSubjects] = useState(false);
 
   const form = useForm<QuestionFormData>({
     resolver: zodResolver(questionSchema),
@@ -76,16 +79,27 @@ const QuestionFormDialog = ({
     },
   });
 
+  const handleGetAssignedSubjects = async () => {
+    setIsLoadingAssignedSubjects(true);
+    try {
+      const response = await apiGetAssignedSubjectByTeacher(currentUser?.id || "");
+      setAssignedSubjects(response.data);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingAssignedSubjects(false);
+    }
+  }
   useEffect(() => {
     refetchQuestionTypes();
     refetchDifficultyLevels();
-    refetchSubjects();
+    handleGetAssignedSubjects();
   }, []);
 
   useEffect(() => {
     if (editingQuestion) {
-      console.log("Resetting form with editingQuestion:", editingQuestion); // Debug log
-      // Sắp xếp answers theo order_index
       const sortedAnswers = [...editingQuestion.answers].sort((a, b) => a.order_index - b.order_index);
       form.reset({
         content: editingQuestion.content,
@@ -95,11 +109,9 @@ const QuestionFormDialog = ({
         options: sortedAnswers.map((answer) => answer.content),
         correctAnswers: sortedAnswers
           .filter((answer) => answer.is_correct)
-          .map((answer) => answer.order_index), // Sử dụng order_index thay vì index
-        // explanation: editingQuestion.explanation || "",
+          .map((answer) => answer.order_index),
         is_public: editingQuestion.is_public,
       });
-      console.log("Form values after reset:", form.getValues()); // Debug log
     } else {
       form.reset({
         content: "",
@@ -226,14 +238,14 @@ const QuestionFormDialog = ({
                   <FormItem>
                     <FormLabel>Môn học</FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingSubjects}>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAssignedSubjects}>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder={isLoadingSubjects ? "Đang tải môn học..." : "Chọn môn học"} />
+                          <SelectValue placeholder={isLoadingAssignedSubjects ? "Đang tải môn học..." : "Chọn môn học"} />
                         </SelectTrigger>
                         <SelectContent>
-                          {subjects?.data.map((subject) => (
-                            <SelectItem key={subject.id} value={subject.id}>
-                              {subject.name}
+                          {assignedSubjects.map((subject) => (
+                            <SelectItem key={subject.id} value={subject.subject.id}>
+                              {subject.subject.code} - {subject.subject.name}
                             </SelectItem>
                           ))}
                         </SelectContent>

@@ -200,7 +200,7 @@ const AssignSubjectDialog = ({ open, onOpenChange, getAssignSubject, assignedSub
           </div>
           <div className="space-y-2">
             <p className="text-sm font-medium">Chọn môn học</p>
-            <Popover open={openSubject} onOpenChange={(open) => {
+            {selectedTeacher ? <Popover open={openSubject} onOpenChange={(open) => {
               setOpenSubject(open);
               if (!open) setSearchSubject("");
             }}>
@@ -269,7 +269,11 @@ const AssignSubjectDialog = ({ open, onOpenChange, getAssignSubject, assignedSub
                   )}
                 </div>
               </PopoverContent>
-            </Popover>
+            </Popover> : (
+              <div className="flex items-center h-full">
+                <p className="text-gray-500 text-xs">Vui lòng chọn giảng viên trước</p>
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter>

@@ -1,16 +1,12 @@
 import QuestionTable from "@/components/teacher/QuestionTable";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsTrigger, TabsList, TabsContent } from "@/components/ui/tabs";
-import { apiCreateQuestion, apiGetQuestionBank, apiGetQuestionPrivate } from "@/services/teacher/question";
-import type { QuestionFormData, QuestionListResponse, QuestionItem } from "@/types/questionType";
+import { apiGetQuestionBank, apiGetQuestionPrivate } from "@/services/teacher/question";
+import type { QuestionListResponse, QuestionItem } from "@/types/questionType";
 import { Upload } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useApiCall } from "@/hooks/useApiCall";
 import QuestionFormDialog from "@/components/teacher/QuestionFormDialog";
-import { toast } from "sonner";
-import type { AxiosError } from "axios";
-
-
 
 const QuestionBank = () => {
   const [activeTab, setActiveTab] = useState("private_question");
@@ -53,7 +49,6 @@ const QuestionBank = () => {
 
   const handleEdit = (question: QuestionItem) => {
     setEditingQuestion(question);
-    console.log(question);
     setIsDialogOpen(true);
   };
 

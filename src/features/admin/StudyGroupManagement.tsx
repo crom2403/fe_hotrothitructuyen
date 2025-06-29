@@ -1,13 +1,12 @@
 import StudyGroupFormDialog from "@/components/admin/study_group/StudyGroupFormDialog";
 import StudyGroupTable from "@/components/admin/study_group/StudyGroupTable";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { StudyGroupFormData, StudyGroupInfo, StudyGroupResponse } from "@/types/studyGroupType";
 import type { Semester, Year } from "@/types/year_semesterType";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import type { AssignedSubjectByTeacher, SubjectResponse } from "@/types/subjectType";
+import type { SubjectResponse } from "@/types/subjectType";
 import { apiGetSubjects } from "@/services/admin/subject";
 import { apiGetAcademicYears, apiGetSemestersByYear } from "@/services/admin/yearSemester";
 import type { AxiosError } from "axios";
@@ -40,8 +39,7 @@ const StudyGroupManagement = () => {
   const [teacherSearchTerm, setTeacherSearchTerm] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
-  const [page, setPage] = useState(1);
-  const [message, setMessage] = useState("");
+  const [page, setPage] = useState(1);  
   const [subjectResponse, setSubjectResponse] = useState<SubjectResponse | null>(null);
   const [semestersPerYear, setSemestersPerYear] = useState<Semester[]>([]);
   const [academicYears, setAcademicYears] = useState<Year[]>([]);
@@ -169,7 +167,6 @@ const StudyGroupManagement = () => {
 
   const handleSubmit = async (data: StudyGroupFormData) => {
     setIsLoadingSubmit(true);
-    setMessage("");
     try {
       const { academic_year, ...payload } = data;
       const response = await apiCreateStudyGroup(payload);
@@ -237,7 +234,6 @@ const StudyGroupManagement = () => {
 
   const copyInviteCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    setMessage("Mã mời đã được sao chép vào clipboard");
   };
 
   return (
@@ -249,7 +245,6 @@ const StudyGroupManagement = () => {
         </div>
         <StudyGroupFormDialog
           form={form}
-          subjects={subjectResponse?.data || []}
           teachers={teachers?.data || []}
           academicYears={academicYears}
           semestersPerYear={semestersPerYear}
@@ -259,7 +254,6 @@ const StudyGroupManagement = () => {
           onOpenChange={setIsOpen}
           onSubmit={handleSubmit}
           isLoading={isLoadingSubmit}
-          isLoadingSubjects={isLoadingSubjects}
           isLoadingTeachers={isLoadingTeachers}
           isLoadingAcademicYears={isLoadingAcademicYears}
           isLoadingSemesters={isLoadingSemesters}
@@ -268,11 +262,6 @@ const StudyGroupManagement = () => {
           onYearChange={handleGetSemesterPerYear}
         />
       </div>
-      {message && (
-        <Alert>
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
-      )}
       <div>
         <StudyGroupTable
           isLoading={isLoading}
@@ -285,7 +274,7 @@ const StudyGroupManagement = () => {
           setSubjectFilter={setSubjectFilter}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
-          isLoadingSubjects={isLoadingSubjects}
+          isLoadingSubjects={isLoadingSubjects} 
           isLoadingAcademicYears={isLoadingAcademicYears}
           page={page}
           totalPages={studyGroups?.metadata.last_page || 1}

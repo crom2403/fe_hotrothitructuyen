@@ -83,11 +83,11 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
 
   const handleViewDetail = async (studyGroupId: string) => {
     setIsLoadingDetail(true)
+    setOpenDetail(true)
     try {
       const response = await apiGetStudyGroupDetail(studyGroupId)
       if (response.status === 200) {
         setStudyGroupDetail(response.data)
-        setOpenDetail(true)
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string, error: string }>
@@ -250,6 +250,7 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
           open={openDetail}
           setOpen={setOpenDetail}
           onRemoveStudent={handleRemoveStudent}
+          isLoading={isLoadingDetail}
         />
       </CardContent>
     </Card>

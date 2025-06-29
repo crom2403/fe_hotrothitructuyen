@@ -117,7 +117,7 @@ export function SettingsTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Hướng dẫn cách làm bài</CardTitle>
+          <CardTitle className="text-lg font-semibold">Quy định thi</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -131,7 +131,7 @@ export function SettingsTab() {
                       form={form}
                       name={field.name}
                       label=""
-                      placeholder="Nhập nội dung hướng dẫn..."
+                      placeholder="Nhập nội dung quy định thi..."
                     />
                   </div>
                 )}

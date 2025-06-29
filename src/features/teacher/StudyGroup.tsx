@@ -1,5 +1,4 @@
 import StudyGroupTable from "@/components/teacher/StudyGroup/StudyGroupTable"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { apiGetStudyGroup } from "@/services/teacher/studyGroup"
 import type { StudyGroupResponse } from "@/types/studyGroupType"
 import type { AxiosError } from "axios"
@@ -8,7 +7,6 @@ import { toast } from "sonner"
 
 const StudyGroup = () => {
   const [studyGroups, setStudyGroups] = useState<StudyGroupResponse | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [page, setPage] = useState(1)
@@ -39,9 +37,7 @@ const StudyGroup = () => {
 
   const copyInviteCode = (code: string) => {
     navigator.clipboard.writeText(code)
-    setMessage("Mã mời đã được sao chép vào clipboard")
   }
-
 
   return (
     <div className="space-y-6">
@@ -49,11 +45,6 @@ const StudyGroup = () => {
         <h1 className="text-2xl font-bold">Quản lý lớp học phần</h1>
         <p className="text-gray-500">Quản lý các lớp học phần bạn đang phụ trách</p>
       </div>
-      {message && (
-        <Alert>
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
-      )}
       <div>
         <StudyGroupTable
           studyGroups={studyGroups?.data || []}

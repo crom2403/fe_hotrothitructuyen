@@ -14,7 +14,7 @@ interface QuestionTabProps {
 }
 
 const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
-  const [examMode, setExamMode] = useState<"manual" | "auto" | "AI">("manual");
+  const [examMode, setExamMode] = useState<"manual" | "auto" | "ai">("manual");
   const [selectedQuestions, setSelectedQuestions] = useState<QuestionItem[]>([]);
   const { tab2Data, setListQuestions } = useExamStore();
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +22,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
   useEffect(() => {
     console.log("Initial tab2Data.exam_type:", tab2Data.exam_type); // Debug log
     if (tab2Data.exam_type && tab2Data.exam_type !== examMode) {
-      setExamMode(tab2Data.exam_type as "manual" | "auto" | "AI");
+      setExamMode(tab2Data.exam_type as "manual" | "auto" | "ai");
       console.log("Updated examMode from store:", tab2Data.exam_type); // Debug log
     }
   }, [tab2Data.exam_type, examMode]);
@@ -138,7 +138,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
           </div>
         </div>
       )}
-      {examMode === "AI" && (
+      {examMode === "ai" && (
         <div className="grid grid-cols-1 gap-4">
           <div className="flex flex-col gap-4">
             <Card>

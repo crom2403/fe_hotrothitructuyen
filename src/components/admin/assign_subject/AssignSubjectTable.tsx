@@ -4,7 +4,7 @@ import AssignSubjectDialog from "./AssignSubjectDialog"
 import { Edit, Loader2, MoreHorizontal, Search, Trash } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import type { AssignedSubject, AssignedSubjectResponse, Subject, SubjectResponse } from "@/types/subjectType"
-import { apiGetAssignedSubjects, apiGetSubjects } from "@/services/admin/subject"
+import { apiDeleteAssignedSubject, apiGetAssignedSubjects, apiGetSubjects } from "@/services/admin/subject"
 import type { AxiosError } from "axios"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -71,6 +71,20 @@ const AssignSubjectTable = () => {
   useEffect(() => {
     handleGetAssignedSubjects()
   }, [page, debouncedSearchTerm, subjectFilter])
+
+  const handleDeleteAssignedSubject = async (id: string) => {
+    try {
+      const response = await apiDeleteAssignedSubject(id)
+      if (response.status === 200) {
+        toast.success("Xóa phân công thành công")
+        handleGetAssignedSubjects()
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      toast.error(errorMessage);
+    } 
+  }
 
   return (
     <Card>
@@ -151,7 +165,7 @@ const AssignSubjectTable = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem className="text-red-500">
+                          <DropdownMenuItem className="text-red-500" onClick={() => handleDeleteAssignedSubject(subject.id)}>
                             <Trash className="h-4 w-4 text-red-500" />
                             Xóa
                           </DropdownMenuItem>

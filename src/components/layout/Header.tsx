@@ -48,7 +48,7 @@ const Header = () => {
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={currentUser?.avatar || "/placeholder.svg"} alt={currentUser?.full_name || "AAA"} />
-                  <AvatarFallback>{getInitials(currentUser?.full_name || "AAA")}</AvatarFallback>
+                  <AvatarFallback>{getInitials(currentUser?.full_name.charAt(0) || "AAA")}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -56,8 +56,7 @@ const Header = () => {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">{currentUser?.full_name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{currentUser?.role_code}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{currentUser?.email}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{currentUser?.role_name}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

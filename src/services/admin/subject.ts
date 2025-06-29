@@ -42,6 +42,6 @@ export const apiGetAssignedSubjects = async (page: number, q?: string, subject_i
   return instance.get(query)
 }
 
-// export const apiDeleteAssignedSubject = async (id: string) => instance.delete(apiRoutes.admin.subject + `/admin/assign/${id}`)
+export const apiDeleteAssignedSubject = async (id: string) => instance.delete(apiRoutes.admin.subject + `/admin/assign/delete/${id}`)
 
 export const apiGetAssignedSubjectByTeacher = async (teacherId: string) => instance.get(apiRoutes.admin.subject + `/admin/list/${teacherId}`)
