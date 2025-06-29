@@ -12,11 +12,12 @@ export interface ExamTab1 {
   total_questions: number;
   pass_points: number;
   point_scale: string;
-  type: boolean;
+  type: "exercise" | "midterm" | "final";
+  max_tab_switch: number;
 }
 
 export interface ExamTab2 {
-  exam_type: string;
+  exam_type: "manual" | "auto" | "ai";
   list_questions: { question_id: string; order_index: number }[] | [];
   difficulty: {
     easy: number;
@@ -56,9 +57,10 @@ interface ExamStore {
   setTab1TotalQuestions: (count: number) => void;
   setTab1PassPoints: (points: number) => void;
   setTab1PointScale: (scale: string) => void;
-  setTab1Type: (type: boolean) => void;
+  setTab1Type: (type: "exercise" | "midterm" | "final") => void;
+  setTab1MaxTabSwitch: (max_tab_switch: number) => void;
 
-  setExamType: (type: string) => void;
+  setExamType: (type: "manual" | "auto" | "ai") => void;
   setListQuestions: (questions: { question_id: string; order_index: number }[]) => void;
   setDifficulty: (difficulty: { easy: number; medium: number; hard: number }) => void;
 
@@ -90,10 +92,11 @@ const useExamStore = create<ExamStore>()(
         total_questions: 0,
         pass_points: 0,
         point_scale: "",
-        type: false,
+        type: "exercise",
+        max_tab_switch: 3,
       },
       tab2Data: {
-        exam_type: "",
+        exam_type: "manual",
         list_questions: [],
         difficulty: {
           easy: 0,
@@ -135,6 +138,7 @@ const useExamStore = create<ExamStore>()(
       setTab1PassPoints: (pass_points) => set({ tab1Data: { ...get().tab1Data, pass_points } }),
       setTab1PointScale: (point_scale) => set({ tab1Data: { ...get().tab1Data, point_scale } }),
       setTab1Type: (type) => set({ tab1Data: { ...get().tab1Data, type } }),
+      setTab1MaxTabSwitch: (max_tab_switch) => set({ tab1Data: { ...get().tab1Data, max_tab_switch } }),
 
       setExamType: (exam_type) => set({ tab2Data: { ...get().tab2Data, exam_type } }),
       setListQuestions: (list_questions) => set({ tab2Data: { ...get().tab2Data, list_questions } }),
@@ -174,10 +178,11 @@ const useExamStore = create<ExamStore>()(
             total_questions: 0,
             pass_points: 0,
             point_scale: "",
-            type: false,
+            type: "exercise",
+            max_tab_switch: 3,
           },
           tab2Data: {
-            exam_type: "",
+            exam_type: "manual",
             list_questions: [],
             difficulty: {
               easy: 0,

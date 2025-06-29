@@ -128,17 +128,12 @@ const Profile = () => {
             <div className="flex gap-4 items-center">
               <Avatar className="w-20 h-20 bg-primary">
                 <AvatarImage src={user?.avatar || "/placeholder.svg"} />
-                <AvatarFallback className="text-lg">{user?.full_name}</AvatarFallback>
+                <AvatarFallback className="text-lg">{user?.full_name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
                 <h1 className="text-2xl font-bold">{user?.full_name}</h1>
-                <p className="text-gray-600">{user?.role_code}</p>
-                <p className="text-sm text-gray-500">{user?.email}</p>
+                <p className="text-gray-600">{user?.role_name}</p>
               </div>
-              {/* <Button variant={"outline"} className="flex items-center gap-2">
-          <Camera className="h-4 w-4" />
-          Thay đổi ảnh
-        </Button> */}
             </div>
 
             <Tabs defaultValue="profile" className="space-y-4">

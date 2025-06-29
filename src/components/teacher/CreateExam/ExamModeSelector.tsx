@@ -3,17 +3,16 @@ import useExamStore from "@/stores/examStore";
 import { FileText, Settings, Shuffle } from "lucide-react";
 
 interface ExamModeSelectorProps {
-  examMode: "manual" | "auto" | "AI";
-  setExamMode: (mode: "manual" | "auto" | "AI") => void;
+  examMode: "manual" | "auto" | "ai";
+  setExamMode: (mode: "manual" | "auto" | "ai") => void;
 }
 
 const ExamModeSelector = ({ examMode, setExamMode }: ExamModeSelectorProps) => {
   const { setExamType, tab2Data } = useExamStore();
 
-  const handleModeChange = (mode: "manual" | "auto" | "AI") => {
+  const handleModeChange = (mode: "manual" | "auto" | "ai") => {
     setExamMode(mode);
-    setExamType(mode === "manual" ? "manual" : mode === "auto" ? "auto" : "AI");
-    console.log("Updated examType to:", mode); // Debug log
+    setExamType(mode === "manual" ? "manual" : mode === "auto" ? "auto" : "ai");
   };
 
   return (
@@ -36,8 +35,8 @@ const ExamModeSelector = ({ examMode, setExamMode }: ExamModeSelectorProps) => {
       </Button>
       <Button
         variant="outline"
-        onClick={() => handleModeChange("AI")}
-        className={`h-20 flex-col ${examMode === "AI" ? "bg-black text-white hover:bg-black hover:text-white" : ""}`}
+        onClick={() => handleModeChange("ai")}
+        className={`h-20 flex-col ${examMode === "ai" ? "bg-black text-white hover:bg-black hover:text-white" : ""}`}
       >
         <Settings className="h-6 w-6 mb-2" />
         AI hỗ trợ

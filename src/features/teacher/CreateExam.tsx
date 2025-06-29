@@ -2,7 +2,7 @@ import BasicInfoTab from "@/components/teacher/CreateExam/BasicInfoTab";
 import QuestionsTab from "@/components/teacher/CreateExam/QuestionsTab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, Loader2, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { useState, useEffect } from "react";
 import useExamStore from "@/stores/examStore";
 import { SettingsTab } from "@/components/teacher/CreateExam/SettingTab";
@@ -13,11 +13,12 @@ import { getQuestionsByIds } from "@/utils/questionCache";
 import ExamPreview from "@/components/teacher/CreateExam/ExamPreview";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
+import { apiCreateExam } from "@/services/teacher/createExam";
 
 const CreateExam = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-  const { tab1Data, tab2Data, tab3Data } = useExamStore();
+  const { tab1Data, tab2Data, tab3Data, resetExamData } = useExamStore();
   const [selectedQuestions, setSelectedQuestions] = useState<QuestionItem[]>([]);
 
   const isSubjectSelected = !!tab1Data.subject;
@@ -58,6 +59,27 @@ const CreateExam = () => {
         start_time: tab1Data.start_time,
         end_time: tab1Data.end_time,
         duration_minutes: tab1Data.duration_minutes,
+        total_questions: tab1Data.total_questions,
+        pass_points: tab1Data.pass_points,
+        instructions: tab3Data.instruction,
+        max_tab_switch: tab1Data.max_tab_switch,
+        test_type: tab1Data.type,
+        exam_type: tab2Data.exam_type,
+        point_scale_id: tab1Data.point_scale,
+        is_shuffled_questions: tab3Data.is_shuffled_questions,
+        is_shuffled_answer: tab3Data.is_shuffled_answer,
+        allow_review_point: tab3Data.allow_review_point,
+        show_correct_answer: tab3Data.show_correct_answer,
+        questions: tab2Data.list_questions,
+        difficulty: tab2Data.difficulty,
+        study_groups: tab1Data.study_groups,
+      }
+
+      console.log(examData);
+      const response = await apiCreateExam(examData);
+      if (response.status === 201) {
+        toast.success("Tạo đề thi thành công");
+        resetExamData();
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string, error: string }>;
