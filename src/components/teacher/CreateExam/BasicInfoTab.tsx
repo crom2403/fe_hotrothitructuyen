@@ -4,21 +4,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { apiGetSubjects } from "@/services/admin/subject";
+import { apiGetAssignedSubjectByTeacher } from "@/services/admin/subject";
 import { apiGetPointScales } from "@/services/teacher/createExam";
 import { apiGetStudyGroup } from "@/services/teacher/studyGroup";
 import useExamStore from "@/stores/examStore";
 import type { PointScale } from "@/types/pointScaleType";
 import type { StudyGroupResponse } from "@/types/studyGroupType";
-import type { SubjectResponse } from "@/types/subjectType";
+import type { AssignedSubjectByTeacher } from "@/types/subjectType";
 import type { AxiosError } from "axios";
 import { Loader2, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import useAuthStore from "@/stores/authStore";
+
+enum TestType {
+  EXERCISE = "exercise",
+  MIDTERM = "midterm",
+  FINAL = "final"
+}
 
 const BasicInfoTab = () => {
   const {
@@ -37,19 +43,25 @@ const BasicInfoTab = () => {
     setPointScaleName,
     setStudyGroupName,
     setSubjectName,
+    setTab1MaxTabSwitch,
   } = useExamStore();
-  const [subjects, setSubjects] = useState<SubjectResponse | null>(null);
+  const { currentUser } = useAuthStore();
+  const [subjectsAssigned, setSubjectsAssigned] = useState<AssignedSubjectByTeacher[]>([]);
   const [pointScales, setPointScales] = useState<PointScale[]>([]);
   const [studyGroups, setStudyGroups] = useState<StudyGroupResponse | null>(null);
-  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
+  const [isLoadingAssignedSubjects, setIsLoadingAssignedSubjects] = useState(false);
   const [isLoadingPointScales, setIsLoadingPointScales] = useState(false);
   const [isLoadingStudyGroups, setIsLoadingStudyGroups] = useState(false);
   const [startTimeError, setStartTimeError] = useState<string | null>(null);
   const [endTimeError, setEndTimeError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [openMaxTabSwitch, setOpenMaxTabSwitch] = useState(false);
   const [selectedStudyGroups, setSelectedStudyGroups] = useState<string[]>(tab1Data.study_groups || []);
   const [openStudyGroup, setOpenStudyGroup] = useState(false);
   const [searchStudyGroup, setSearchStudyGroup] = useState("");
+  const [questionCountError, setQuestionCountError] = useState<string | null>(null);
+  const [passPointsError, setPassPointsError] = useState<string | null>(null);
+  const [maxTabSwitchError, setMaxTabSwitchError] = useState<string | null>(null);
 
   const validateAndSetDuration = (start: Date, end: Date) => {
     setStartTimeError(null);
@@ -97,24 +109,63 @@ const BasicInfoTab = () => {
     }
   };
 
+  const validateInput = (value: number, field: string, max: number, setError: (error: string) => void) => {
+    if (value <= 0) {
+      setError(`${field} không được âm hoặc bằng 0!`);
+      return false;
+    }
+    if (value > max) {
+      setError(`${field} không được vượt quá ${max}!`);
+      return false;
+    }
+    return true;
+  };
+
+  const handleTotalQuestionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    if (validateInput(value, "Số câu hỏi", 1000, setQuestionCountError)) {
+      setTab1TotalQuestions(value);
+    } else {
+      setQuestionCountError("Số câu hỏi không được vượt quá 1000!");
+    }
+  };
+
+  const handlePassPointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    if (validateInput(value, "Điểm đậu", 100, setPassPointsError)) {
+      setTab1PassPoints(value);
+    } else {
+      setPassPointsError("Điểm đậu không được vượt quá 100!");
+    }
+  };
+
+  const handleMaxTabSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    if (validateInput(value, "Số lần chuyển tab", 100, setMaxTabSwitchError)) {
+      setTab1MaxTabSwitch(value);
+    } else {
+      setMaxTabSwitchError("Số lần chuyển tab không được vượt quá 100!");
+    }
+  };
+
   const handleGetSubjects = async () => {
-    setIsLoadingSubjects(true);
+    setIsLoadingAssignedSubjects(true);
     try {
-      const response = await apiGetSubjects(1, "", "", 100);
+      const response = await apiGetAssignedSubjectByTeacher(currentUser?.id || "");
       if (response.status === 200) {
-        setSubjects(response.data);
+        setSubjectsAssigned(response.data);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
       toast.error(errorMessage);
     } finally {
-      setIsLoadingSubjects(false);
+      setIsLoadingAssignedSubjects(false);
     }
   };
 
   const handleGetStudyGroups = async () => {
-    if (!tab1Data.subject) return; // Không gọi API nếu chưa chọn môn học
+    if (!tab1Data.subject) return;
     setIsLoadingStudyGroups(true);
     try {
       const response = await apiGetStudyGroup(1, searchStudyGroup, tab1Data.subject, "", 100);
@@ -152,7 +203,7 @@ const BasicInfoTab = () => {
   }, []);
 
   useEffect(() => {
-    handleGetStudyGroups(); // Gọi API khi subject thay đổi
+    handleGetStudyGroups();
   }, [tab1Data.subject, searchStudyGroup]);
 
   useEffect(() => {
@@ -193,17 +244,17 @@ const BasicInfoTab = () => {
             <Label htmlFor="subject">Môn học</Label>
             <Select value={tab1Data.subject} onValueChange={(value) => {
               setTab1Subject(value);
-              setSubjectName(subjects?.data.find((subject) => subject.id === value)?.name || "");
+              setSubjectName(subjectsAssigned.find((subject) => subject.subject.id === value)?.subject.name || "");
             }}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Chọn môn học" />
               </SelectTrigger>
               <SelectContent>
-                {isLoadingSubjects ? (
+                {isLoadingAssignedSubjects ? (
                   <SelectItem value="loading">Đang tải môn học...</SelectItem>
                 ) : (
-                  subjects?.data.map((subject) => (
-                    <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
+                  subjectsAssigned.map((subject) => (
+                    <SelectItem key={subject.id} value={subject.subject.id}>{subject.subject.code} - {subject.subject.name}</SelectItem>
                   ))
                 )}
               </SelectContent>
@@ -211,77 +262,79 @@ const BasicInfoTab = () => {
           </div>
           <div className="space-y-2">
             <Label htmlFor="group">Nhóm học phần</Label>
-            <Popover open={openStudyGroup} onOpenChange={setOpenStudyGroup}>
-              <PopoverTrigger className="w-full">
-                <Button
-                  variant="outline"
-                  className="w-full justify-between"
-                  disabled={isLoadingStudyGroups || !tab1Data.subject} // Vô hiệu hóa khi chưa chọn môn học
-                >
-                  {selectedStudyGroups.length > 0
-                    ? `${selectedStudyGroups.length} nhóm học phần được chọn`
-                    : "Chọn nhóm học phần"}
-                  <svg
-                    className="w-4 h-4 ml-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+            {tab1Data.subject && (
+              <Popover open={openStudyGroup} onOpenChange={setOpenStudyGroup}>
+                <PopoverTrigger className="w-full">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between"
+                    disabled={isLoadingStudyGroups || !tab1Data.subject}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
+                    {selectedStudyGroups.length > 0
+                      ? `${selectedStudyGroups.length} nhóm học phần được chọn`
+                      : "Chọn nhóm học phần"}
+                    <svg
+                      className="w-4 h-4 ml-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="min-w-[350px] p-2">
+                  <div className="relative flex-1 mb-2">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      type="text"
+                      placeholder="Tìm kiếm theo mã hoặc tên..."
+                      value={searchStudyGroup}
+                      onChange={(e) => setSearchStudyGroup(e.target.value)}
+                      className="pl-10"
                     />
-                  </svg>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="min-w-[350px] p-2">
-                <div className="relative flex-1 mb-2">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    type="text"
-                    placeholder="Tìm kiếm theo mã hoặc tên..."
-                    value={searchStudyGroup}
-                    onChange={(e) => setSearchStudyGroup(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                {isLoadingStudyGroups ? (
-                  <div className="flex justify-center">
-                    <Loader2 className="h-6 w-6 animate-spin text-gray-500 mt-2" />
                   </div>
-                ) : (
-                  <ScrollArea className="h-40 w-full">
-                    {studyGroups?.data && studyGroups.data.length > 0 ? (
-                      studyGroups.data
-                        .filter(sg =>
-                          (sg.study_group_code + sg.study_group_name)
-                            .toLowerCase()
-                            .includes(searchStudyGroup.toLowerCase())
-                        )
-                        .map((studyGroup) => (
-                          <div
-                            key={studyGroup.study_group_id}
-                            className="p-2 hover:bg-gray-100 cursor-pointer rounded-md flex items-center"
-                            onClick={() => handleToggleStudyGroup(studyGroup.study_group_id)}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedStudyGroups.includes(studyGroup.study_group_id)}
-                              onChange={() => {}}
-                              className="mr-2"
-                            />
-                            {`${studyGroup.study_group_code} - ${studyGroup.study_group_name}`}
-                          </div>
-                        ))
-                    ) : (
-                      <div className="p-2 text-gray-500 text-center">Không tìm thấy nhóm học phần</div>
-                    )}
-                  </ScrollArea>
-                )}
-              </PopoverContent>
-            </Popover>
+                  {isLoadingStudyGroups ? (
+                    <div className="flex justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-gray-500 mt-2" />
+                    </div>
+                  ) : (
+                    <ScrollArea className="h-40 w-full">
+                      {studyGroups?.data && studyGroups.data.length > 0 ? (
+                        studyGroups.data
+                          .filter(sg =>
+                            (sg.study_group_code + sg.study_group_name)
+                              .toLowerCase()
+                              .includes(searchStudyGroup.toLowerCase())
+                          )
+                          .map((studyGroup) => (
+                            <div
+                              key={studyGroup.study_group_id}
+                              className="p-2 hover:bg-gray-100 cursor-pointer rounded-md flex items-center"
+                              onClick={() => handleToggleStudyGroup(studyGroup.study_group_id)}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedStudyGroups.includes(studyGroup.study_group_id)}
+                                onChange={() => { }}
+                                className="mr-2"
+                              />
+                              {`${studyGroup.study_group_code} - ${studyGroup.study_group_name}`}
+                            </div>
+                          ))
+                      ) : (
+                        <div className="p-2 text-gray-500 text-center">Không tìm thấy nhóm học phần</div>
+                      )}
+                    </ScrollArea>
+                  )}
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         </div>
 
@@ -332,8 +385,11 @@ const BasicInfoTab = () => {
               id="total_questions"
               type="number"
               value={tab1Data.total_questions}
-              onChange={(e) => setTab1TotalQuestions(Number(e.target.value))}
+              onChange={(e) => handleTotalQuestionsChange(e)}
             />
+            {questionCountError && (
+              <p className="text-sm text-red-500">{questionCountError}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="pass_points">Điểm đậu</Label>
@@ -341,8 +397,11 @@ const BasicInfoTab = () => {
               id="pass_points"
               type="number"
               value={tab1Data.pass_points}
-              onChange={(e) => setTab1PassPoints(Number(e.target.value))}
+              onChange={(e) => handlePassPointsChange(e)}
             />
+            {passPointsError && (
+              <p className="text-sm text-red-500">{passPointsError}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="point_scale">Thang điểm</Label>
@@ -375,12 +434,44 @@ const BasicInfoTab = () => {
             className="resize-none"
           />
         </div>
-        <div className="space-y-2 flex items-center justify-between">
-          <div className="flex items-center gap-2 justify-center">
-            <Label htmlFor="type">Đề thi cuối kỳ?</Label>
-            <InfoPopup text="Đề thi cuối kỳ sẽ được kiểm duyệt bởi quản trị viên" open={open} setOpen={setOpen} />
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="type">Loại đề</Label>
+                <InfoPopup text="Đề thi cuối kỳ và giữa kỳ sẽ do giảng viên mở để. Sinh viên cần phải vào đúng giờ để làm đề thi." open={open} setOpen={setOpen} />
+              </div>
+              <Select value={tab1Data.type} onValueChange={(value) => setTab1Type(value as "exercise" | "midterm" | "final")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Chọn loại đề thi" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="choose">Chọn loại đề</SelectItem>
+                    <SelectItem value="exercise">Bài tập</SelectItem>
+                    <SelectItem value="midterm">Đề thi giữa kỳ</SelectItem>
+                    <SelectItem value="final">Đề thi cuối kỳ</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="max_tab_switch">Số lần chuyển tab</Label>
+                <InfoPopup text="Số lần chuyển tab là số lần sinh viên có thể chuyển tab để làm đề thi. Nếu sinh viên chuyển tab quá số lần cho phép, đề thi sẽ tự động kết thúc." open={openMaxTabSwitch} setOpen={setOpenMaxTabSwitch} />
+              </div>
+              <Input
+                id="max_tab_switch"
+                type="number"
+                value={tab1Data.max_tab_switch}
+                defaultValue={3}
+                onChange={(e) => handleMaxTabSwitchChange(e)}
+                />
+              {maxTabSwitchError && (
+                <p className="text-sm text-red-500">{maxTabSwitchError}</p>
+              )}
+            </div>
           </div>
-          <Switch className="cursor-pointer data-[state=unchecked]:bg-gray-300" id="type" checked={tab1Data.type} onCheckedChange={setTab1Type} />
         </div>
       </CardContent>
     </Card>
