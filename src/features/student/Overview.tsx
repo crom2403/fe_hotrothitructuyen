@@ -1,10 +1,10 @@
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BookOpen, TrendingUp, Clock, Trophy, Play, Eye } from "lucide-react"
+import WebSocketTest from "@/components/student/WebSocketTest";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpen, TrendingUp, Clock, Trophy, Play, Eye } from "lucide-react";
 
 const Overview = () => {
-
   const stats = [
     {
       title: "Bài thi đã hoàn thành",
@@ -34,7 +34,7 @@ const Overview = () => {
       icon: Clock,
       color: "text-orange-600",
     },
-  ]
+  ];
 
   const upcomingExams = [
     {
@@ -64,7 +64,7 @@ const Overview = () => {
       status: "Sắp diễn ra",
       canJoin: false,
     },
-  ]
+  ];
 
   const recentResults = [
     {
@@ -94,47 +94,46 @@ const Overview = () => {
       completedAt: "2024-11-25",
       status: "Đạt",
     },
-  ]
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Có thể vào thi":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "Sắp diễn ra":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "Đã kết thúc":
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getScoreColor = (score: number, maxScore: number) => {
-    const percentage = (score / maxScore) * 100
-    if (percentage >= 80) return "text-green-600"
-    if (percentage >= 65) return "text-blue-600"
-    if (percentage >= 50) return "text-yellow-600"
-    return "text-red-600"
-  }
+    const percentage = (score / maxScore) * 100;
+    if (percentage >= 80) return "text-green-600";
+    if (percentage >= 65) return "text-blue-600";
+    if (percentage >= 50) return "text-yellow-600";
+    return "text-red-600";
+  };
 
   const formatDateTime = (dateTime: string) => {
-    const date = new Date(dateTime)
+    const date = new Date(dateTime);
     return date.toLocaleString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div>
+        <WebSocketTest />
         <h1 className="text-2xl font-bold">Trang chủ sinh viên</h1>
-        <p className="text-gray-500">
-          Theo dõi bài thi và kết quả học tập
-        </p>
+        <p className="text-gray-500">Theo dõi bài thi và kết quả học tập</p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
@@ -199,16 +198,16 @@ const Overview = () => {
                   <div className="flex-1">
                     <h4 className="font-medium">{result.title}</h4>
                     <p className="text-sm text-gray-600">{result.subject}</p>
-                    <p className="text-xs text-gray-500">
-                      Hoàn thành: {new Date(result.completedAt).toLocaleDateString("vi-VN")}
-                    </p>
+                    <p className="text-xs text-gray-500">Hoàn thành: {new Date(result.completedAt).toLocaleDateString("vi-VN")}</p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="text-right">
                       <p className={`font-bold ${getScoreColor(result.score, result.maxScore)}`}>
                         {result.score}/{result.maxScore}
                       </p>
-                      <Badge variant={result.status === "Đạt" ? "default" : "destructive"} className="bg-black rounded-full">{result.status}</Badge>
+                      <Badge variant={result.status === "Đạt" ? "default" : "destructive"} className="bg-black rounded-full">
+                        {result.status}
+                      </Badge>
                     </div>
                     <Button variant="ghost" size="sm">
                       <Eye className="h-4 w-4" />
@@ -221,7 +220,7 @@ const Overview = () => {
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Overview
+export default Overview;
