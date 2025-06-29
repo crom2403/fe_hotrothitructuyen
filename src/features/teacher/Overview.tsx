@@ -1,8 +1,8 @@
-import StatCard from "@/components/common/StatCard"
-import QuickActionButton from "@/components/teacher/QuickActionButton"
-import RecentExamCard from "@/components/teacher/RecentExamCard"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart3, Clock, Eye, FileText, Plus, Users } from "lucide-react"
+import StatCard from "@/components/common/StatCard";
+import QuickActionButton from "@/components/teacher/QuickActionButton";
+import RecentExamCard from "@/components/teacher/RecentExamCard";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart3, Clock, Eye, FileText, Plus, Users } from "lucide-react";
 
 const Overview = () => {
   const stats = [
@@ -34,7 +34,7 @@ const Overview = () => {
       icon: BarChart3,
       color: "text-orange-600",
     },
-  ]
+  ];
 
   const recentExams = [
     {
@@ -61,7 +61,7 @@ const Overview = () => {
       status: "Đã kết thúc",
       endTime: "2 ngày trước",
     },
-  ]
+  ];
 
   const quickActions = [
     {
@@ -88,17 +88,17 @@ const Overview = () => {
       icon: Eye,
       action: "exam-rooms",
     },
-  ]
+  ];
 
   const normalizeStatus = (status: string): "Đang diễn ra" | "Sắp diễn ra" | "Đã kết thúc" => {
     if (status.toLowerCase().includes("đang")) return "Đang diễn ra";
     if (status.toLowerCase().includes("sắp")) return "Sắp diễn ra";
     return "Đã kết thúc";
-  }
+  };
 
   const handleQuickAction = (action: string) => {
-    console.log(action)
-  }
+    console.log(action);
+  };
 
   return (
     <div className="space-y-6">
@@ -120,11 +120,17 @@ const Overview = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {
-                  recentExams.map((exam) => (
-                    <RecentExamCard key={exam.id} id={exam.id} title={exam.title} subject={exam.subject} student={exam.students} status={normalizeStatus(exam.status)} endTime={exam.endTime} />
-                  ))
-                }
+                {recentExams.map((exam) => (
+                  <RecentExamCard
+                    key={exam.id}
+                    id={exam.id}
+                    title={exam.title}
+                    subject={exam.subject}
+                    student={exam.students}
+                    status={normalizeStatus(exam.status)}
+                    endTime={exam.endTime}
+                  />
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -137,18 +143,21 @@ const Overview = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                {
-                  quickActions.map((action) => (
-                    <QuickActionButton key={action.title} icon={<action.icon />} label={action.title} onClick={() => handleQuickAction(action.action)} />
-                  ))
-                }
+                {quickActions.map((action) => (
+                  <QuickActionButton
+                    key={action.title}
+                    icon={<action.icon />}
+                    label={action.title}
+                    onClick={() => handleQuickAction(action.action)}
+                  />
+                ))}
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Overview
+export default Overview;
