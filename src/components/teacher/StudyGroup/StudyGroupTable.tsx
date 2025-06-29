@@ -99,7 +99,6 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
   }
 
   const handleRemoveStudent = async (studentCodes: string[]) => {
-    console.log(studentCodes)
     try{
       const response = await apiRemoveStudentFromStudyGroup(studyGroupDetail?.id || "", studentCodes)
       if(response.status === 200){

@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LogOut, Settings } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 import { SidebarTrigger } from "../ui/sidebar";
 import { useNavigate } from "react-router-dom";
 import path from "@/utils/path";
@@ -64,10 +64,6 @@ const Header = () => {
                 <User className="mr-2 h-4 w-4" />
                 <span>Hồ sơ cá nhân</span>
               </DropdownMenuItem>
-              {/* <DropdownMenuItem onClick={() => navigate(path.SETTINGS)}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Cài đặt</span>
-              </DropdownMenuItem> */}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />

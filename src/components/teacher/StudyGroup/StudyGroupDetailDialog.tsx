@@ -73,11 +73,13 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
             Xem thông tin lớp học phần và danh sách sinh viên
           </DialogDescription>
         </DialogHeader>
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <Loader2 className="w-7 h-7 animate-spin" />
+
+        {isLoading && (
+          <div className="flex justify-center items-center h-full">
+            <Loader2 className="w-10 h-10 animate-spin" />
           </div>
-        ) : (
+        )}
+        {!isLoading && (
           <>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-4">
@@ -128,7 +130,7 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
                   <Button
                     variant="destructive"
                     onClick={handleRemoveSelected}
-                    disabled={selectedStudentCodes.length === 0}
+                    disabled={selectedStudentCodes.length === 0 || isLoading}
                   >
                     Xóa sinh viên
                   </Button>

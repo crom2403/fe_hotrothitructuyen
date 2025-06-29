@@ -13,7 +13,6 @@ const ExamModeSelector = ({ examMode, setExamMode }: ExamModeSelectorProps) => {
   const handleModeChange = (mode: "manual" | "auto" | "ai") => {
     setExamMode(mode);
     setExamType(mode === "manual" ? "manual" : mode === "auto" ? "auto" : "ai");
-    console.log("Updated examType to:", mode); // Debug log
   };
 
   return (

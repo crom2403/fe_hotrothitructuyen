@@ -39,7 +39,7 @@ const StudyGroupManagement = () => {
   const [teacherSearchTerm, setTeacherSearchTerm] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("all");
   const [yearFilter, setYearFilter] = useState("all");
-  const [page, setPage] = useState(1);  
+  const [page, setPage] = useState(1);
   const [subjectResponse, setSubjectResponse] = useState<SubjectResponse | null>(null);
   const [semestersPerYear, setSemestersPerYear] = useState<Semester[]>([]);
   const [academicYears, setAcademicYears] = useState<Year[]>([]);

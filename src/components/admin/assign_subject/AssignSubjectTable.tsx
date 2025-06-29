@@ -1,9 +1,9 @@
 import { Card, CardTitle, CardDescription, CardHeader, CardContent } from "@/components/ui/card"
 import { useEffect, useState } from "react"
 import AssignSubjectDialog from "./AssignSubjectDialog"
-import { Edit, Loader2, MoreHorizontal, Search, Trash } from "lucide-react"
+import { Loader2, MoreHorizontal, Search, Trash } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import type { AssignedSubject, AssignedSubjectResponse, Subject, SubjectResponse } from "@/types/subjectType"
+import type { AssignedSubjectResponse, SubjectResponse } from "@/types/subjectType"
 import { apiDeleteAssignedSubject, apiGetAssignedSubjects, apiGetSubjects } from "@/services/admin/subject"
 import type { AxiosError } from "axios"
 import { toast } from "sonner"
@@ -13,8 +13,7 @@ import { format } from "date-fns"
 import Paginate from "@/components/common/Pagination"
 import { useDebounce } from "@/utils/functions"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import type { UserInfo } from "@/types/userType"
+import { Button } from "@/components/ui/button" 
 
 const AssignSubjectTable = () => {
   const [open, setOpen] = useState(false)
@@ -64,14 +63,6 @@ const AssignSubjectTable = () => {
     setPage(page)
   }
 
-  useEffect(() => {
-    handleGetSubjects()
-  }, [])
-
-  useEffect(() => {
-    handleGetAssignedSubjects()
-  }, [page, debouncedSearchTerm, subjectFilter])
-
   const handleDeleteAssignedSubject = async (id: string) => {
     try {
       const response = await apiDeleteAssignedSubject(id)
@@ -80,11 +71,20 @@ const AssignSubjectTable = () => {
         handleGetAssignedSubjects()
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const axiosError = error as AxiosError<{ message: string; error: string }>; 
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
       toast.error(errorMessage);
-    } 
+    }
   }
+
+  useEffect(() => {
+    handleGetSubjects()
+  }, [])
+
+  useEffect(() => {
+    handleGetAssignedSubjects()
+  }, [page, debouncedSearchTerm, subjectFilter])
+
 
   return (
     <Card>

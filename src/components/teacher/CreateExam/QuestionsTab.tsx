@@ -20,10 +20,8 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    console.log("Initial tab2Data.exam_type:", tab2Data.exam_type); // Debug log
     if (tab2Data.exam_type && tab2Data.exam_type !== examMode) {
       setExamMode(tab2Data.exam_type as "manual" | "auto" | "ai");
-      console.log("Updated examMode from store:", tab2Data.exam_type); // Debug log
     }
   }, [tab2Data.exam_type, examMode]);
 
