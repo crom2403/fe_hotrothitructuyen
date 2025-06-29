@@ -4,10 +4,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, BookOpen, Calendar, Clock, UserPlus, MessageCircle } from 'lucide-react';
+import { Users, BookOpen, Calendar, Clock, UserPlus, MessageCircle, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { IStudentGroup, IStudentGroupDetail } from '@/types/studentGroupType';
-import { apiGetStudentGroups, apiGetStudentGroupById } from '@/services/student/student-group';
+import { apiGetStudentGroups, apiGetStudentGroupById, apiJoinGroup } from '@/services/student/student-group';
+import { DialogDescription } from '@radix-ui/react-dialog';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import Loading from '@/components/common/Loading';
 
 const StudentGroup = () => {
   const [listGroups, setListGroups] = useState<IStudentGroup[]>([]);
@@ -17,6 +21,26 @@ const StudentGroup = () => {
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDialogOpenJoin, setIsDialogOpenJoin] = useState(false);
+  const [code, setCode] = useState<string>('');
+
+  const handleJoinGroup = async () => {
+    try {
+      const response: any = await apiJoinGroup(code);
+      setIsDialogOpenJoin(false);
+      handleGetListGroups();
+      console.log(response);
+
+      if (response.status !== 200) {
+        toast.error(response.data.message);
+      }
+    } catch (err: any) {
+      console.error('Lỗi khi tham gia nhóm:', err);
+      toast.error(err.response.data.message);
+    } finally {
+      setIsDialogOpenJoin(false);
+    }
+  };
 
   const handleGetListGroups = async () => {
     try {
@@ -84,73 +108,96 @@ const StudentGroup = () => {
     }
   };
 
-  if (isLoading) {
-    return <div className="text-center p-4">Đang tải danh sách nhóm học phần...</div>;
-  }
-
   if (error && !listGroups.length) {
     return <div className="text-center p-4 text-red-600">{error}</div>;
   }
 
   return (
     <div className="space-y-6 p-4">
-      <h1 className="text-2xl font-bold">Danh sách nhóm học phần</h1>
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {listGroups.map((group) => (
-          <Card
-            key={group.study_group_id}
-            className="hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => {
-              setSelectedGroup(group.study_group_id);
-              setIsDialogOpen(true);
-              handleGetGroupDetail(group.study_group_id);
-            }}
-          >
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{group.subject_name}</CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <BookOpen className="h-4 w-4" />
-                    <span>{group.subject_name}</span>
-                  </div>
-                </div>
-                <Badge className={getStatusColor(group.semester_is_current)}>{getStatusLabel(group.semester_is_current)}</Badge>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Danh sách nhóm học phần</h1>
+        <Dialog open={isDialogOpenJoin} onOpenChange={setIsDialogOpenJoin}>
+          <DialogTrigger>
+            <Button>
+              <Plus className="h-4 w-4" />
+              Tham gia nhóm
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Tham gia nhóm</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              <div className="flex flex-col gap-2">
+                <Input type="text" placeholder="Nhập mã nhóm" value={code} onChange={(e) => setCode(e.target.value)} />
+                <Button onClick={handleJoinGroup}>Tham gia</Button>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={group.teacher_avatar || '/placeholder.svg'} />
-                  <AvatarFallback>{group.teacher_full_name?.charAt(0) || 'N/A'}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{group.teacher_full_name}</p>
-                  <p className="text-xs text-gray-600">{group.semester_name}</p>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600">{group.study_group_description}</p>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-gray-400" />
-                  <span>
-                    {group.student_count}/{group.study_group_max_students}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+            </DialogDescription>
+          </DialogContent>
+        </Dialog>
       </div>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {listGroups.map((group) => (
+              <Card
+                key={group.study_group_id}
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => {
+                  setSelectedGroup(group.study_group_id);
+                  setIsDialogOpen(true);
+                  handleGetGroupDetail(group.study_group_id);
+                }}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-lg">{group.subject_name}</CardTitle>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <BookOpen className="h-4 w-4" />
+                        <span>{group.subject_name}</span>
+                      </div>
+                    </div>
+                    <Badge className={getStatusColor(group.semester_is_current)}>{getStatusLabel(group.semester_is_current)}</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={group.teacher_avatar || '/placeholder.svg'} />
+                      <AvatarFallback>{group.teacher_full_name?.charAt(0) || 'N/A'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium">{group.teacher_full_name}</p>
+                      <p className="text-xs text-gray-600">{group.semester_name}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">{group.study_group_description}</p>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-gray-400" />
+                      <span>
+                        {group.student_count}/{group.study_group_max_students}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="min-w-3xl">
           <DialogHeader>
             <DialogTitle>Chi tiết nhóm học phần</DialogTitle>
             <div>{studyGroupDetail?.name}</div>
           </DialogHeader>
           {isLoadingDetail ? (
-            <div className="text-center p-4">Đang tải chi tiết nhóm học phần...</div>
+            <Loading />
           ) : error && !studyGroupDetail ? (
             <div className="text-center p-4 text-red-600">{error}</div>
           ) : studyGroupDetail ? (
@@ -200,6 +247,10 @@ const StudentGroup = () => {
                         <div>
                           <span className="text-sm text-gray-600">Ngày kết thúc: </span>
                           <span className="font-medium">{studyGroupDetail.semester?.end_date ? new Date(studyGroupDetail.semester.end_date).toLocaleDateString('vi-VN') : 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="text-sm text-gray-600">Mã tham gia: </span>
+                          <span className="font-medium">{studyGroupDetail.invite_code || ''}</span>
                         </div>
                       </div>
                     </div>

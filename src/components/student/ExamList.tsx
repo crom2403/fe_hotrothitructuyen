@@ -1,103 +1,122 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Play, Clock, Users, BookOpen } from 'lucide-react';
+import { Search, Play, Clock, Users, BookOpen, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { apiGetListExams } from '@/services/student/exam';
+import Loading from '@/components/common/Loading';
 
 interface Exam {
   id: string;
-  title: string;
-  subject: string;
+  name: string;
   description: string;
-  duration: number;
-  totalQuestions: number;
-  attempts: number;
-  maxAttempts: number;
-  status: 'available' | 'completed' | 'locked' | 'in-progress';
-  dueDate: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  test_type: string;
+  subject_id: string;
+  subject_name: string;
+  question_count: number;
+  is_taked: boolean;
+  opening_status: string; // Thay opening_status bằng handle_exam_status
 }
 
-const mockExams: Exam[] = [
-  {
-    id: '1',
-    title: 'Kiểm tra HTML & CSS',
-    subject: 'Lập trình Web',
-    description: 'Kiểm tra kiến thức cơ bản về HTML và CSS',
-    duration: 60,
-    totalQuestions: 20,
-    attempts: 0,
-    maxAttempts: 2,
-    status: 'available',
-    dueDate: '2025-01-15',
-    difficulty: 'easy',
-  },
-  {
-    id: '2',
-    title: 'Bài thi JavaScript',
-    subject: 'Lập trình Web',
-    description: 'Kiểm tra kiến thức về JavaScript và DOM',
-    duration: 90,
-    totalQuestions: 30,
-    attempts: 1,
-    maxAttempts: 2,
-    status: 'available',
-    dueDate: '2025-01-20',
-    difficulty: 'medium',
-  },
-  {
-    id: '3',
-    title: 'Thi cuối kỳ SQL',
-    subject: 'Cơ sở dữ liệu',
-    description: 'Thi cuối kỳ về SQL và thiết kế cơ sở dữ liệu',
-    duration: 120,
-    totalQuestions: 40,
-    attempts: 2,
-    maxAttempts: 2,
-    status: 'completed',
-    dueDate: '2025-01-10',
-    difficulty: 'hard',
-  },
-  {
-    id: '4',
-    title: 'Kiểm tra Logic',
-    subject: 'Toán rời rạc',
-    description: 'Kiểm tra về logic mệnh đề và logic vị từ',
-    duration: 45,
-    totalQuestions: 15,
-    attempts: 0,
-    maxAttempts: 1,
-    status: 'locked',
-    dueDate: '2025-01-25',
-    difficulty: 'medium',
-  },
-];
+interface Subject {
+  id: string;
+  name: string;
+}
+
+interface PaginationMetadata {
+  total: number;
+  page: number;
+  size: number;
+  total_pages: number;
+}
 
 const ExamList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [subjectFilter, setSubjectFilter] = useState<string>('all');
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [metadata, setMetadata] = useState<PaginationMetadata>({ total: 0, page: 1, size: 10, total_pages: 1 });
 
-  const filteredExams = mockExams.filter((exam) => {
-    const matchesSearch = exam.title.toLowerCase().includes(searchTerm.toLowerCase()) || exam.subject.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || exam.status === statusFilter;
-    const matchesSubject = subjectFilter === 'all' || exam.subject === subjectFilter;
+  const handleGetSubjects = async () => {
+    // try {
+    //   const response: any = await apiGetSubjects();
+    //   const subjectsData = response.data?.data || [];
+    //   setSubjects(subjectsData);
+    // } catch (err) {
+    //   console.error('Lỗi khi lấy danh sách môn học:', err);
+    //   toast.error('Không thể tải danh sách môn học.');
+    // }
+  };
 
-    return matchesSearch && matchesStatus && matchesSubject;
-  });
+  const handleGetListExams = async (currentPage: number = 1) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const params: any = {
+        page: currentPage,
+        size: 10,
+      };
+
+      if (searchTerm) {
+        params['q'] = searchTerm;
+      }
+
+      if (subjectFilter !== 'all') {
+        params['subject_id'] = subjectFilter;
+      }
+
+      if (statusFilter !== 'all') {
+        params['handle_exam_status'] = statusFilter; // Đồng bộ với backend
+      }
+
+      const response: any = await apiGetListExams(params);
+      const { data, metadata } = response.data;
+
+      if (data?.length > 0) {
+        setExams(data);
+        setMetadata(metadata);
+      } else {
+        setExams([]);
+        setMetadata({ total: 0, page: currentPage, size: 10, total_pages: 1 });
+        setError('Không tìm thấy bài thi nào.');
+      }
+    } catch (err: any) {
+      console.error('Lỗi khi lấy danh sách kỳ thi:', err);
+      setError(err.response?.data?.message || 'Đã xảy ra lỗi khi tải danh sách kỳ thi.');
+      setExams([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleGetSubjects();
+    handleGetListExams();
+  }, [searchTerm, subjectFilter, statusFilter]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    handleGetListExams(newPage);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'available':
+      case 'opening':
         return 'bg-green-100 text-green-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
-      case 'locked':
+      case 'closed':
+        return 'bg-orange-100 text-orange-800';
+      case 'pending':
         return 'bg-gray-100 text-gray-800';
-      case 'in-progress':
-        return 'bg-yellow-100 text-yellow-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -105,46 +124,46 @@ const ExamList = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'available':
-        return 'Có thể làm';
-      case 'completed':
-        return 'Đã hoàn thành';
-      case 'locked':
+      case 'opening':
+        return 'Đang mở';
+      case 'closed':
+        return 'Đã đóng';
+      case 'pending':
         return 'Chưa mở';
-      case 'in-progress':
-        return 'Đang làm';
       default:
         return 'Không xác định';
     }
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
+  const getTestTypeColor = (test_type: string) => {
+    switch (test_type) {
+      case 'exercise':
         return 'bg-green-100 text-green-800';
-      case 'medium':
+      case 'midterm':
         return 'bg-yellow-100 text-yellow-800';
-      case 'hard':
-        return 'bg-red-100 text-red-800';
+      case 'final':
+        return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getDifficultyLabel = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
-        return 'Dễ';
-      case 'medium':
-        return 'Trung bình';
-      case 'hard':
-        return 'Khó';
+  const getTestTypeLabel = (test_type: string) => {
+    switch (test_type) {
+      case 'exercise':
+        return 'Bài tập';
+      case 'midterm':
+        return 'Kiểm tra giữa kỳ';
+      case 'final':
+        return 'Bài thi cuối kỳ';
       default:
         return 'Không xác định';
     }
   };
 
-  const subjects = [...new Set(mockExams.map((exam) => exam.subject))];
+  if (error && !exams.length) {
+    return <div className="text-center p-4 text-red-600">{error}</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -166,9 +185,9 @@ const ExamList = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="available">Có thể làm</SelectItem>
-                <SelectItem value="completed">Đã hoàn thành</SelectItem>
-                <SelectItem value="locked">Chưa mở</SelectItem>
+                <SelectItem value="opening">Đang mở</SelectItem>
+                <SelectItem value="pending">Chưa mở</SelectItem>
+                <SelectItem value="closed">Đã đóng</SelectItem>
               </SelectContent>
             </Select>
 
@@ -179,8 +198,8 @@ const ExamList = () => {
               <SelectContent>
                 <SelectItem value="all">Tất cả môn học</SelectItem>
                 {subjects.map((subject) => (
-                  <SelectItem key={subject} value={subject}>
-                    {subject}
+                  <SelectItem key={subject.id} value={subject.id}>
+                    {subject.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -189,61 +208,68 @@ const ExamList = () => {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredExams.map((exam) => (
-          <Card key={exam.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{exam.title}</CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <BookOpen className="h-4 w-4" />
-                    <span>{exam.subject}</span>
+      {isLoading ? (
+        <Loading />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {exams.map((exam) => (
+              <Card key={exam.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <CardTitle className="text-lg">{exam.name}</CardTitle>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <BookOpen className="h-4 w-4" />
+                        <span>{exam.subject_name}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Badge className={getStatusColor(exam.opening_status)}>{getStatusLabel(exam.opening_status)}</Badge>
+                      <Badge className={getTestTypeColor(exam.test_type)}>{getTestTypeLabel(exam.test_type)}</Badge>
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Badge className={getStatusColor(exam.status)}>{getStatusLabel(exam.status)}</Badge>
-                  <Badge className={getDifficultyColor(exam.difficulty)}>{getDifficultyLabel(exam.difficulty)}</Badge>
-                </div>
-              </div>
-            </CardHeader>
+                </CardHeader>
 
-            <CardContent className="space-y-4">
-              <p className="text-sm text-gray-600">{exam.description}</p>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-gray-600">{exam.description}</p>
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-gray-400" />
-                  <span>{exam.duration} phút</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-gray-400" />
-                  <span>{exam.totalQuestions} câu</span>
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-gray-400" />
+                      <span>{exam.duration_minutes} phút</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-gray-400" />
+                      <span>{exam.question_count} câu</span>
+                    </div>
+                  </div>
 
-              <div className="text-sm">
-                <span className="text-gray-600">Lần thử: </span>
-                <span className="font-medium">
-                  {exam.attempts}/{exam.maxAttempts}
-                </span>
-              </div>
+                  <div className="text-sm">
+                    <span className="text-gray-600">Thời gian bắt đầu: </span>
+                    <span className="font-medium">
+                      {new Date(exam.start_time).toLocaleDateString('vi-VN')} {new Date(exam.start_time).toLocaleTimeString('vi-VN').slice(0, 5)}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-gray-600">Thời gian kết thúc: </span>
+                    <span className="font-medium">
+                      {new Date(exam.end_time).toLocaleDateString('vi-VN')} {new Date(exam.end_time).toLocaleTimeString('vi-VN').slice(0, 5)}
+                    </span>
+                  </div>
 
-              <div className="text-sm">
-                <span className="text-gray-600">Hạn nộp: </span>
-                <span className="font-medium">{new Date(exam.dueDate).toLocaleDateString('vi-VN')}</span>
-              </div>
+                  <Button className="w-full" disabled={exam.is_taked || exam.opening_status !== 'opening'} variant={exam.is_taked ? 'secondary' : 'default'}>
+                    {exam.is_taked ? 'Đã làm' : 'Bắt đầu thi'}
+                    <Play className="h-4 w-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
 
-              <Button className="w-full" disabled={exam.status === 'locked' || exam.status === 'completed'} variant={exam.status === 'available' ? 'default' : 'secondary'}>
-                <Play className="h-4 w-4 mr-2" />
-                {exam.status === 'available' ? 'Bắt đầu thi' : exam.status === 'completed' ? 'Đã hoàn thành' : exam.status === 'locked' ? 'Chưa mở' : 'Tiếp tục'}
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredExams.length === 0 && (
+      {exams.length === 0 && !isLoading && (
         <Card>
           <CardContent className="text-center py-12">
             <Search className="h-12 w-12 mx-auto mb-4 text-gray-400" />
@@ -251,6 +277,20 @@ const ExamList = () => {
             <p className="text-gray-600">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
           </CardContent>
         </Card>
+      )}
+
+      {exams.length > 0 && metadata.total_pages > 1 && (
+        <div className="flex justify-center gap-2 mt-6">
+          <Button disabled={page === 1} onClick={() => handlePageChange(page - 1)} variant="outline">
+            Trang trước
+          </Button>
+          <span className="self-center">
+            Trang {page} / {metadata.total_pages}
+          </span>
+          <Button disabled={page === metadata.total_pages} onClick={() => handlePageChange(page + 1)} variant="outline">
+            Trang sau
+          </Button>
+        </div>
       )}
     </div>
   );
