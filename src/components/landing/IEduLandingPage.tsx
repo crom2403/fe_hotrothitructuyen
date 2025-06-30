@@ -41,7 +41,10 @@ import {
   Monitor,
   Lock,
   Zap,
+  LogIn,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import path from '@/utils/path';
 
 // GSAP imports (would be actual imports in production)
 declare const gsap: any;
@@ -315,6 +318,7 @@ const questionTypes = [
 
 export const Page = () => {
   const { containerRef, heroRef, featuresRef, statsRef, techStackRef } = useEducationalAnimations();
+  const navigate = useNavigate();
 
   return (
     <div ref={containerRef} className="min-h-screen bg-white">
@@ -332,13 +336,13 @@ export const Page = () => {
               </div>
             </div>
             <div className="flex items-center gap-4 hero-logo fade-up">
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900 edu-button">
+              {/* <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900 edu-button">
                 <Github className="h-4 w-4 mr-2" />
                 GitHub
-              </Button>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 edu-button">
-                <Play className="h-4 w-4 mr-2" />
-                Demo
+              </Button> */}
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 edu-button" onClick={() => navigate(path.LOGIN)}>
+                <LogIn className="h-4 w-4 mr-2" />
+                Đăng nhập
               </Button>
             </div>
           </div>

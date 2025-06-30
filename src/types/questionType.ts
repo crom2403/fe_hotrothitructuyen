@@ -49,28 +49,6 @@ export interface QuestionItem {
   answers: Answer[];
 }
 
-export interface QuestionListResponse {
-  data: QuestionItem[];
-  metadata: {
-    total: number;
-    size: number;
-    page: number;
-    last_page: number;
-  };
-}
-
-
-export type QuestionFormData = {
-  content: string;
-  type_id: string;
-  subject_id: string;
-  difficulty_level_id: string;
-  options: string[];
-  correctAnswers: number[];
-  explanation?: string;
-  is_public?: boolean;
-};
-
 export interface QuestionType {
   id: string;
   code: string;
@@ -98,3 +76,33 @@ export interface QuestionType {
 export interface QuestionTypeResponse {
   data: QuestionType[];
 }
+
+export interface QuestionListResponse {
+  data: QuestionItem[];
+  metadata: {
+    total: number;
+    size: number;
+    page: number;
+    last_page: number;
+  };
+}
+
+export type OrderingItem = {
+  id: string;
+  content: string;
+  order: number;
+};
+
+export type QuestionFormData = {
+  content: string;
+  type_id: string;
+  subject_id: string;
+  difficulty_level_id: string;
+  options: string[];
+  correctAnswers: number[];
+  explanation?: string;
+  is_public?: boolean;
+  leftColumn?: string[];
+  rightColumn?: string[];
+  orderingItems?: OrderingItem[];
+};
