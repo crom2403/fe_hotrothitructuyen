@@ -11,24 +11,26 @@ import { Loader2, Plus } from "lucide-react";
 import type { QuestionFormData, QuestionItem, QuestionTypeResponse } from "@/types/questionType";
 import { useForm } from "react-hook-form";
 import type { DifficultyLevel } from "@/types/difficultyLevelType";
-import type { AssignedSubjectByTeacher, SubjectResponse } from "@/types/subjectType";
+import type { AssignedSubjectByTeacher } from "@/types/subjectType";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { Switch } from "../ui/switch";
 import { useEffect, useState } from "react";
 import { useApiCall } from "@/hooks/useApiCall";
-import { apiGetAssignedSubjectByTeacher, apiGetSubjects } from "@/services/admin/subject";
+import { apiGetAssignedSubjectByTeacher } from "@/services/admin/subject";
 import { apiCreateQuestion, apiGetDifficultyLevels, apiGetQuestionTypes } from "@/services/teacher/question";
 import QuillEditor from "../common/QuillEditor";
-import { SingleChoiceForm } from "./SingleChoiceForm";
-import MultipleChoiceForm from "./MultipleChoiceForm";
+import { SingleChoiceForm } from "./QuestionType/SingleChoiceForm";
+import MultipleChoiceForm from "./QuestionType/MultipleChoiceForm";
 import InfoPopup from "../common/InfoPopup";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import useAuthStore from "@/stores/authStore";
+import { MatchingForm } from "./QuestionType/MatchingForm";
+import { OrderingForm } from "./QuestionType/OrderingForm";
 
 const questionSchema = z.object({
   content: z.string().min(1, "Nội dung câu hỏi không được để trống"),
@@ -39,6 +41,13 @@ const questionSchema = z.object({
   correctAnswers: z.array(z.number()).min(1, "Phải có ít nhất 1 đáp án đúng"),
   explanation: z.string().optional(),
   is_public: z.boolean().default(false),
+  leftColumn: z.array(z.string()).optional(),
+  rightColumn: z.array(z.string()).optional(),
+  orderingItems: z.array(z.object({
+    id: z.string(),
+    content: z.string(),
+    order: z.number(),
+  })).optional(),
 });
 
 interface QuestionFormDialogProps {
@@ -76,6 +85,12 @@ const QuestionFormDialog = ({
       correctAnswers: [],
       explanation: "",
       is_public: false,
+      leftColumn: [""],
+      rightColumn: [""],
+      orderingItems: [
+        { id: crypto.randomUUID(), content: "", order: 0 },
+        { id: crypto.randomUUID(), content: "", order: 1 },
+      ],
     },
   });
 
@@ -122,6 +137,12 @@ const QuestionFormDialog = ({
         correctAnswers: [],
         explanation: "",
         is_public: false,
+        leftColumn: [""],
+        rightColumn: [""],
+        orderingItems: [
+          { id: crypto.randomUUID(), content: "", order: 0 },
+          { id: crypto.randomUUID(), content: "", order: 1 },
+        ],
       });
     }
   }, [editingQuestion, form]);
@@ -339,6 +360,14 @@ const QuestionFormDialog = ({
                 updateOption={updateOption}
                 toggleCorrectAnswer={toggleCorrectAnswer}
               />
+            )}
+
+            {questionType === "matching" && (
+              <MatchingForm form={form} />
+            )}
+
+            {questionType === "ordering" && (
+              <OrderingForm form={form} />
             )}
 
             <div className="space-y-2">

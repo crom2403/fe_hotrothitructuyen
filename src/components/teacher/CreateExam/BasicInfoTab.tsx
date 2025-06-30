@@ -372,6 +372,7 @@ const BasicInfoTab = () => {
             <Input
               id="duration"
               type="number"
+              disabled={true}
               value={tab1Data.duration_minutes}
               onChange={(e) => setTab1Duration(Number(e.target.value))}
             />
@@ -448,7 +449,7 @@ const BasicInfoTab = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem value="choose">Chọn loại đề</SelectItem>
-                    <SelectItem value="exercise">Bài tập</SelectItem>
+                    <SelectItem value="exercise">Bài kiểm tra</SelectItem>
                     <SelectItem value="midterm">Đề thi giữa kỳ</SelectItem>
                     <SelectItem value="final">Đề thi cuối kỳ</SelectItem>
                   </SelectGroup>
