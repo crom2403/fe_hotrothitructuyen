@@ -1,10 +1,10 @@
-import type { QuestionFormData } from "@/features/teacher/QuestionBank";
+import type { QuestionFormData } from "@/types/questionType";
 import type { UseFormReturn } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { Button } from "../ui/button";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
-import { Checkbox } from "../ui/checkbox";
-import { Input } from "../ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 interface MultipleChoiceFormProps {
   form: UseFormReturn<QuestionFormData>;

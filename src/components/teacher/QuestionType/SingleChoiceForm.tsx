@@ -22,14 +22,13 @@ export function SingleChoiceForm({
   updateOption,
   toggleCorrectAnswer,
 }: SingleChoiceFormProps) {
-  // Theo dõi correctAnswers để đồng bộ radio button
+
   const correctAnswers = useWatch({
     control: form.control,
     name: "correctAnswers",
     defaultValue: [],
   });
 
-  // Theo dõi options để giới hạn số lượng
   const options = useWatch({
     control: form.control,
     name: "options",

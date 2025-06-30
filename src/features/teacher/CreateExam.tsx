@@ -49,8 +49,42 @@ const CreateExam = () => {
     loadSelectedQuestions();
   }, [tab2Data.list_questions]);
 
+  const validateTime = (start: string, end: string): boolean => {
+    if (!start || !end) {
+      toast.error("Vui lòng nhập cả thời gian bắt đầu và kết thúc!");
+      return false;
+    }
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      toast.error("Thời gian không hợp lệ!");
+      return false;
+    }
+
+    const startDateOnly = startDate.toISOString().split("T")[0];
+    const endDateOnly = endDate.toISOString().split("T")[0];
+
+    if (startDateOnly !== endDateOnly) {
+      toast.error("Ngày bắt đầu và kết thúc phải cùng ngày!");
+      return false;
+    }
+
+    if (endDate <= startDate) {
+      toast.error("Giờ kết thúc phải sau giờ bắt đầu!");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSaveExam = async() => {
     setIsLoading(true);
+    if (!validateTime(tab1Data.start_time, tab1Data.end_time)) {
+      setIsLoading(false);
+      return;
+    }
     try{
       const examData = {
         name: tab1Data.name,
