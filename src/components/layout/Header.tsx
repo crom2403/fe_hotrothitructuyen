@@ -1,40 +1,33 @@
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LogOut } from "lucide-react";
-import { SidebarTrigger } from "../ui/sidebar";
-import { useNavigate } from "react-router-dom";
-import path from "@/utils/path";
-import useAuthStore from "@/stores/authStore";
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { User, LogOut } from 'lucide-react';
+import { SidebarTrigger } from '../ui/sidebar';
+import { useNavigate } from 'react-router-dom';
+import path from '@/utils/path';
+import useAuthStore from '@/stores/authStore';
 
 const Header = () => {
-  const { currentUser, logout } = useAuthStore()
-  const navigate = useNavigate()
+  const { currentUser, logout } = useAuthStore();
+  const navigate = useNavigate();
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((n) => n[0])
-      .join("")
+      .join('')
       .toUpperCase();
   };
 
   const handleLogout = () => {
-    logout()
-    navigate(path.LOGIN)
-  }
+    logout();
+    navigate(path.LOGIN);
+  };
 
   return (
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="flex h-16 items-center justify-between px-6">
         <div className="flex items-center space-x-4">
-          <SidebarTrigger />
+          <SidebarTrigger className="size-8 -ml-4" />
         </div>
 
         <div className="flex items-center space-x-4">
@@ -42,13 +35,10 @@ const Header = () => {
 
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <Button
-                variant="ghost"
-                className="relative h-8 w-8 rounded-full"
-              >
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={currentUser?.avatar || "/placeholder.svg"} alt={currentUser?.full_name || "AAA"} />
-                  <AvatarFallback>{getInitials(currentUser?.full_name.charAt(0) || "AAA")}</AvatarFallback>
+                  <AvatarImage src={currentUser?.avatar || '/placeholder.svg'} alt={currentUser?.full_name || 'AAA'} />
+                  <AvatarFallback>{getInitials(currentUser?.full_name.charAt(0) || 'AAA')}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
