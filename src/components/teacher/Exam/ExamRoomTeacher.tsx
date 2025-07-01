@@ -11,8 +11,10 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Search, Users, UserCheck, UserX, Clock, CheckCircle, AlertTriangle, Eye, Filter, BarChart3, RefreshCw, Maximize2, Monitor, BookOpen, GraduationCap, Laptop } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
+// import { MatrixStudent } from '@/components/teacher/Exam/MatrixStudent';
+import { FlipReveal, FlipRevealItem } from '@/components/ui/flip-reveal';
 
-interface Student {
+export interface Student {
   studentId: string;
   name: string;
   avatar: string;
@@ -116,8 +118,8 @@ export default function ExamRoomTeacher({ examId, studyGroupId }: { examId: stri
     switch (status) {
       case 'online':
         return (
-          <Badge className={`${baseClasses} bg-emerald-100 text-emerald-700 border border-emerald-200`}>
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+          <Badge className={`${baseClasses} bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] px-2 py-0`}>
+            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
             Đang thi
           </Badge>
         );
@@ -184,9 +186,8 @@ export default function ExamRoomTeacher({ examId, studyGroupId }: { examId: stri
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Classroom Header - Resembling a real classroom */}
       <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white">
-        <div className="container mx-auto px-2 py-2 ">
+        <div className="container mx-auto px-2 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -258,170 +259,95 @@ export default function ExamRoomTeacher({ examId, studyGroupId }: { examId: stri
             Làm mới
           </Button>
         </div>
-        {/* Classroom Statistics Dashboard */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-          <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-            <CardContent className="p-6 text-center">
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-6 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-xs font-bold text-blue-600">{stats.total}</span>
-                </div>
+
+        <div className="flex gap-2 py-4">
+          <div className="flex-1/4 border border-gray-200 rounded-md p-4 bg-white">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">Tổng số sinh viên</p>
+                <p className="text-sm text-gray-500">{stats.total}</p>
               </div>
-              <div className="text-2xl font-bold text-gray-800 mb-1">{stats.total}</div>
-              <div className="text-sm text-gray-600">Tổng sinh viên</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-            <CardContent className="p-6 text-center">
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Laptop className="w-8 h-8 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-6 w-3 h-3 bg-emerald-400 rounded-full animate-pulse" />
-              </div>
-              <div className="text-2xl font-bold text-emerald-700 mb-1">{stats.online}</div>
-              <div className="text-sm text-gray-600">Đang thi</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-            <CardContent className="p-6 text-center">
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-8 h-8 text-white" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-blue-700 mb-1">{stats.submitted}</div>
-              <div className="text-sm text-gray-600">Đã nộp bài</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-            <CardContent className="p-6 text-center">
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-8 h-8 text-white" />
-                </div>
-                <div className="absolute -top-1 -right-6 w-3 h-3 bg-amber-400 rounded-full animate-bounce" />
-              </div>
-              <div className="text-2xl font-bold text-amber-700 mb-1">{stats.late}</div>
-              <div className="text-sm text-gray-600">Trễ</div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0 hover:shadow-2xl transition-all duration-300">
-            <CardContent className="p-6 text-center">
-              <div className="relative">
-                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <UserX className="w-8 h-8 text-white" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-red-700 mb-1">{stats.offline}</div>
-              <div className="text-sm text-gray-600">Ngắt kết nối</div>
-            </CardContent>
-          </Card>
-        </div> */}
-
-        {/* Classroom Control Panel */}
-
-        {/* Virtual Classroom - Student Seating */}
-
-        <div className="p-4">
-          {filteredStudents.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Monitor className="w-12 h-12 text-gray-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">Phòng thi trống</h3>
-              <p className="text-gray-500">{searchTerm || statusFilter !== 'all' ? 'Không tìm thấy sinh viên phù hợp với bộ lọc' : 'Chưa có sinh viên tham gia kỳ thi'}</p>
             </div>
-          ) : (
-            <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-6' : 'space-y-4'}>
-              {filteredStudents.map((student) => (
-                <div
-                  key={student.studentId}
-                  className={
-                    viewMode === 'grid'
-                      ? 'relative group'
-                      : 'flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 border border-gray-200'
-                  }
-                >
-                  <Popover>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <PopoverTrigger asChild>
-                          {viewMode === 'grid' ? (
-                            <div className="relative cursor-pointer transform transition-all duration-300 hover:scale-105">
-                              <div className="max-w-20 min-w-20 h-24 bg-gradient-to-b from-amber-100 to-amber-200 rounded-lg border-2 border-amber-300 shadow-lg relative overflow-hidden">
-                                <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-b from-amber-50 to-amber-100 rounded-t-lg" />
-
-                                <div className="absolute top-2 left-1/2 transform -translate-x-1/2">
-                                  <Avatar className="w-12 h-12 ring-2 ring-white shadow-lg">
-                                    <AvatarImage src={student.avatar} alt={student.name} className="object-cover" />
-                                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white font-semibold">{student.name.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-
-                                  <div
-                                    className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white shadow-sm ${
-                                      student.status === 'online'
-                                        ? 'bg-emerald-500 animate-pulse'
-                                        : student.status === 'submitted'
-                                        ? 'bg-blue-500'
-                                        : student.status === 'late'
-                                        ? 'bg-amber-500'
-                                        : 'bg-red-500'
-                                    }`}
-                                  />
-
-                                  {/* Suspicious Activity Alert */}
-                                  {student.suspicious_activity && student.suspicious_activity > 0 && (
-                                    <div className="absolute -top-2 -left-2">
-                                      <AlertTriangle
-                                        className={`w-4 h-4 ${
-                                          getSuspiciousActivityLevel(student.suspicious_activity) === 'high'
-                                            ? 'text-red-500 animate-bounce'
-                                            : getSuspiciousActivityLevel(student.suspicious_activity) === 'medium'
-                                            ? 'text-amber-500 animate-pulse'
-                                            : 'text-orange-500'
-                                        }`}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
-                                  <div className="w-6 h-4 bg-gray-800 rounded-sm">
-                                    <div className="w-full h-2 bg-gray-700 rounded-t-sm" />
-                
-                                    <div className={`w-full h-2 rounded-b-sm ${student.status === 'online' ? 'bg-green-400' : student.status === 'submitted' ? 'bg-blue-400' : 'bg-gray-400'}`} />
-                                  </div>
-                                </div> */}
-                                <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
-                                  <div className="w-6 h-4 bg-gray-800 rounded-sm">
-                                    <div className="w-full h-2 bg-gray-700 rounded-t-sm" />
-                                    <Badge>{student.status}</Badge>
-                                    <div className={`w-full h-2 rounded-b-sm ${student.status === 'online' ? 'bg-green-400' : student.status === 'submitted' ? 'bg-blue-400' : 'bg-gray-400'}`} />
-                                  </div>
-                                </div>
+          </div>
+          <div className="flex-3/4">
+            {filteredStudents.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Monitor className="w-12 h-12 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">Phòng thi trống</h3>
+                <p className="text-gray-500">{searchTerm || statusFilter !== 'all' ? 'Không tìm thấy sinh viên phù hợp với bộ lọc' : 'Chưa có sinh viên tham gia kỳ thi'}</p>
+              </div>
+            ) : viewMode === 'grid' ? (
+              <div className="flex min-h-120 flex-col items-center gap-8 ">
+                <FlipReveal className="grid grid-cols-6 gap-3 sm:gap-4" keys={[statusFilter]} showClass="flex" hideClass="hidden">
+                  {filteredStudents.map((student) => (
+                    <FlipRevealItem flipKey={student.studentId}>
+                      <div className="flex items-center justify-center w-[100px] h-[100px] border rounded-md shadow bg-white">
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="flex flex-col items-center justify-center">
+                              <div className="flex items-center justify-center">
+                                <Avatar className="shadow-lg size-12">
+                                  <AvatarImage src={student.avatar} alt={student.name} className="object-cover" />
+                                  <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white font-semibold">{student?.name?.charAt(0) || ''}</AvatarFallback>
+                                </Avatar>
                               </div>
-
-                              <div className="mt-2 text-center">
-                                <p className="text-xs font-medium text-gray-700 max-w-20 truncate">{student.name}</p>
-                              </div>
-
-                              {/* Progress Bar */}
-                              {student.exam_progress !== undefined && (
-                                <div className="mt-1 w-full">
-                                  <Progress value={student.exam_progress} className="h-1" />
-                                </div>
-                              )}
+                              <p className="text-xs">{student.name}</p>
+                              <div className="flex items-center justify-between">{renderStatusBadge(student.status)}</div>
                             </div>
-                          ) : (
-                            // List View
+                          </TooltipTrigger>
+                          <TooltipContent className="w-full h-full bg-white text-gray-800 border border-gray-200 shadow-xl">
+                            <p>
+                              <span className="font-semibold">ID:</span>
+                              {student.studentId}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Họ và tên:</span>
+                              {student.name}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Trạng thái:</span>
+                              {student.status}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Số tab mở:</span>
+                              {student.tab_count}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Tiến độ bài thi:</span>
+                              {student.exam_progress}%
+                            </p>
+                            <p>
+                              <span className="font-semibold">Hoạt động đáng nghi:</span>
+                              {student.suspicious_activity}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Lần cuối online:</span>
+                              {student.last_seen}
+                            </p>
+                            <p>
+                              <span className="font-semibold">Cảnh báo:</span>
+                              {student.warnings?.join(', ')}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                    </FlipRevealItem>
+                  ))}
+                </FlipReveal>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-[560px] overflow-y-auto">
+                {filteredStudents.map((student) => (
+                  <div
+                    key={student.studentId}
+                    className="flex items-center gap-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 border border-gray-200"
+                  >
+                    <Popover>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <PopoverTrigger asChild>
                             <div className="flex items-center gap-4 cursor-pointer flex-1">
                               <div className="relative">
                                 <Avatar className="w-12 h-12 ring-2 ring-blue-200">
@@ -455,90 +381,90 @@ export default function ExamRoomTeacher({ examId, studyGroupId }: { examId: stri
                                 )}
                               </div>
                             </div>
-                          )}
-                        </PopoverTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-white text-gray-800 border border-gray-200 shadow-xl">
-                        <p className="font-semibold">{student.name}</p>
-                        <p className="text-sm text-gray-500">{student.studentId}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                          </PopoverTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-white text-gray-800 border border-gray-200 shadow-xl">
+                          <p className="font-semibold">{student.name}</p>
+                          <p className="text-sm text-gray-500">{student.studentId}</p>
+                        </TooltipContent>
+                      </Tooltip>
 
-                    <PopoverContent className="w-80 p-0 bg-white shadow-2xl rounded-xl border border-gray-100" side="top" align="center">
-                      <div className="p-6">
-                        <div className="flex items-center gap-4 mb-6">
-                          <Avatar className="w-16 h-16 ring-4 ring-blue-100">
-                            <AvatarImage src={student.avatar} alt={student.name} />
-                            <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg">{student.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h3 className="text-xl font-bold text-gray-800">{student.name}</h3>
-                            <p className="text-gray-600">{student.studentId}</p>
-                          </div>
-                        </div>
-
-                        <Separator className="my-4" />
-
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-gray-700">Trạng thái:</span>
-                            {renderStatusBadge(student.status)}
-                          </div>
-
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-gray-700">Số tab mở:</span>
-                            <Badge variant={student.tab_count > 1 ? 'destructive' : 'secondary'} className="font-semibold">
-                              {student.tab_count} tab{student.tab_count > 1 ? 's' : ''}
-                            </Badge>
-                          </div>
-
-                          {student.exam_progress !== undefined && (
+                      <PopoverContent className="w-80 p-0 bg-white shadow-2xl rounded-xl border border-gray-100" side="top" align="center">
+                        <div className="p-6">
+                          <div className="flex items-center gap-4 mb-6">
+                            <Avatar className="w-16 h-16 ring-4 ring-blue-100">
+                              <AvatarImage src={student.avatar} alt={student.name} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg">{student?.name?.charAt(0) || ''}</AvatarFallback>
+                            </Avatar>
                             <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="font-medium text-gray-700">Tiến độ bài thi:</span>
-                                <span className="text-gray-600 font-semibold">{student.exam_progress}%</span>
-                              </div>
-                              <Progress value={student.exam_progress} className="h-3" />
+                              <h3 className="text-xl font-bold text-gray-800">{student.name}</h3>
+                              <p className="text-gray-600">{student.studentId}</p>
                             </div>
-                          )}
+                          </div>
 
-                          {student.suspicious_activity !== undefined && student.suspicious_activity > 0 && (
+                          <Separator className="my-4" />
+
+                          <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                              <span className="font-medium text-gray-700">Hoạt động đáng nghi:</span>
-                              <Badge variant="destructive" className="gap-1 font-semibold">
-                                <AlertTriangle className="w-3 h-3" />
-                                {student.suspicious_activity}
+                              <span className="font-medium text-gray-700">Trạng thái:</span>
+                              {renderStatusBadge(student.status)}
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-gray-700">Số tab mở:</span>
+                              <Badge variant={student.tab_count > 1 ? 'destructive' : 'secondary'} className="font-semibold">
+                                {student.tab_count} tab{student.tab_count > 1 ? 's' : ''}
                               </Badge>
                             </div>
-                          )}
 
-                          {student.last_seen && (
-                            <div className="flex items-center justify-between">
-                              <span className="font-medium text-gray-700">Lần cuối online:</span>
-                              <span className="text-gray-600">{student.last_seen}</span>
-                            </div>
-                          )}
-
-                          {student.warnings && student.warnings.length > 0 && (
-                            <div>
-                              <span className="font-medium text-gray-700 block mb-2">Cảnh báo:</span>
-                              <div className="space-y-2">
-                                {student.warnings.map((warning, index) => (
-                                  <div key={index} className="text-sm text-red-700 bg-red-50 p-3 rounded-lg border border-red-200">
-                                    {warning}
-                                  </div>
-                                ))}
+                            {student.exam_progress !== undefined && (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-gray-700">Tiến độ bài thi:</span>
+                                  <span className="text-gray-600 font-semibold">{student.exam_progress}%</span>
+                                </div>
+                                <Progress value={student.exam_progress} className="h-3" />
                               </div>
-                            </div>
-                          )}
+                            )}
+
+                            {student.suspicious_activity !== undefined && student.suspicious_activity > 0 && (
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-gray-700">Hoạt động đáng nghi:</span>
+                                <Badge variant="destructive" className="gap-1 font-semibold">
+                                  <AlertTriangle className="w-3 h-3" />
+                                  {student.suspicious_activity}
+                                </Badge>
+                              </div>
+                            )}
+
+                            {student.last_seen && (
+                              <div className="flex items-center justify-between">
+                                <span className="font-medium text-gray-700">Lần cuối online:</span>
+                                <span className="text-gray-600">{student.last_seen}</span>
+                              </div>
+                            )}
+
+                            {student.warnings && student.warnings.length > 0 && (
+                              <div>
+                                <span className="font-medium text-gray-700 block mb-2">Cảnh báo:</span>
+                                <div className="space-y-2">
+                                  {student.warnings.map((warning, index) => (
+                                    <div key={index} className="text-sm text-red-700 bg-red-50 p-3 rounded-lg border border-red-200">
+                                      {warning}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              ))}
-            </div>
-          )}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

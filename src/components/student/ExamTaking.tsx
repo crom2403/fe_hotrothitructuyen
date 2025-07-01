@@ -1,5 +1,4 @@
 import type React from 'react';
-
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,89 +7,50 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import Xarrow from 'react-xarrows';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Clock, ChevronLeft, ChevronRight, Flag, Send, AlertTriangle, Move, GripVertical, Play, Pause, Volume2 } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, Flag, Send, AlertTriangle, GripVertical, Play, Pause, Volume2 } from 'lucide-react';
 
-interface QuestionConfig {
-  drag_drop_zones?: Array<{
-    id: string;
-    name: string;
-    accepts: string[];
-  }>;
-  drag_items?: Array<{
-    id: string;
-    content: string;
-    zone: string;
-  }>;
-  matching_pairs?: Array<{
-    id: string;
-    left: string;
-    right: string;
-    correct_match: string;
-  }>;
-  ordering_items?: Array<{
-    id: string;
-    content: string;
-    correct_order: number;
-  }>;
-  fill_blanks?: Array<{
-    id: string;
-    position: number;
-    correct_answers: string[];
-    case_sensitive: boolean;
-  }>;
-  video_config?: {
-    url: string;
-    popup_times: Array<{
-      time: number;
-      question: string;
-      options: string[];
-      correct: number;
-    }>;
+// Định nghĩa cấu trúc dữ liệu từ API
+interface Answer {
+  id: string;
+  content: {
+    text: string;
+    value?: string;
+    left?: string;
+    right?: string;
   };
+  order_index: number;
 }
 
 interface Question {
   id: string;
-  type: 'multiple_choice' | 'multiple_select' | 'essay' | 'fill_blank' | 'drag_drop' | 'matching' | 'ordering' | 'video_popup';
-  question: string;
-  options?: string[];
-  correctAnswer?: string | string[] | number;
-  points: number;
-  config?: QuestionConfig;
-  difficulty: 'easy' | 'medium' | 'hard';
+  content: string;
+  answers: Answer[];
+  question_type: {
+    code: 'single_choice' | 'multiple_select' | 'drag_drop' | 'matching' | 'ordering' | 'video_popup';
+  };
 }
 
 interface ExamData {
   id: string;
-  title: string;
-  subject: string;
-  duration: number;
-  totalQuestions: number;
-  questions: Question[];
+  name: string;
+  subject: {
+    name: string;
+  };
+  duration_minutes: number;
+  exam_questions: Array<{
+    id: string;
+    question: Question;
+  }>;
   settings: {
     shuffleQuestions: boolean;
     shuffleAnswers: boolean;
-    questionsPerPage: number;
-    showQuestionNav: boolean;
     allowReview: boolean;
     maxTabSwitch: number;
   };
@@ -115,6 +75,7 @@ function SortableItem({ id, content, index }: { id: string; content: string; ind
   );
 }
 
+// Wire Connection Component for Matching
 interface WireConnectionProps {
   leftItems: Array<{ id: string; content: string }>;
   rightItems: Array<{ id: string; content: string }>;
@@ -122,48 +83,39 @@ interface WireConnectionProps {
   onConnect: (leftId: string, rightId: string) => void;
 }
 
-export function WireConnection({ leftItems, rightItems, connections, onConnect }: WireConnectionProps) {
+function WireConnection({ leftItems, rightItems, connections, onConnect }: WireConnectionProps) {
   const [selectedLeft, setSelectedLeft] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const rightRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
-  // Xử lý khi nhấp vào mục ở cột A
   const handleLeftClick = (leftId: string, e: React.MouseEvent) => {
     e.preventDefault();
     setSelectedLeft(selectedLeft === leftId ? null : leftId);
   };
 
-  // Xử lý khi nhấp vào mục ở cột B
   const handleRightClick = (rightId: string, e: React.MouseEvent) => {
     e.preventDefault();
     if (selectedLeft) {
-      // Xóa kết nối hiện tại của leftId nếu có
       const newConnections = { ...connections };
       delete newConnections[selectedLeft];
-
-      // Xóa kết nối hiện tại của rightId nếu có
       Object.keys(newConnections).forEach((key) => {
         if (newConnections[key] === rightId) {
           delete newConnections[key];
         }
       });
-
-      // Thêm kết nối mới
       newConnections[selectedLeft] = rightId;
       onConnect(selectedLeft, rightId);
       setSelectedLeft(null);
     }
   };
 
-  // Xóa tất cả kết nối
   const clearAllConnections = (e: React.MouseEvent) => {
     e.preventDefault();
     onConnect('', '');
     setSelectedLeft(null);
   };
 
-  // Chặn sự kiện chọn văn bản
   useEffect(() => {
     const container = containerRef.current;
     if (container) {
@@ -172,7 +124,6 @@ export function WireConnection({ leftItems, rightItems, connections, onConnect }
     }
   }, []);
 
-  // Cập nhật refs khi component render
   useEffect(() => {
     leftRefs.current = new Map();
     rightRefs.current = new Map();
@@ -180,7 +131,6 @@ export function WireConnection({ leftItems, rightItems, connections, onConnect }
 
   return (
     <div ref={containerRef} className="relative flex justify-between py-4 px-8">
-      {/* Cột A - Bên trái */}
       <div className="w-1/3 space-y-3">
         <h5 className="text-sm font-semibold text-gray-700 mb-2">Cột A</h5>
         {leftItems.map((item) => {
@@ -196,24 +146,23 @@ export function WireConnection({ leftItems, rightItems, connections, onConnect }
               }}
               onClick={(e) => handleLeftClick(item.id, e)}
               className={`
-                  p-3 border rounded-lg cursor-pointer transition-all duration-200
-                  flex items-center justify-between
-                  ${isSelected ? 'bg-blue-100 border-blue-500 shadow-md' : isConnected ? 'bg-green-100 border-green-400' : 'bg-white border-gray-300 hover:bg-blue-50'}
-                `}
+                p-3 border rounded-lg cursor-pointer transition-all duration-200
+                flex items-center justify-between
+                ${isSelected ? 'bg-blue-100 border-blue-500 shadow-md' : isConnected ? 'bg-green-100 border-green-400' : 'bg-white border-gray-300 hover:bg-blue-50'}
+              `}
             >
               <span className="flex-1 text-sm font-medium">{item.content}</span>
               <div
                 className={`
-                    w-4 h-4 rounded-full border-2 border-white shadow
-                    ${isSelected ? 'bg-blue-600 animate-pulse' : isConnected ? 'bg-green-500' : 'bg-gray-400'}
-                  `}
+                  w-4 h-4 rounded-full border-2 border-white shadow
+                  ${isSelected ? 'bg-blue-600 animate-pulse' : isConnected ? 'bg-green-500' : 'bg-gray-400'}
+                `}
               />
             </div>
           );
         })}
       </div>
 
-      {/* Cột B - Bên phải */}
       <div className="w-1/3 space-y-3">
         <h5 className="text-sm font-semibold text-gray-700 mb-2">Cột B</h5>
         {rightItems.map((item) => {
@@ -229,16 +178,16 @@ export function WireConnection({ leftItems, rightItems, connections, onConnect }
               }}
               onClick={(e) => handleRightClick(item.id, e)}
               className={`
-                  p-3 border rounded-lg cursor-pointer transition-all duration-200
-                  flex items-center justify-between
-                  ${isConnected ? 'bg-green-100 border-green-400' : canConnect ? 'bg-yellow-50 border-yellow-300 hover:bg-yellow-100' : 'bg-white border-gray-300 hover:bg-gray-50'}
-                `}
+                p-3 border rounded-lg cursor-pointer transition-all duration-200
+                flex items-center justify-between
+                ${isConnected ? 'bg-green-100 border-green-400' : canConnect ? 'bg-yellow-50 border-yellow-300 hover:bg-yellow-100' : 'bg-white border-gray-300 hover:bg-gray-50'}
+              `}
             >
               <div
                 className={`
-                    w-4 h-4 rounded-full border-2 border-white shadow
-                    ${isConnected ? 'bg-green-500' : canConnect ? 'bg-yellow-500' : 'bg-gray-400'}
-                  `}
+                  w-4 h-4 rounded-full border-2 border-white shadow
+                  ${isConnected ? 'bg-green-500' : canConnect ? 'bg-yellow-500' : 'bg-gray-400'}
+                `}
               />
               <span className="flex-1 text-sm font-medium">{item.content}</span>
             </div>
@@ -246,7 +195,6 @@ export function WireConnection({ leftItems, rightItems, connections, onConnect }
         })}
       </div>
 
-      {/* Các đường dây kết nối bằng react-xarrows */}
       {Object.entries(connections).map(([leftId, rightId]) => (
         <Xarrow
           key={`${leftId}-${rightId}`}
@@ -264,7 +212,6 @@ export function WireConnection({ leftItems, rightItems, connections, onConnect }
         />
       ))}
 
-      {/* Nút xóa tất cả kết nối */}
       <div className="absolute -top-2 right-10">
         {Object.keys(connections).length > 0 && (
           <button onClick={clearAllConnections} className="px-3 py-1 bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition-colors text-sm">
@@ -276,7 +223,7 @@ export function WireConnection({ leftItems, rightItems, connections, onConnect }
   );
 }
 
-// Custom Video Player with Timeline Questions - Updated
+// Video Player Component
 function VideoPlayerWithQuestions({
   videoUrl,
   popupTimes,
@@ -288,7 +235,6 @@ function VideoPlayerWithQuestions({
     time: number;
     question: string;
     options: string[];
-    correct: number;
   }>;
   onAnswerSubmit: (timeIndex: number, answer: string) => void;
   answers: Record<number, string>;
@@ -307,8 +253,6 @@ function VideoPlayerWithQuestions({
 
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime);
-
-      // Check if we should show a question
       popupTimes.forEach((popup, index) => {
         if (Math.abs(video.currentTime - popup.time) < 0.5 && !answers[index] && showQuestion !== index) {
           video.pause();
@@ -348,7 +292,6 @@ function VideoPlayerWithQuestions({
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
-
     if (isPlaying) {
       video.pause();
     } else {
@@ -374,7 +317,6 @@ function VideoPlayerWithQuestions({
     if (showQuestion !== null) {
       onAnswerSubmit(showQuestion, answer);
       setShowQuestion(null);
-      // Resume video
       const video = videoRef.current;
       if (video) {
         video.play();
@@ -394,19 +336,17 @@ function VideoPlayerWithQuestions({
 
   return (
     <div className="space-y-4">
-      {/* Video Element */}
       <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
         <video
           ref={videoRef}
           className="w-full aspect-video"
-          src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+          src={videoUrl}
           poster="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg"
           onVolumeChange={(e) => setVolume((e.target as HTMLVideoElement).volume)}
         >
           Your browser does not support the video tag.
         </video>
 
-        {/* Loading Overlay */}
         {isLoading && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <div className="text-white text-center">
@@ -416,18 +356,14 @@ function VideoPlayerWithQuestions({
           </div>
         )}
 
-        {/* Video Controls Overlay */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4">
-          {/* Progress Bar with Question Markers */}
           <div className="relative mb-4">
             <div className="w-full h-3 bg-gray-600 rounded-full overflow-hidden cursor-pointer hover:h-4 transition-all duration-200" onClick={handleProgressClick}>
               <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-100 relative" style={{ width: `${getProgressPercentage()}%` }}>
-                {/* Current time indicator */}
                 <div className="absolute right-0 top-1/2 transform translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg border-2 border-blue-500"></div>
               </div>
             </div>
 
-            {/* Question Markers on Timeline */}
             {popupTimes.map((popup, index) => {
               const position = duration > 0 ? (popup.time / duration) * 100 : 0;
               const isAnswered = answers[index];
@@ -435,30 +371,21 @@ function VideoPlayerWithQuestions({
 
               return (
                 <div key={index} className="absolute top-0 transform -translate-x-1/2 -translate-y-1 cursor-pointer group" style={{ left: `${position}%` }} onClick={() => handleSeek(popup.time)}>
-                  {/* Question Marker - Removed flickering animations */}
                   <div
                     className={`
                       w-5 h-5 rounded-full border-3 border-white shadow-lg transition-all duration-300 group-hover:scale-125
                       ${isAnswered ? 'bg-green-500' : isNearQuestion ? 'bg-red-500 ring-2 ring-red-300' : 'bg-yellow-500'}
                     `}
                   >
-                    {/* Inner dot */}
                     <div className="absolute inset-1 bg-white rounded-full opacity-60"></div>
-
-                    {/* Question number */}
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center text-xs font-bold text-gray-800 shadow-md">{index + 1}</div>
                   </div>
-
-                  {/* Tooltip - Improved positioning */}
                   <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
                     <div className="font-medium">Câu hỏi {index + 1}</div>
                     <div className="text-xs text-gray-300">{formatTime(popup.time)}</div>
                     <div className="text-xs">{isAnswered ? '✅ Đã trả lời' : '⏳ Chưa trả lời'}</div>
-                    {/* Arrow */}
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                   </div>
-
-                  {/* Time label - Improved */}
                   <div className="absolute top-6 left-1/2 transform -translate-x-1/2 text-white text-xs font-medium bg-gray-800 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     {formatTime(popup.time)}
                   </div>
@@ -467,13 +394,11 @@ function VideoPlayerWithQuestions({
             })}
           </div>
 
-          {/* Control Buttons */}
           <div className="flex items-center justify-between text-white">
             <div className="flex items-center gap-4">
               <Button variant="ghost" size="sm" onClick={togglePlay} className="text-white hover:bg-white/20 p-2" disabled={isLoading}>
                 {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
               </Button>
-
               <div className="flex items-center gap-2">
                 <Volume2 className="h-5 w-5" />
                 <input
@@ -494,13 +419,10 @@ function VideoPlayerWithQuestions({
                 <span className="text-xs w-8">{Math.round(volume * 100)}%</span>
               </div>
             </div>
-
             <div className="flex items-center gap-4">
               <div className="text-sm font-mono">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </div>
-
-              {/* Question Progress */}
               <div className="text-sm bg-black/50 px-3 py-1 rounded-full">
                 <span className="text-green-400">{Object.keys(answers).length}</span>
                 <span className="text-gray-400">/{popupTimes.length}</span>
@@ -511,7 +433,6 @@ function VideoPlayerWithQuestions({
         </div>
       </div>
 
-      {/* Question Popup Dialog */}
       <Dialog open={showQuestion !== null} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -521,13 +442,11 @@ function VideoPlayerWithQuestions({
             </DialogTitle>
             <DialogDescription>Trả lời câu hỏi để tiếp tục xem video</DialogDescription>
           </DialogHeader>
-
           {showQuestion !== null && (
             <div className="space-y-4">
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="font-medium text-blue-900">{popupTimes[showQuestion].question}</p>
               </div>
-
               <RadioGroup onValueChange={handleQuestionAnswer}>
                 {popupTimes[showQuestion].options.map((option, index) => (
                   <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors">
@@ -543,7 +462,6 @@ function VideoPlayerWithQuestions({
         </DialogContent>
       </Dialog>
 
-      {/* Question Summary */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h4 className="font-medium text-lg">Câu hỏi trong video</h4>
@@ -551,7 +469,6 @@ function VideoPlayerWithQuestions({
             {Object.keys(answers).length}/{popupTimes.length} hoàn thành
           </Badge>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {popupTimes.map((popup, index) => (
             <div
@@ -585,183 +502,17 @@ function VideoPlayerWithQuestions({
   );
 }
 
-const mockExam: ExamData = {
-  id: '1',
-  title: 'Kiểm tra đa dạng loại câu hỏi',
-  subject: 'Lập trình Web',
-  duration: 90,
-  totalQuestions: 8,
-  settings: {
-    shuffleQuestions: false,
-    shuffleAnswers: false,
-    questionsPerPage: 1,
-    showQuestionNav: true,
-    allowReview: true,
-    maxTabSwitch: 3,
-  },
-  questions: [
-    {
-      id: 'q1',
-      type: 'multiple_choice',
-      question: 'HTML là viết tắt của gì?',
-      options: ['HyperText Markup Language', 'High Tech Modern Language', 'Home Tool Markup Language', 'Hyperlink and Text Markup Language'],
-      correctAnswer: 'HyperText Markup Language',
-      points: 1,
-      difficulty: 'easy',
-    },
-    {
-      id: 'q2',
-      type: 'multiple_select',
-      question: 'Những thẻ HTML nào sau đây là thẻ block-level?',
-      options: ['<div>', '<span>', '<p>', '<h1>', '<a>'],
-      correctAnswer: ['<div>', '<p>', '<h1>'],
-      points: 2,
-      difficulty: 'medium',
-    },
-    {
-      id: 'q3',
-      type: 'fill_blank',
-      question: 'Hoàn thành đoạn code CSS sau: .container { ___: flex; ___-direction: column; }',
-      points: 2,
-      difficulty: 'medium',
-      config: {
-        fill_blanks: [
-          { id: 'blank1', position: 1, correct_answers: ['display'], case_sensitive: false },
-          { id: 'blank2', position: 2, correct_answers: ['flex'], case_sensitive: false },
-        ],
-      },
-    },
-    {
-      id: 'q4',
-      type: 'drag_drop',
-      question: 'Kéo các thuộc tính CSS vào đúng nhóm của chúng:',
-      points: 3,
-      difficulty: 'medium',
-      config: {
-        drag_items: [
-          { id: 'item1', content: 'color', zone: '' },
-          { id: 'item2', content: 'margin', zone: '' },
-          { id: 'item3', content: 'font-size', zone: '' },
-          { id: 'item4', content: 'padding', zone: '' },
-          { id: 'item5', content: 'background', zone: '' },
-          { id: 'item6', content: 'border', zone: '' },
-        ],
-        drag_drop_zones: [
-          { id: 'zone1', name: 'Typography', accepts: ['item1', 'item3'] },
-          { id: 'zone2', name: 'Box Model', accepts: ['item2', 'item4', 'item6'] },
-          { id: 'zone3', name: 'Visual', accepts: ['item5'] },
-        ],
-      },
-    },
-    {
-      id: 'q5',
-      type: 'matching',
-      question: 'Nối các thuật ngữ HTML với định nghĩa tương ứng bằng cách vẽ đường:',
-      points: 3,
-      difficulty: 'medium',
-      config: {
-        matching_pairs: [
-          {
-            id: 'pair1',
-            left: 'DOCTYPE',
-            right: 'Khai báo loại tài liệu',
-            correct_match: 'DOCTYPE-Khai báo loại tài liệu',
-          },
-          {
-            id: 'pair2',
-            left: 'Semantic HTML',
-            right: 'HTML có ý nghĩa',
-            correct_match: 'Semantic HTML-HTML có ý nghĩa',
-          },
-          {
-            id: 'pair3',
-            left: 'Attribute',
-            right: 'Thuộc tính của thẻ',
-            correct_match: 'Attribute-Thuộc tính của thẻ',
-          },
-          {
-            id: 'pair4',
-            left: 'Element',
-            right: 'Phần tử HTML',
-            correct_match: 'Element-Phần tử HTML',
-          },
-        ],
-      },
-    },
-    {
-      id: 'q6',
-      type: 'ordering',
-      question: 'Kéo thả để sắp xếp các bước tạo một trang web theo thứ tự đúng:',
-      points: 2,
-      difficulty: 'easy',
-      config: {
-        ordering_items: [
-          { id: 'step1', content: 'Viết HTML structure', correct_order: 1 },
-          { id: 'step2', content: 'Thêm CSS styling', correct_order: 2 },
-          { id: 'step3', content: 'Thêm JavaScript functionality', correct_order: 3 },
-          { id: 'step4', content: 'Test và debug', correct_order: 4 },
-        ],
-      },
-    },
-    {
-      id: 'q7',
-      type: 'video_popup',
-      question: 'Xem video Big Buck Bunny và trả lời các câu hỏi xuất hiện trên timeline:',
-      points: 4,
-      difficulty: 'hard',
-      config: {
-        video_config: {
-          url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-          popup_times: [
-            {
-              time: 15,
-              question: 'Nhân vật chính trong video này là gì?',
-              options: ['Thỏ', 'Chó', 'Mèo', 'Chuột'],
-              correct: 0,
-            },
-            {
-              time: 45,
-              question: 'Màu sắc chủ đạo của nhân vật chính là gì?',
-              options: ['Trắng', 'Nâu', 'Xám', 'Đen'],
-              correct: 1,
-            },
-            {
-              time: 75,
-              question: 'Video này thuộc thể loại gì?',
-              options: ['Hoạt hình 3D', 'Phim tài liệu', 'Phim hành động', 'Phim kinh dị'],
-              correct: 0,
-            },
-            {
-              time: 120,
-              question: 'Chất lượng video này là bao nhiêu?',
-              options: ['720p', '1080p', '4K', '480p'],
-              correct: 1,
-            },
-          ],
-        },
-      },
-    },
-    {
-      id: 'q8',
-      type: 'essay',
-      question: 'Giải thích sự khác biệt giữa CSS Grid và Flexbox. Khi nào nên sử dụng từng loại? Cho ví dụ minh họa.',
-      points: 5,
-      difficulty: 'hard',
-    },
-  ],
-};
-
 export default function ExamTaking() {
+  const [exam, setExam] = useState<ExamData | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [timeLeft, setTimeLeft] = useState(mockExam.duration * 60);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [orderingItems, setOrderingItems] = useState<Array<{ id: string; content: string }>>([]);
 
-  // DnD Kit sensors
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -769,6 +520,147 @@ export default function ExamTaking() {
     }),
   );
 
+  // Fetch exam data
+  useEffect(() => {
+    // Giả lập API call
+    const fetchExam = async () => {
+      const response = {
+        id: '34a353d4-580c-40ad-bd8c-9802e2d31d83',
+        name: 'Test tạo đề',
+        subject: { name: 'Triết học Mác - Lênin' },
+        duration_minutes: 60,
+        exam_questions: [
+          {
+            id: '5eeee95a-dea7-4678-a87d-06d89df8162d',
+            question: {
+              id: 'fb97ccff-6095-4b62-811a-15df616acb79',
+              content: 'Xem video Big Buck Bunny và trả lời các câu hỏi xuất hiện trên timeline:',
+              answers: [
+                { id: '2c2d4e66-7670-482b-958e-d58ac9f6b210', content: { text: 'Thỏ', value: 'Thỏ' }, order_index: 1 },
+                { id: 'f1d93880-173f-4c86-a54f-ad278a6a7ad9', content: { text: 'Chó', value: 'Chó' }, order_index: 2 },
+                { id: 'b2456f19-177e-4056-b705-52ec7ee79f7a', content: { text: 'Mèo', value: 'Mèo' }, order_index: 3 },
+                { id: 'ce575f61-dafa-4430-9d07-3b2eecee7357', content: { text: 'Chuột', value: 'Chuột' }, order_index: 4 },
+                { id: '53c372b8-065b-4a26-bb1c-816cf8a5f1f3', content: { text: 'Trắng', value: 'Trắng' }, order_index: 5 },
+                { id: 'c2a829a8-506c-4808-8bac-527509710def', content: { text: 'Nâu', value: 'Nâu' }, order_index: 6 },
+                { id: '6d6336bf-46c9-4f67-a622-53cac0cb14dc', content: { text: 'Xám', value: 'Xám' }, order_index: 7 },
+                { id: '2bec8ef1-f98b-4bc6-8d1d-21db8f53d73a', content: { text: 'Đen', value: 'Đen' }, order_index: 8 },
+              ],
+              question_type: { code: 'video_popup' },
+            },
+          },
+          {
+            id: '44c42bb6-6c87-46b7-be2b-35d1c9f40507',
+            question: {
+              id: '342f54be-b18c-416f-a046-521b43326953',
+              content: 'Sắp xếp các bước tạo một trang web theo thứ tự đúng:',
+              answers: [
+                { id: '3bd0f676-5e52-4c7b-8091-855924f1fd47', content: { text: 'Viết HTML structure' }, order_index: 1 },
+                { id: '24f38b51-373c-4ee4-8f17-b03f68ab9907', content: { text: 'Thêm CSS styling' }, order_index: 2 },
+                { id: 'bdbe63d2-296a-455f-83fe-3e748cb81197', content: { text: 'Thêm JavaScript functionality' }, order_index: 3 },
+                { id: '2a191174-3ca9-4b08-9710-5a248255b81c', content: { text: 'Test và debug' }, order_index: 4 },
+              ],
+              question_type: { code: 'ordering' },
+            },
+          },
+          {
+            id: '44b74727-d7c2-461e-adbc-ab1c8ce0291a',
+            question: {
+              id: '4fcc361d-9157-4b01-8a7b-caeeab0c32fc',
+              content: 'Nối các thuật ngữ HTML với định nghĩa tương ứng:',
+              answers: [
+                { id: '6f1fad32-57d3-4163-af23-b3f047d8e221', content: { left: 'DOCTYPE', right: 'Khai báo loại tài liệu' }, order_index: 1 },
+                { id: '62c7c809-e1d7-41e5-bbc0-adde8b0f25fd', content: { left: 'Semantic HTML', right: 'HTML có ý nghĩa' }, order_index: 2 },
+              ],
+              question_type: { code: 'matching' },
+            },
+          },
+          {
+            id: '293b56ea-40f2-4a14-b16b-a6259b89d445',
+            question: {
+              id: 'e9047da2-dceb-4c3d-a8dc-5ca51013c957',
+              content: 'Kéo các thuộc tính CSS vào đúng nhóm của chúng:',
+              answers: [
+                { id: '6b4dee32-ca09-40df-bf2d-0d39ddcc6258', content: { text: 'color' }, order_index: 1 },
+                { id: '70fda4f0-f6d4-4c0e-acee-ae086d154e3b', content: { text: 'margin' }, order_index: 2 },
+                { id: '7e99bca8-015f-4aa0-a5ef-d152d82dbc49', content: { text: 'font-size' }, order_index: 3 },
+                { id: 'dcce8753-08e1-4028-bf0d-65b37498909b', content: { text: 'padding' }, order_index: 4 },
+                { id: '33947401-6482-458f-9dcf-c3469c6e3ad7', content: { text: 'background' }, order_index: 5 },
+              ],
+              question_type: { code: 'drag_drop' },
+            },
+          },
+          {
+            id: '14e8916f-64cc-4c15-b6b7-fd781281e265',
+            question: {
+              id: '540d11d1-d3b4-454f-8abf-c9f88bc110d3',
+              content: 'Những thẻ HTML nào sau đây là thẻ block-level?',
+              answers: [
+                { id: 'b57eb1dc-05f2-4190-9a9c-b35f65e8d84e', content: { text: '<div>', value: 'div' }, order_index: 1 },
+                { id: '2e560982-b8bc-48a9-acb9-cd9ec32984e1', content: { text: '<span>', value: 'span' }, order_index: 2 },
+                { id: '9ab56c08-1b51-4749-a1d6-d72699344b09', content: { text: '<p>', value: 'p' }, order_index: 3 },
+                { id: '12732856-acfb-4037-8a48-a92f00c1739f', content: { text: '<h1>', value: 'h1' }, order_index: 4 },
+                { id: 'b630fab2-0e72-40c1-a468-ac799f6757a1', content: { text: '<a>', value: 'a' }, order_index: 5 },
+              ],
+              question_type: { code: 'multiple_select' },
+            },
+          },
+          {
+            id: '06845386-e2aa-40ea-9bfb-5c34ed10a25a',
+            question: {
+              id: 'd1ddfdc1-0a57-47b7-b6f9-4836fcce7480',
+              content: 'HTML là viết tắt của gì?',
+              answers: [
+                { id: '61fdaf0d-04dc-46d1-81ef-327f7c2d0a93', content: { text: 'HyperText Markup Language', value: 'A' }, order_index: 1 },
+                { id: '85481d4c-7422-4324-a99e-56f8681fde98', content: { text: 'High Tech Modern Language', value: 'B' }, order_index: 2 },
+                { id: '5e08d96b-b2b6-43ca-9c0e-f2456bdb1bca', content: { text: 'Home Tool Markup Language', value: 'C' }, order_index: 3 },
+                { id: '1fe3f321-26aa-4335-b710-b192419084fc', content: { text: 'Hyperlink and Text Markup Language', value: 'D' }, order_index: 4 },
+              ],
+              question_type: { code: 'single_choice' },
+            },
+          },
+        ],
+        settings: {
+          shuffleQuestions: true,
+          shuffleAnswers: true,
+          allowReview: true,
+          maxTabSwitch: 3,
+        },
+      } as ExamData;
+      setExam(response);
+      setTimeLeft(response.duration_minutes * 60);
+    };
+    fetchExam();
+  }, []);
+
+  // Initialize ordering items
+  useEffect(() => {
+    if (!exam) return;
+    const currentQ = exam.exam_questions[currentQuestion]?.question;
+    if (currentQ?.question_type.code === 'ordering') {
+      const shuffled = exam.settings.shuffleAnswers ? [...currentQ.answers].sort(() => Math.random() - 0.5) : [...currentQ.answers];
+      setOrderingItems(shuffled.map((a) => ({ id: a.id, content: a.content.text })));
+    }
+  }, [currentQuestion, exam]);
+
+  // Tab switch detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && !isSubmitted && exam) {
+        setTabSwitchCount((prev) => {
+          const newCount = prev + 1;
+          if (newCount >= exam.settings.maxTabSwitch) {
+            alert('Bạn đã chuyển tab quá nhiều lần. Bài thi sẽ được nộp tự động.');
+            handleSubmit();
+          }
+          return newCount;
+        });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isSubmitted, exam]);
+
+  // Timer
   useEffect(() => {
     if (timeLeft > 0 && !isSubmitted) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
@@ -777,34 +669,6 @@ export default function ExamTaking() {
       handleSubmit();
     }
   }, [timeLeft, isSubmitted]);
-
-  // Initialize ordering items for ordering questions
-  useEffect(() => {
-    const currentQ = mockExam.questions[currentQuestion];
-    if (currentQ.type === 'ordering' && currentQ.config?.ordering_items) {
-      const shuffled = [...currentQ.config.ordering_items].sort(() => Math.random() - 0.5);
-      setOrderingItems(shuffled);
-    }
-  }, [currentQuestion]);
-
-  // Tab switch detection
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && !isSubmitted) {
-        setTabSwitchCount((prev) => {
-          const newCount = prev + 1;
-          if (newCount >= mockExam.settings.maxTabSwitch) {
-            alert('Bạn đã chuyển tab quá nhiều lần. Bài thi sẽ được nộp tự động.');
-            handleSubmit();
-          }
-          return newCount;
-        });
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isSubmitted]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -838,34 +702,9 @@ export default function ExamTaking() {
   };
 
   const getProgress = () => {
+    if (!exam) return 0;
     const answeredQuestions = Object.keys(answers).length;
-    return (answeredQuestions / mockExam.questions.length) * 100;
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
-        return 'bg-green-100 text-green-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'hard':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getDifficultyLabel = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy':
-        return 'Dễ';
-      case 'medium':
-        return 'Trung bình';
-      case 'hard':
-        return 'Khó';
-      default:
-        return 'Không xác định';
-    }
+    return (answeredQuestions / exam.exam_questions.length) * 100;
   };
 
   // Drag and Drop handlers
@@ -881,7 +720,8 @@ export default function ExamTaking() {
 
   const handleDrop = (e: React.DragEvent, zoneId: string) => {
     e.preventDefault();
-    if (draggedItem) {
+    if (draggedItem && exam) {
+      const currentQ = exam.exam_questions[currentQuestion].question;
       const currentAnswers = answers[currentQ.id] || {};
       handleAnswerChange(currentQ.id, {
         ...currentAnswers,
@@ -891,63 +731,51 @@ export default function ExamTaking() {
     }
   };
 
-  // Ordering drag end handler
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (active.id !== over?.id) {
       setOrderingItems((items) => {
         const oldIndex = items.findIndex((item) => item.id === active.id);
         const newIndex = items.findIndex((item) => item.id === over?.id);
-
         const newItems = arrayMove(items, oldIndex, newIndex);
-
-        // Save the new order to answers
         const orderMap = newItems.reduce((acc, item, index) => {
           acc[item.id] = index + 1;
           return acc;
         }, {} as Record<string, number>);
-
-        handleAnswerChange(currentQ.id, orderMap);
-
+        if (exam) {
+          handleAnswerChange(exam.exam_questions[currentQuestion].question.id, orderMap);
+        }
         return newItems;
       });
     }
   };
 
-  // Wire connection handler for matching
   const handleWireConnect = (leftId: string, rightId: string) => {
+    if (!exam) return;
+    const currentQ = exam.exam_questions[currentQuestion].question;
     if (leftId === '' && rightId === '') {
-      // Clear all connections
       handleAnswerChange(currentQ.id, {});
       return;
     }
-
     const currentConnections = answers[currentQ.id] || {};
     const newConnections = { ...currentConnections };
-
-    // Remove existing connection from this left item
     if (newConnections[leftId]) {
       delete newConnections[leftId];
     }
-
-    // Remove any existing connection to this right item
     Object.keys(newConnections).forEach((key) => {
       if (newConnections[key] === rightId) {
         delete newConnections[key];
       }
     });
-
-    // Add new connection
     if (leftId && rightId) {
       newConnections[leftId] = rightId;
     }
-
     handleAnswerChange(currentQ.id, newConnections);
   };
 
-  // Video question handler
   const handleVideoQuestionAnswer = (timeIndex: number, answer: string) => {
+    if (!exam) return;
+    const currentQ = exam.exam_questions[currentQuestion].question;
     const currentAnswers = answers[currentQ.id] || {};
     handleAnswerChange(currentQ.id, {
       ...currentAnswers,
@@ -955,40 +783,39 @@ export default function ExamTaking() {
     });
   };
 
-  const currentQ = mockExam.questions[currentQuestion];
-
-  if (isSubmitted) {
-    return (
-      <Card className="max-w-2xl mx-auto">
-        <CardContent className="text-center py-12">
-          <div className="mb-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Send className="h-8 w-8 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-green-600 mb-2">Bài thi đã được nộp!</h2>
-            <p className="text-gray-600">Cảm ơn bạn đã hoàn thành bài thi. Kết quả sẽ được công bố sớm.</p>
-          </div>
-          <div className="space-y-2 text-sm text-gray-600">
-            <p>Thời gian hoàn thành: {formatTime(mockExam.duration * 60 - timeLeft)}</p>
-            <p>
-              Số câu đã trả lời: {Object.keys(answers).length}/{mockExam.questions.length}
-            </p>
-            <p>Số lần chuyển tab: {tabSwitchCount}</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+  if (!exam) {
+    return <div>Loading...</div>;
   }
+
+  const currentQ = exam.exam_questions[currentQuestion]?.question;
+  if (!currentQ) {
+    return <div>Không tìm thấy câu hỏi</div>;
+  }
+
+  // Mock drag_drop zones (API không cung cấp, giả định)
+  const mockDragDropZones = [
+    { id: 'zone1', name: 'Typography', accepts: ['color', 'font-size'] },
+    { id: 'zone2', name: 'Box Model', accepts: ['margin', 'padding'] },
+    { id: 'zone3', name: 'Visual', accepts: ['background'] },
+  ];
+
+  // Mock video_popup config (API không cung cấp, lấy từ JSON mẫu)
+  const mockVideoPopupConfig = {
+    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    popup_times: [
+      { time: 15, question: 'Nhân vật chính trong video này là gì?', options: ['Thỏ', 'Chó', 'Mèo', 'Chuột'] },
+      { time: 45, question: 'Màu sắc chủ đạo của nhân vật chính là gì?', options: ['Trắng', 'Nâu', 'Xám', 'Đen'] },
+    ],
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{mockExam.title}</CardTitle>
-              <CardDescription>{mockExam.subject}</CardDescription>
+              <CardTitle>{exam.name}</CardTitle>
+              <CardDescription>{exam.subject.name}</CardDescription>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -1003,7 +830,7 @@ export default function ExamTaking() {
               )}
               {tabSwitchCount > 0 && (
                 <Badge variant="outline" className="text-orange-600">
-                  Chuyển tab: {tabSwitchCount}/{mockExam.settings.maxTabSwitch}
+                  Chuyển tab: {tabSwitchCount}/{exam.settings.maxTabSwitch}
                 </Badge>
               )}
             </div>
@@ -1014,7 +841,7 @@ export default function ExamTaking() {
             <div className="flex justify-between text-sm text-gray-600">
               <span>Tiến độ hoàn thành</span>
               <span>
-                {Object.keys(answers).length}/{mockExam.questions.length} câu
+                {Object.keys(answers).length}/{exam.exam_questions.length} câu
               </span>
             </div>
             <Progress value={getProgress()} className="h-2" />
@@ -1023,59 +850,51 @@ export default function ExamTaking() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Question Navigation */}
-        {mockExam.settings.showQuestionNav && (
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle className="text-lg">Danh sách câu hỏi</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-5 lg:grid-cols-3 gap-2">
-                {mockExam.questions.map((q, index) => (
-                  <Button
-                    key={q.id}
-                    variant={currentQuestion === index ? 'default' : answers[q.id] ? 'secondary' : 'outline'}
-                    size="sm"
-                    className={`relative ${flaggedQuestions.has(q.id) ? 'ring-2 ring-yellow-400' : ''}`}
-                    onClick={() => setCurrentQuestion(index)}
-                  >
-                    {index + 1}
-                    {flaggedQuestions.has(q.id) && <Flag className="h-3 w-3 absolute -top-1 -right-1 text-yellow-500" />}
-                  </Button>
-                ))}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle className="text-lg">Danh sách câu hỏi</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-5 lg:grid-cols-3 gap-2">
+              {exam.exam_questions.map((q, index) => (
+                <Button
+                  key={q.id}
+                  variant={currentQuestion === index ? 'default' : answers[q.question.id] ? 'secondary' : 'outline'}
+                  size="sm"
+                  className={`relative ${flaggedQuestions.has(q.question.id) ? 'ring-2 ring-yellow-400' : ''}`}
+                  onClick={() => setCurrentQuestion(index)}
+                >
+                  {index + 1}
+                  {flaggedQuestions.has(q.question.id) && <Flag className="h-3 w-3 absolute -top-1 -right-1 text-yellow-500" />}
+                </Button>
+              ))}
+            </div>
+            <div className="mt-4 space-y-2 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-primary rounded"></div>
+                <span>Câu hiện tại</span>
               </div>
-              <div className="mt-4 space-y-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-primary rounded"></div>
-                  <span>Câu hiện tại</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-secondary rounded"></div>
-                  <span>Đã trả lời</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 border border-gray-300 rounded"></div>
-                  <span>Chưa trả lời</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Flag className="h-3 w-3 text-yellow-500" />
-                  <span>Đã đánh dấu</span>
-                </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-secondary rounded"></div>
+                <span>Đã trả lời</span>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 border border-gray-300 rounded"></div>
+                <span>Chưa trả lời</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Flag className="h-3 w-3 text-yellow-500" />
+                <span>Đã đánh dấu</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Question Content */}
-        <Card className={mockExam.settings.showQuestionNav ? 'lg:col-span-3' : 'lg:col-span-4'}>
+        <Card className={'lg:col-span-4'}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Câu {currentQuestion + 1}</CardTitle>
-                <div className="flex items-center gap-2 mt-1">
-                  <CardDescription>{currentQ.points}</CardDescription>
-                  <Badge className={getDifficultyColor(currentQ.difficulty)}>{getDifficultyLabel(currentQ.difficulty)}</Badge>
-                </div>
               </div>
               <Button variant="outline" size="sm" onClick={() => toggleFlag(currentQ.id)} className={flaggedQuestions.has(currentQ.id) ? 'bg-yellow-50 border-yellow-300' : ''}>
                 <Flag className={`h-4 w-4 ${flaggedQuestions.has(currentQ.id) ? 'text-yellow-500' : ''}`} />
@@ -1083,16 +902,16 @@ export default function ExamTaking() {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="text-lg font-medium">{currentQ.question}</div>
+            <div className="text-lg font-medium">{currentQ.content}</div>
 
-            {/* Multiple Choice */}
-            {currentQ.type === 'multiple_choice' && currentQ.options && (
+            {/* Single Choice */}
+            {currentQ.question_type.code === 'single_choice' && (
               <RadioGroup value={answers[currentQ.id] || ''} onValueChange={(value) => handleAnswerChange(currentQ.id, value)}>
-                {currentQ.options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <RadioGroupItem value={option} id={`${currentQ.id}-${index}`} />
-                    <Label htmlFor={`${currentQ.id}-${index}`} className="cursor-pointer">
-                      {option}
+                {currentQ.answers.map((answer, index) => (
+                  <div key={answer.id} className="flex items-center space-x-2">
+                    <RadioGroupItem value={answer.content.value || answer.content.text} id={`${currentQ.id}-${answer.id}`} />
+                    <Label htmlFor={`${currentQ.id}-${answer.id}`} className="cursor-pointer">
+                      {answer.content.text}
                     </Label>
                   </div>
                 ))}
@@ -1100,91 +919,65 @@ export default function ExamTaking() {
             )}
 
             {/* Multiple Select */}
-            {currentQ.type === 'multiple_select' && currentQ.options && (
+            {currentQ.question_type.code === 'multiple_select' && (
               <div className="space-y-3">
-                {currentQ.options.map((option, index) => (
-                  <div key={index} className="flex items-center space-x-2">
+                {currentQ.answers.map((answer, index) => (
+                  <div key={answer.id} className="flex items-center space-x-2">
                     <Checkbox
-                      id={`${currentQ.id}-${index}`}
-                      checked={(answers[currentQ.id] || []).includes(option)}
+                      id={`${currentQ.id}-${answer.id}`}
+                      checked={(answers[currentQ.id] || []).includes(answer.content.value || answer.content.text)}
                       onCheckedChange={(checked) => {
                         const currentAnswers = answers[currentQ.id] || [];
                         if (checked) {
-                          handleAnswerChange(currentQ.id, [...currentAnswers, option]);
+                          handleAnswerChange(currentQ.id, [...currentAnswers, answer.content.value || answer.content.text]);
                         } else {
                           handleAnswerChange(
                             currentQ.id,
-                            currentAnswers.filter((a: string) => a !== option),
+                            currentAnswers.filter((a: string) => a !== (answer.content.value || answer.content.text)),
                           );
                         }
                       }}
                     />
-                    <Label htmlFor={`${currentQ.id}-${index}`} className="cursor-pointer">
-                      {option}
+                    <Label htmlFor={`${currentQ.id}-${answer.id}`} className="cursor-pointer">
+                      {answer.content.text}
                     </Label>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Fill in the Blanks */}
-            {currentQ.type === 'fill_blank' && currentQ.config?.fill_blanks && (
-              <div className="space-y-4">
-                {currentQ.config.fill_blanks.map((blank, index) => (
-                  <div key={blank.id} className="space-y-2">
-                    <Label>Chỗ trống {blank.position}:</Label>
-                    <Input
-                      placeholder={`Điền vào chỗ trống ${blank.position}`}
-                      value={answers[currentQ.id]?.[blank.id] || ''}
-                      onChange={(e) => {
-                        const currentAnswers = answers[currentQ.id] || {};
-                        handleAnswerChange(currentQ.id, {
-                          ...currentAnswers,
-                          [blank.id]: e.target.value,
-                        });
-                      }}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* Drag and Drop */}
-            {currentQ.type === 'drag_drop' && currentQ.config?.drag_items && currentQ.config?.drag_drop_zones && (
+            {currentQ.question_type.code === 'drag_drop' && (
               <div className="space-y-6">
                 <div className="space-y-4">
                   <h4 className="font-medium">Kéo các item vào zone phù hợp:</h4>
-
-                  {/* Drag Items */}
                   <div className="flex flex-wrap gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg">
-                    {currentQ.config.drag_items
-                      .filter((item) => !answers[currentQ.id]?.[item.id])
-                      .map((item) => (
+                    {currentQ.answers
+                      .filter((answer) => !answers[currentQ.id]?.[answer.id])
+                      .map((answer) => (
                         <div
-                          key={item.id}
+                          key={answer.id}
                           draggable
-                          onDragStart={(e) => handleDragStart(e, item.id)}
+                          onDragStart={(e) => handleDragStart(e, answer.id)}
                           className="px-3 py-2 bg-blue-100 border border-blue-300 rounded cursor-move hover:bg-blue-200 transition-colors"
                         >
-                          <Move className="h-4 w-4 inline mr-2" />
-                          {item.content}
+                          <GripVertical className="h-4 w-4 inline mr-2" />
+                          {answer.content.text}
                         </div>
                       ))}
                   </div>
-
-                  {/* Drop Zones */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {currentQ.config.drag_drop_zones.map((zone) => (
+                    {mockDragDropZones.map((zone) => (
                       <div key={zone.id} onDragOver={handleDragOver} onDrop={(e) => handleDrop(e, zone.id)} className="min-h-24 p-4 border-2 border-dashed border-gray-400 rounded-lg bg-gray-50">
                         <h5 className="font-medium mb-2">{zone.name}</h5>
                         <div className="space-y-2">
                           {Object.entries(answers[currentQ.id] || {})
                             .filter(([_, zoneId]) => zoneId === zone.id)
                             .map(([itemId, _]) => {
-                              const item = currentQ.config?.drag_items?.find((i) => i.id === itemId);
+                              const item = currentQ.answers.find((a) => a.id === itemId);
                               return item ? (
                                 <div key={itemId} className="px-2 py-1 bg-green-100 border border-green-300 rounded text-sm">
-                                  {item.content}
+                                  {item.content.text}
                                 </div>
                               ) : null;
                             })}
@@ -1196,20 +989,20 @@ export default function ExamTaking() {
               </div>
             )}
 
-            {/* Wire Matching */}
-            {currentQ.type === 'matching' && currentQ.config?.matching_pairs && (
+            {/* Matching */}
+            {currentQ.question_type.code === 'matching' && (
               <div className="space-y-4">
                 <WireConnection
-                  leftItems={currentQ.config.matching_pairs.map((pair) => ({ id: pair.id, content: pair.left }))}
-                  rightItems={currentQ.config.matching_pairs.map((pair) => ({ id: pair.id, content: pair.right }))}
+                  leftItems={currentQ.answers.map((answer) => ({ id: answer.id, content: answer.content.left || '' }))}
+                  rightItems={currentQ.answers.map((answer) => ({ id: answer.id, content: answer.content.right || '' }))}
                   connections={answers[currentQ.id] || {}}
                   onConnect={handleWireConnect}
                 />
               </div>
             )}
 
-            {/* Drag & Drop Ordering */}
-            {currentQ.type === 'ordering' && orderingItems.length > 0 && (
+            {/* Ordering */}
+            {currentQ.question_type.code === 'ordering' && orderingItems.length > 0 && (
               <div className="space-y-4">
                 <h4 className="font-medium">Kéo thả để sắp xếp theo thứ tự đúng:</h4>
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -1224,39 +1017,32 @@ export default function ExamTaking() {
               </div>
             )}
 
-            {/* Video with Timeline Questions */}
-            {currentQ.type === 'video_popup' && currentQ.config?.video_config && (
+            {/* Video Popup */}
+            {currentQ.question_type.code === 'video_popup' && (
               <div className="space-y-4">
                 <VideoPlayerWithQuestions
-                  videoUrl={currentQ.config.video_config.url}
-                  popupTimes={currentQ.config.video_config.popup_times}
+                  videoUrl={mockVideoPopupConfig.url}
+                  popupTimes={mockVideoPopupConfig.popup_times}
                   onAnswerSubmit={handleVideoQuestionAnswer}
                   answers={answers[currentQ.id] || {}}
                 />
               </div>
             )}
 
-            {/* Essay */}
-            {currentQ.type === 'essay' && (
-              <Textarea placeholder="Nhập câu trả lời của bạn..." value={answers[currentQ.id] || ''} onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)} className="min-h-32" />
-            )}
-
-            {/* Navigation */}
             <div className="flex items-center justify-between pt-6 border-t">
               <Button variant="outline" onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))} disabled={currentQuestion === 0}>
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Câu trước
               </Button>
-
               <div className="flex gap-2">
-                {currentQuestion === mockExam.questions.length - 1 ? (
+                {currentQuestion === exam.exam_questions.length - 1 ? (
                   <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button>
-                        <Send className="h-4 w-4 mr-2" />
-                        Nộp bài
-                      </Button>
-                    </AlertDialogTrigger>
+                    {/* <AlertDialogTrigger asChild> */}
+                    <Button>
+                      <Send className="h-4 w-4 mr-2" />
+                      Nộp bài
+                    </Button>
+                    {/* </AlertDialogTrigger> */}
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận nộp bài</AlertDialogTitle>
@@ -1264,7 +1050,7 @@ export default function ExamTaking() {
                           Bạn có chắc chắn muốn nộp bài? Sau khi nộp, bạn sẽ không thể thay đổi câu trả lời.
                           <br />
                           <br />
-                          Số câu đã trả lời: {Object.keys(answers).length}/{mockExam.questions.length}
+                          Số câu đã trả lời: {Object.keys(answers).length}/{exam.exam_questions.length}
                           <br />
                           Thời gian còn lại: {formatTime(timeLeft)}
                           <br />
@@ -1278,7 +1064,7 @@ export default function ExamTaking() {
                     </AlertDialogContent>
                   </AlertDialog>
                 ) : (
-                  <Button onClick={() => setCurrentQuestion(Math.min(mockExam.questions.length - 1, currentQuestion + 1))}>
+                  <Button onClick={() => setCurrentQuestion(Math.min(exam.exam_questions.length - 1, currentQuestion + 1))}>
                     Câu tiếp
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>

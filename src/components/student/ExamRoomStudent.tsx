@@ -13,6 +13,7 @@ interface StudentInfo {
   name: string;
   avatar: string;
 }
+import { listAvatar } from '@/components/profile/ChooseAvatarDialog';
 
 export default function ExamRoomStudent({ examId = '123', studyGroupId = 'abc' }: { examId: string; studyGroupId: string }) {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -20,7 +21,7 @@ export default function ExamRoomStudent({ examId = '123', studyGroupId = 'abc' }
   const [studentInfo, setStudentInfo] = useState<StudentInfo>({
     studentId: '',
     name: '',
-    avatar: 'https://cdn-icons-png.flaticon.com/128/4113/4113028.png',
+    avatar: listAvatar[Math.floor(Math.random() * listAvatar.length)].image,
   });
   const { currentUser } = useAuthStore();
 
@@ -78,9 +79,9 @@ export default function ExamRoomStudent({ examId = '123', studyGroupId = 'abc' }
     socket.emit('joinExam', {
       examId,
       studyGroupId,
-      studentId: studentInfo.studentId,
-      name: studentInfo.name,
-      avatar: studentInfo.avatar,
+      studentId: Math.floor(Math.random() * 1000000).toString(),
+      name: 'John Doe',
+      avatar: listAvatar[Math.floor(Math.random() * listAvatar.length)].image,
       tab_count: 1, // Giả lập số tab đang mở
       status: 'online',
     });
