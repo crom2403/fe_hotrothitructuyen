@@ -1,19 +1,13 @@
 export default function IEduLandingPage() {
-  return (
-    <>
-      <head>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-      </head>
-      <Page />
-    </>
-  );
+  return <Page />;
 }
 
 import { useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   Calendar,
   FileText,
@@ -45,10 +39,8 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import path from '@/utils/path';
-
-// GSAP imports (would be actual imports in production)
-declare const gsap: any;
-declare const ScrollTrigger: any;
+import { DrawLineText } from '@/components/ui/draw-line-text';
+import Logomini from '../../../public/images/svg/logo-mini-2.svg';
 
 const useEducationalAnimations = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -316,30 +308,74 @@ const questionTypes = [
   },
 ];
 
+const useHeaderAnimation = () => {
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (typeof gsap !== 'undefined') {
+      gsap.set(headerRef.current, { y: 0 });
+
+      let lastScrollTop = 0;
+      const handleScroll = () => {
+        const currentScrollTop = window.scrollY;
+
+        if (currentScrollTop <= 0) {
+          gsap.to(headerRef.current, {
+            y: 0,
+            opacity: 1,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+        } else if (currentScrollTop > lastScrollTop) {
+          gsap.to(headerRef.current, {
+            y: '-100%',
+            opacity: 0,
+            duration: 0.3,
+            ease: 'power2.in',
+          });
+        } else {
+          gsap.to(headerRef.current, {
+            y: 0,
+            opacity: 1,
+            duration: 0.3,
+            ease: 'power2.out',
+          });
+        }
+        lastScrollTop = currentScrollTop;
+      };
+
+      window.addEventListener('scroll', handleScroll);
+
+      return () => {
+        window.removeEventListener('scroll', handleScroll);
+      };
+    }
+  }, []);
+
+  return headerRef;
+};
+
 export const Page = () => {
   const { containerRef, heroRef, featuresRef, statsRef, techStackRef } = useEducationalAnimations();
+  const headerRef = useHeaderAnimation();
   const navigate = useNavigate();
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-white">
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-6 py-4">
+      <header ref={headerRef} className="bg-white border-b border-gray-200 fixed top-0 right-0 left-0 z-50 backdrop-blur-sm">
+        <div className="container mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 hero-logo fade-up">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <GraduationCap className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">iExam</h1>
-                <p className="text-xs text-gray-600">Hỗ trợ thi trực tuyến</p>
+            <div className="flex items-center hero-logo -ml-3">
+              <img src={Logomini} alt="Logo" className="w-5 h-10" />
+              <div className="flex flex-col -ml-0.5">
+                <div className="flex items-end mt-2">
+                  <DrawLineText text="Exam" fontSize={16} oneByOne={false} />
+                </div>
+                <p className="text-[10px] text-gray-600">Hỗ trợ thi trực tuyến</p>
               </div>
             </div>
-            <div className="flex items-center gap-4 hero-logo fade-up">
-              {/* <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900 edu-button">
-                <Github className="h-4 w-4 mr-2" />
-                GitHub
-              </Button> */}
+            <div className="flex items-center gap-4 hero-logo">
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700 edu-button" onClick={() => navigate(path.LOGIN)}>
                 <LogIn className="h-4 w-4 mr-2" />
                 Đăng nhập
@@ -353,16 +389,24 @@ export const Page = () => {
       <section ref={heroRef} className="py-20 px-6 bg-gradient-to-b from-blue-50 to-white">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
+            <div className="flex justify-center">
+              <h1 className="hero-title text-5xl md:text-6xl font-bold mb-6 text-gray-900 leading-tight ">
+                <DrawLineText text="iExam - Hệ thống thi" oneByOne={false} fontSize={52} className="size-[3.75rem] mr-2 inline-block" />
+                <br />
+                <div className="text-blue-600 inline-block">trực tuyến hiện đại</div>
+              </h1>
+              <br />
+            </div>
             <Badge className="hero-title fade-up mb-6 bg-blue-100 text-blue-800 border-blue-200">
-              <Award className="h-4 w-4 mr-2" />
+              <Award className="h-4 w-4 text-yellow-500" />
               Nền tảng thi trực tuyến chuyên nghiệp
             </Badge>
 
-            <h1 className="hero-title fade-up text-5xl md:text-6xl font-bold mb-6 text-gray-900 leading-tight">
+            {/* <h1 className="hero-title fade-up text-5xl md:text-6xl font-bold mb-6 text-gray-900 leading-tight">
               iExam - Hệ thống thi
               <br />
               <span className="text-blue-600">trực tuyến hiện đại</span>
-            </h1>
+            </h1> */}
 
             <p className="hero-subtitle fade-up text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
               Nền tảng quản lý và tổ chức thi trực tuyến với giao diện thân thiện, bảo mật cao và đa dạng loại câu hỏi tương tác. Phù hợp cho các trường học, trung tâm đào tạo và doanh nghiệp.

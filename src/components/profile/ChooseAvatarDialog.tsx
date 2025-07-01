@@ -5,7 +5,7 @@ import useAuthStore from '@/stores/authStore';
 import { DialogTitle } from '@radix-ui/react-dialog';
 import { useState } from 'react';
 
-const listAvatar = [
+export const listAvatar = [
   {
     id: 1,
     image: 'https://cdn-icons-png.flaticon.com/512/3426/3426666.png',
