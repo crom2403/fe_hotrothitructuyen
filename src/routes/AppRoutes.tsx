@@ -35,6 +35,8 @@ const ExamTaking = lazy(() => import('@/components/student/ExamTaking'));
 const GSAPLandingPage = lazy(() => import('@/components/landing/GSAPLandingPage'));
 const IEduLandingPage = lazy(() => import('@/components/landing/IEduLandingPage'));
 const LovableBackdrop = lazy(() => import('@/components/landing/LovableBackdrop'));
+const ExamRoomStudent = lazy(() => import('@/components/student/ExamRoomStudent'));
+const ExamRoomTeacher = lazy(() => import('@/components/teacher/Exam/ExamRoomTeacher'));
 
 const AppRoutes = () => {
   return (
@@ -52,6 +54,8 @@ const AppRoutes = () => {
         <Route path={path.ACCESS_DENIED} element={<AccessDeniedPage />} />
         <Route path={path.OTP_CONFIRMATION} element={<OTPConfirmation />} />
         <Route path={path.PUBLIC} element={<IEduLandingPage />} />
+        <Route path={'/exam-room-student'} element={<ExamRoomStudent examId="123" studyGroupId="abc" />} />
+        <Route path={'/exam-room-teacher'} element={<ExamRoomTeacher examId="123" studyGroupId="abc" />} />
         <Route
           path={path.STUDENT.EXAM_TAKING}
           element={
