@@ -12,13 +12,13 @@ const WebSocketTest = () => {
 
   // Kết nối tới server WebSocket khi component mount
   useEffect(() => {
-    // const socketInstance = io("https://successful-laura-tsondev-c5a7fe4d.koyeb.app/events", {
-    //   reconnection: true,
-    // });
-
-    const socketInstance = io('http://localhost:3000/events', {
-      reconnection: true,
+    const socketInstance = io('https://successful-laura-tsondev-c5a7fe4d.koyeb.app/events', {
+      reconnection: false,
     });
+
+    // const socketInstance = io('http://localhost:3000/events', {
+    //   reconnection: false,
+    // });
 
     setSocket(socketInstance);
 
