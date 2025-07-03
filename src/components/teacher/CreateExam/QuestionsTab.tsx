@@ -6,8 +6,7 @@ import type { QuestionItem } from "@/types/questionType";
 import QuestionList from "./QuestionList";
 import useExamStore from "@/stores/examStore";
 import AutoMode from "./AutoMode";
-import { getQuestionsByIds, setQuestionsToCache } from "@/utils/questionCache";
-import { apiGetQuestionById } from "@/services/teacher/question";
+import { setQuestionsToCache } from "@/utils/questionCache";
 
 interface QuestionTabProps {
   selectedSubjectId: string;
@@ -16,7 +15,7 @@ interface QuestionTabProps {
 const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
   const [examMode, setExamMode] = useState<"manual" | "auto" | "ai">("manual");
   const [selectedQuestions, setSelectedQuestions] = useState<QuestionItem[]>([]);
-  const { tab2Data, setListQuestions } = useExamStore();
+  const { tab2Data, setListQuestions, setListQuestionsFull, commonProps } = useExamStore();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -26,26 +25,9 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
   }, [tab2Data.exam_type, examMode]);
 
   useEffect(() => {
-    const loadSelectedQuestions = async () => {
-      setIsLoading(true);
-      try {
-        const questionIds = tab2Data.list_questions.map((q) => q.question_id);
-        if (questionIds.length > 0) {
-          const promises = questionIds.map((id) => apiGetQuestionById(id));
-          const questions = await Promise.all(promises);
-          setQuestionsToCache(questions.map((q) => q.data));
-          setSelectedQuestions(getQuestionsByIds(questionIds));
-        } else {
-          setSelectedQuestions([]);
-        }
-      } catch (error) {
-        console.error("Failed to load selected questions:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadSelectedQuestions();
-  }, [tab2Data.list_questions, selectedSubjectId]);
+    setSelectedQuestions(commonProps.list_questions);
+  }, [commonProps.list_questions]);
+
 
   const addQuestionToExam = (question: QuestionItem) => {
     if (!selectedQuestions.find((q) => q.id === question.id)) {
@@ -58,6 +40,9 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
         }))
       );
       setQuestionsToCache([question]);
+      setListQuestionsFull(
+        updatedQuestions
+      );
     }
   };
 
@@ -71,29 +56,9 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
       }))
     );
     setQuestionsToCache(updatedQuestions);
-  };
-
-  const generateAutoExam = () => {
-    // setIsLoading(true);
-    // try {
-    //   const response = await apiGetQuestionBank(1, "", selectedSubjectId, "all", "all", 100);
-    //   const questions = response.data.data;
-    //   const selected = questions
-    //     .sort(() => 0.5 - Math.random()) // Random selection
-    //     .slice(0, 10); // Lấy 10 câu hỏi (có thể điều chỉnh)
-    //   setQuestionsToCache(selected);
-    //   setSelectedQuestions(selected);
-    //   setListQuestions(
-    //     selected.map((q, index) => ({
-    //       question_id: q.id,
-    //       order_index: index + 1,
-    //     }))
-    //   );
-    // } catch (error) {
-    //   console.error("Failed to generate auto exam:", error);
-    // } finally {
-    //   setIsLoading(false);
-    // }
+    setListQuestionsFull(
+      updatedQuestions
+    );
   };
 
   return (
@@ -132,7 +97,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
                 <ExamModeSelector examMode={examMode} setExamMode={setExamMode} />
               </CardContent>
             </Card>
-            <AutoMode examMode={examMode} isLoading={isLoading} generateAutoExam={generateAutoExam} />
+            <AutoMode examMode={examMode} isLoading={isLoading} />
           </div>
         </div>
       )}
@@ -148,7 +113,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
                 <ExamModeSelector examMode={examMode} setExamMode={setExamMode} />
               </CardContent>
             </Card>
-            <AutoMode examMode={examMode} isLoading={isLoading} generateAutoExam={generateAutoExam} />
+            <AutoMode examMode={examMode} isLoading={isLoading} />
           </div>
         </div>
       )}

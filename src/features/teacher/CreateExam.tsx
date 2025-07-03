@@ -3,13 +3,10 @@ import QuestionsTab from "@/components/teacher/CreateExam/QuestionsTab";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Save } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import useExamStore from "@/stores/examStore";
 import { SettingsTab } from "@/components/teacher/CreateExam/SettingTab";
 import { PreviewTab } from "@/components/teacher/CreateExam/PreviewTab";
-import type { QuestionItem } from "@/types/questionType";
-import { apiGetQuestionById } from "@/services/teacher/question";
-import { getQuestionsByIds } from "@/utils/questionCache";
 import ExamPreview from "@/components/teacher/CreateExam/ExamPreview";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
@@ -18,36 +15,35 @@ import { apiCreateExam } from "@/services/teacher/createExam";
 const CreateExam = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
-  const { tab1Data, tab2Data, tab3Data, resetExamData } = useExamStore();
-  const [selectedQuestions, setSelectedQuestions] = useState<QuestionItem[]>([]);
+  const { tab1Data, tab2Data, tab3Data, resetExamData, commonProps } = useExamStore();
 
   const isSubjectSelected = !!tab1Data.subject;
 
-  useEffect(() => {
-    const loadSelectedQuestions = async () => {
-      setIsLoading(true);
-      try {
-        const questionIds = tab2Data.list_questions.map((q) => q.question_id);
-        if (questionIds.length > 0) {
-          const cachedQuestions = getQuestionsByIds(questionIds);
-          if (cachedQuestions.length === questionIds.length) {
-            setSelectedQuestions(cachedQuestions);
-          } else {
-            const promises = questionIds.map((id) => apiGetQuestionById(id));
-            const questions = await Promise.all(promises);
-            setSelectedQuestions(questions.map((q) => q.data));
-          }
-        } else {
-          setSelectedQuestions([]);
-        }
-      } catch (error) {
-        console.error("Failed to load selected questions:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadSelectedQuestions();
-  }, [tab2Data.list_questions]);
+  // useEffect(() => {
+  //   const loadSelectedQuestions = async () => {
+  //     setIsLoading(true);
+  //     try {
+  //       const questionIds = tab2Data.list_questions.map((q) => q.question_id);
+  //       if (questionIds.length > 0) {
+  //         const cachedQuestions = getQuestionsByIds(questionIds);
+  //         if (cachedQuestions.length === questionIds.length) {
+  //           setSelectedQuestions(cachedQuestions);
+  //         } else {
+  //           const promises = questionIds.map((id) => apiGetQuestionById(id));
+  //           const questions = await Promise.all(promises);
+  //           setSelectedQuestions(questions.map((q) => q.data));
+  //         }
+  //       } else {
+  //         setSelectedQuestions([]);
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to load selected questions:", error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   loadSelectedQuestions();
+  // }, [tab2Data.list_questions]);
 
   const validateTime = (start: string, end: string): boolean => {
     if (!start || !end) {
@@ -132,7 +128,7 @@ const CreateExam = () => {
           <p className="text-gray-500">Tạo đề thi từ ngân hàng câu hỏi hoặc tự động bằng AI</p>
         </div>
         <div className="space-x-2">
-          <ExamPreview selectedQuestions={selectedQuestions} />
+          <ExamPreview selectedQuestions={commonProps.list_questions} />
           <Button
             onClick={handleSaveExam}
             className="bg-black hover:bg-black/80"
@@ -173,7 +169,7 @@ const CreateExam = () => {
             <SettingsTab />
           </TabsContent>
           <TabsContent value="preview">
-            <PreviewTab selectedQuestions={selectedQuestions} />
+            <PreviewTab selectedQuestions={commonProps.list_questions} />
           </TabsContent>
         </Tabs>
       </div>
