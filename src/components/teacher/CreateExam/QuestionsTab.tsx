@@ -1,27 +1,27 @@
-import { useEffect, useState } from "react";
-import ExamModeSelector from "./ExamModeSelector";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import SelectedQuestions from "./SelectedQuestions";
-import type { QuestionItem } from "@/types/questionType";
-import QuestionList from "./QuestionList";
-import useExamStore from "@/stores/examStore";
-import AutoMode from "./AutoMode";
-import { getQuestionsByIds, setQuestionsToCache } from "@/utils/questionCache";
-import { apiGetQuestionById } from "@/services/teacher/question";
+import { useEffect, useState } from 'react';
+import ExamModeSelector from './ExamModeSelector';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import SelectedQuestions from './SelectedQuestions';
+import type { QuestionItem } from '@/types/questionType';
+import QuestionList from './QuestionList';
+import useExamStore from '@/stores/examStore';
+import AutoMode from './AutoMode';
+import { getQuestionsByIds, setQuestionsToCache } from '@/utils/questionCache';
+import { apiGetQuestionById } from '@/services/teacher/question';
 
 interface QuestionTabProps {
   selectedSubjectId: string;
 }
 
 const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
-  const [examMode, setExamMode] = useState<"manual" | "auto" | "ai">("manual");
+  const [examMode, setExamMode] = useState<'manual' | 'auto' | 'ai'>('manual');
   const [selectedQuestions, setSelectedQuestions] = useState<QuestionItem[]>([]);
   const { tab2Data, setListQuestions } = useExamStore();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (tab2Data.exam_type && tab2Data.exam_type !== examMode) {
-      setExamMode(tab2Data.exam_type as "manual" | "auto" | "ai");
+      setExamMode(tab2Data.exam_type as 'manual' | 'auto' | 'ai');
     }
   }, [tab2Data.exam_type, examMode]);
 
@@ -39,7 +39,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
           setSelectedQuestions([]);
         }
       } catch (error) {
-        console.error("Failed to load selected questions:", error);
+        console.error('Failed to load selected questions:', error);
       } finally {
         setIsLoading(false);
       }
@@ -55,7 +55,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
         updatedQuestions.map((q, index) => ({
           question_id: q.id,
           order_index: index + 1,
-        }))
+        })),
       );
       setQuestionsToCache([question]);
     }
@@ -68,7 +68,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
       updatedQuestions.map((q, index) => ({
         question_id: q.id,
         order_index: index + 1,
-      }))
+      })),
     );
     setQuestionsToCache(updatedQuestions);
   };
@@ -98,7 +98,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
 
   return (
     <div className="space-y-6">
-      {examMode === "manual" && (
+      {examMode === 'manual' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="flex flex-col gap-4">
             <Card>
@@ -112,15 +112,11 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
             </Card>
             <QuestionList selectedQuestions={selectedQuestions} addQuestionToExam={addQuestionToExam} selectedSubjectId={selectedSubjectId} />
           </div>
-          <SelectedQuestions
-            selectedQuestions={selectedQuestions}
-            setSelectedQuestions={setSelectedQuestions}
-            removeQuestionFromExam={removeQuestionFromExam}
-          />
+          <SelectedQuestions selectedQuestions={selectedQuestions} setSelectedQuestions={setSelectedQuestions} removeQuestionFromExam={removeQuestionFromExam} />
         </div>
       )}
 
-      {examMode === "auto" && (
+      {examMode === 'auto' && (
         <div className="grid grid-cols-1 gap-4">
           <div className="flex flex-col gap-4">
             <Card>
@@ -136,7 +132,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
           </div>
         </div>
       )}
-      {examMode === "ai" && (
+      {examMode === 'ai' && (
         <div className="grid grid-cols-1 gap-4">
           <div className="flex flex-col gap-4">
             <Card>
