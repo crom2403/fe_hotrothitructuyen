@@ -15,6 +15,8 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Clock, ChevronLeft, ChevronRight, Flag, Send, AlertTriangle, GripVertical, Play, Pause, Volume2 } from 'lucide-react';
+import type { IExam } from '@/services/student/interfaces/exam.interface';
+import { apiGetDetailExam } from '@/services/student/exam';
 
 // Định nghĩa cấu trúc dữ liệu từ API
 interface Answer {
@@ -503,7 +505,7 @@ function VideoPlayerWithQuestions({
 }
 
 export default function ExamTaking() {
-  const [exam, setExam] = useState<ExamData | null>(null);
+  const [exam, setExam] = useState<IExam | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [timeLeft, setTimeLeft] = useState(0);
@@ -520,126 +522,136 @@ export default function ExamTaking() {
     }),
   );
 
+  const handleGetExam = async () => {
+    const exam = await apiGetDetailExam('34a353d4-580c-40ad-bd8c-9802e2d31d83');
+    if (exam) {
+      setExam(exam.data);
+      setTimeLeft(exam?.data?.duration_minutes * 60);
+    }
+    console.log(exam);
+  };
+
   // Fetch exam data
   useEffect(() => {
     // Giả lập API call
     const fetchExam = async () => {
-      const response = {
-        id: '34a353d4-580c-40ad-bd8c-9802e2d31d83',
-        name: 'Test tạo đề',
-        subject: { name: 'Triết học Mác - Lênin' },
-        duration_minutes: 60,
-        exam_questions: [
-          {
-            id: '5eeee95a-dea7-4678-a87d-06d89df8162d',
-            question: {
-              id: 'fb97ccff-6095-4b62-811a-15df616acb79',
-              content: 'Xem video Big Buck Bunny và trả lời các câu hỏi xuất hiện trên timeline:',
-              answers: [
-                { id: '2c2d4e66-7670-482b-958e-d58ac9f6b210', content: { text: 'Thỏ', value: 'Thỏ' }, order_index: 1 },
-                { id: 'f1d93880-173f-4c86-a54f-ad278a6a7ad9', content: { text: 'Chó', value: 'Chó' }, order_index: 2 },
-                { id: 'b2456f19-177e-4056-b705-52ec7ee79f7a', content: { text: 'Mèo', value: 'Mèo' }, order_index: 3 },
-                { id: 'ce575f61-dafa-4430-9d07-3b2eecee7357', content: { text: 'Chuột', value: 'Chuột' }, order_index: 4 },
-                { id: '53c372b8-065b-4a26-bb1c-816cf8a5f1f3', content: { text: 'Trắng', value: 'Trắng' }, order_index: 5 },
-                { id: 'c2a829a8-506c-4808-8bac-527509710def', content: { text: 'Nâu', value: 'Nâu' }, order_index: 6 },
-                { id: '6d6336bf-46c9-4f67-a622-53cac0cb14dc', content: { text: 'Xám', value: 'Xám' }, order_index: 7 },
-                { id: '2bec8ef1-f98b-4bc6-8d1d-21db8f53d73a', content: { text: 'Đen', value: 'Đen' }, order_index: 8 },
-              ],
-              question_type: { code: 'video_popup' },
-            },
-          },
-          {
-            id: '44c42bb6-6c87-46b7-be2b-35d1c9f40507',
-            question: {
-              id: '342f54be-b18c-416f-a046-521b43326953',
-              content: 'Sắp xếp các bước tạo một trang web theo thứ tự đúng:',
-              answers: [
-                { id: '3bd0f676-5e52-4c7b-8091-855924f1fd47', content: { text: 'Viết HTML structure' }, order_index: 1 },
-                { id: '24f38b51-373c-4ee4-8f17-b03f68ab9907', content: { text: 'Thêm CSS styling' }, order_index: 2 },
-                { id: 'bdbe63d2-296a-455f-83fe-3e748cb81197', content: { text: 'Thêm JavaScript functionality' }, order_index: 3 },
-                { id: '2a191174-3ca9-4b08-9710-5a248255b81c', content: { text: 'Test và debug' }, order_index: 4 },
-              ],
-              question_type: { code: 'ordering' },
-            },
-          },
-          {
-            id: '44b74727-d7c2-461e-adbc-ab1c8ce0291a',
-            question: {
-              id: '4fcc361d-9157-4b01-8a7b-caeeab0c32fc',
-              content: 'Nối các thuật ngữ HTML với định nghĩa tương ứng:',
-              answers: [
-                { id: '6f1fad32-57d3-4163-af23-b3f047d8e221', content: { left: 'DOCTYPE', right: 'Khai báo loại tài liệu' }, order_index: 1 },
-                { id: '62c7c809-e1d7-41e5-bbc0-adde8b0f25fd', content: { left: 'Semantic HTML', right: 'HTML có ý nghĩa' }, order_index: 2 },
-              ],
-              question_type: { code: 'matching' },
-            },
-          },
-          {
-            id: '293b56ea-40f2-4a14-b16b-a6259b89d445',
-            question: {
-              id: 'e9047da2-dceb-4c3d-a8dc-5ca51013c957',
-              content: 'Kéo các thuộc tính CSS vào đúng nhóm của chúng:',
-              answers: [
-                { id: '6b4dee32-ca09-40df-bf2d-0d39ddcc6258', content: { text: 'color' }, order_index: 1 },
-                { id: '70fda4f0-f6d4-4c0e-acee-ae086d154e3b', content: { text: 'margin' }, order_index: 2 },
-                { id: '7e99bca8-015f-4aa0-a5ef-d152d82dbc49', content: { text: 'font-size' }, order_index: 3 },
-                { id: 'dcce8753-08e1-4028-bf0d-65b37498909b', content: { text: 'padding' }, order_index: 4 },
-                { id: '33947401-6482-458f-9dcf-c3469c6e3ad7', content: { text: 'background' }, order_index: 5 },
-              ],
-              question_type: { code: 'drag_drop' },
-            },
-          },
-          {
-            id: '14e8916f-64cc-4c15-b6b7-fd781281e265',
-            question: {
-              id: '540d11d1-d3b4-454f-8abf-c9f88bc110d3',
-              content: 'Những thẻ HTML nào sau đây là thẻ block-level?',
-              answers: [
-                { id: 'b57eb1dc-05f2-4190-9a9c-b35f65e8d84e', content: { text: '<div>', value: 'div' }, order_index: 1 },
-                { id: '2e560982-b8bc-48a9-acb9-cd9ec32984e1', content: { text: '<span>', value: 'span' }, order_index: 2 },
-                { id: '9ab56c08-1b51-4749-a1d6-d72699344b09', content: { text: '<p>', value: 'p' }, order_index: 3 },
-                { id: '12732856-acfb-4037-8a48-a92f00c1739f', content: { text: '<h1>', value: 'h1' }, order_index: 4 },
-                { id: 'b630fab2-0e72-40c1-a468-ac799f6757a1', content: { text: '<a>', value: 'a' }, order_index: 5 },
-              ],
-              question_type: { code: 'multiple_select' },
-            },
-          },
-          {
-            id: '06845386-e2aa-40ea-9bfb-5c34ed10a25a',
-            question: {
-              id: 'd1ddfdc1-0a57-47b7-b6f9-4836fcce7480',
-              content: 'HTML là viết tắt của gì?',
-              answers: [
-                { id: '61fdaf0d-04dc-46d1-81ef-327f7c2d0a93', content: { text: 'HyperText Markup Language', value: 'A' }, order_index: 1 },
-                { id: '85481d4c-7422-4324-a99e-56f8681fde98', content: { text: 'High Tech Modern Language', value: 'B' }, order_index: 2 },
-                { id: '5e08d96b-b2b6-43ca-9c0e-f2456bdb1bca', content: { text: 'Home Tool Markup Language', value: 'C' }, order_index: 3 },
-                { id: '1fe3f321-26aa-4335-b710-b192419084fc', content: { text: 'Hyperlink and Text Markup Language', value: 'D' }, order_index: 4 },
-              ],
-              question_type: { code: 'single_choice' },
-            },
-          },
-        ],
-        settings: {
-          shuffleQuestions: true,
-          shuffleAnswers: true,
-          allowReview: true,
-          maxTabSwitch: 3,
-        },
-      } as ExamData;
-      setExam(response);
-      setTimeLeft(response.duration_minutes * 60);
+      // const response = {
+      //   id: '34a353d4-580c-40ad-bd8c-9802e2d31d83',
+      //   name: 'Test tạo đề',
+      //   subject: { name: 'Triết học Mác - Lênin' },
+      //   duration_minutes: 60,
+      //   exam_questions: [
+      //     {
+      //       id: '5eeee95a-dea7-4678-a87d-06d89df8162d',
+      //       question: {
+      //         id: 'fb97ccff-6095-4b62-811a-15df616acb79',
+      //         content: 'Xem video Big Buck Bunny và trả lời các câu hỏi xuất hiện trên timeline:',
+      //         answers: [
+      //           { id: '2c2d4e66-7670-482b-958e-d58ac9f6b210', content: { text: 'Thỏ', value: 'Thỏ' }, order_index: 1 },
+      //           { id: 'f1d93880-173f-4c86-a54f-ad278a6a7ad9', content: { text: 'Chó', value: 'Chó' }, order_index: 2 },
+      //           { id: 'b2456f19-177e-4056-b705-52ec7ee79f7a', content: { text: 'Mèo', value: 'Mèo' }, order_index: 3 },
+      //           { id: 'ce575f61-dafa-4430-9d07-3b2eecee7357', content: { text: 'Chuột', value: 'Chuột' }, order_index: 4 },
+      //           { id: '53c372b8-065b-4a26-bb1c-816cf8a5f1f3', content: { text: 'Trắng', value: 'Trắng' }, order_index: 5 },
+      //           { id: 'c2a829a8-506c-4808-8bac-527509710def', content: { text: 'Nâu', value: 'Nâu' }, order_index: 6 },
+      //           { id: '6d6336bf-46c9-4f67-a622-53cac0cb14dc', content: { text: 'Xám', value: 'Xám' }, order_index: 7 },
+      //           { id: '2bec8ef1-f98b-4bc6-8d1d-21db8f53d73a', content: { text: 'Đen', value: 'Đen' }, order_index: 8 },
+      //         ],
+      //         question_type: { code: 'video_popup' },
+      //       },
+      //     },
+      //     {
+      //       id: '44c42bb6-6c87-46b7-be2b-35d1c9f40507',
+      //       question: {
+      //         id: '342f54be-b18c-416f-a046-521b43326953',
+      //         content: 'Sắp xếp các bước tạo một trang web theo thứ tự đúng:',
+      //         answers: [
+      //           { id: '3bd0f676-5e52-4c7b-8091-855924f1fd47', content: { text: 'Viết HTML structure' }, order_index: 1 },
+      //           { id: '24f38b51-373c-4ee4-8f17-b03f68ab9907', content: { text: 'Thêm CSS styling' }, order_index: 2 },
+      //           { id: 'bdbe63d2-296a-455f-83fe-3e748cb81197', content: { text: 'Thêm JavaScript functionality' }, order_index: 3 },
+      //           { id: '2a191174-3ca9-4b08-9710-5a248255b81c', content: { text: 'Test và debug' }, order_index: 4 },
+      //         ],
+      //         question_type: { code: 'ordering' },
+      //       },
+      //     },
+      //     {
+      //       id: '44b74727-d7c2-461e-adbc-ab1c8ce0291a',
+      //       question: {
+      //         id: '4fcc361d-9157-4b01-8a7b-caeeab0c32fc',
+      //         content: 'Nối các thuật ngữ HTML với định nghĩa tương ứng:',
+      //         answers: [
+      //           { id: '6f1fad32-57d3-4163-af23-b3f047d8e221', content: { left: 'DOCTYPE', right: 'Khai báo loại tài liệu' }, order_index: 1 },
+      //           { id: '62c7c809-e1d7-41e5-bbc0-adde8b0f25fd', content: { left: 'Semantic HTML', right: 'HTML có ý nghĩa' }, order_index: 2 },
+      //         ],
+      //         question_type: { code: 'matching' },
+      //       },
+      //     },
+      //     {
+      //       id: '293b56ea-40f2-4a14-b16b-a6259b89d445',
+      //       question: {
+      //         id: 'e9047da2-dceb-4c3d-a8dc-5ca51013c957',
+      //         content: 'Kéo các thuộc tính CSS vào đúng nhóm của chúng:',
+      //         answers: [
+      //           { id: '6b4dee32-ca09-40df-bf2d-0d39ddcc6258', content: { text: 'color' }, order_index: 1 },
+      //           { id: '70fda4f0-f6d4-4c0e-acee-ae086d154e3b', content: { text: 'margin' }, order_index: 2 },
+      //           { id: '7e99bca8-015f-4aa0-a5ef-d152d82dbc49', content: { text: 'font-size' }, order_index: 3 },
+      //           { id: 'dcce8753-08e1-4028-bf0d-65b37498909b', content: { text: 'padding' }, order_index: 4 },
+      //           { id: '33947401-6482-458f-9dcf-c3469c6e3ad7', content: { text: 'background' }, order_index: 5 },
+      //         ],
+      //         question_type: { code: 'drag_drop' },
+      //       },
+      //     },
+      //     {
+      //       id: '14e8916f-64cc-4c15-b6b7-fd781281e265',
+      //       question: {
+      //         id: '540d11d1-d3b4-454f-8abf-c9f88bc110d3',
+      //         content: 'Những thẻ HTML nào sau đây là thẻ block-level?',
+      //         answers: [
+      //           { id: 'b57eb1dc-05f2-4190-9a9c-b35f65e8d84e', content: { text: '<div>', value: 'div' }, order_index: 1 },
+      //           { id: '2e560982-b8bc-48a9-acb9-cd9ec32984e1', content: { text: '<span>', value: 'span' }, order_index: 2 },
+      //           { id: '9ab56c08-1b51-4749-a1d6-d72699344b09', content: { text: '<p>', value: 'p' }, order_index: 3 },
+      //           { id: '12732856-acfb-4037-8a48-a92f00c1739f', content: { text: '<h1>', value: 'h1' }, order_index: 4 },
+      //           { id: 'b630fab2-0e72-40c1-a468-ac799f6757a1', content: { text: '<a>', value: 'a' }, order_index: 5 },
+      //         ],
+      //         question_type: { code: 'multiple_select' },
+      //       },
+      //     },
+      //     {
+      //       id: '06845386-e2aa-40ea-9bfb-5c34ed10a25a',
+      //       question: {
+      //         id: 'd1ddfdc1-0a57-47b7-b6f9-4836fcce7480',
+      //         content: 'HTML là viết tắt của gì?',
+      //         answers: [
+      //           { id: '61fdaf0d-04dc-46d1-81ef-327f7c2d0a93', content: { text: 'HyperText Markup Language', value: 'A' }, order_index: 1 },
+      //           { id: '85481d4c-7422-4324-a99e-56f8681fde98', content: { text: 'High Tech Modern Language', value: 'B' }, order_index: 2 },
+      //           { id: '5e08d96b-b2b6-43ca-9c0e-f2456bdb1bca', content: { text: 'Home Tool Markup Language', value: 'C' }, order_index: 3 },
+      //           { id: '1fe3f321-26aa-4335-b710-b192419084fc', content: { text: 'Hyperlink and Text Markup Language', value: 'D' }, order_index: 4 },
+      //         ],
+      //         question_type: { code: 'single_choice' },
+      //       },
+      //     },
+      //   ],
+      //   settings: {
+      //     shuffleQuestions: true,
+      //     shuffleAnswers: true,
+      //     allowReview: true,
+      //     maxTabSwitch: 3,
+      //   },
+      // } as ExamData;
+      // setExam(response);
+      // setTimeLeft(response.duration_minutes * 60);
+      // setExam(response);
     };
-    fetchExam();
+    handleGetExam();
+    // fetchExam();
   }, []);
-
   // Initialize ordering items
   useEffect(() => {
     if (!exam) return;
-    const currentQ = exam.exam_questions[currentQuestion]?.question;
-    if (currentQ?.question_type.code === 'ordering') {
-      const shuffled = exam.settings.shuffleAnswers ? [...currentQ.answers].sort(() => Math.random() - 0.5) : [...currentQ.answers];
-      setOrderingItems(shuffled.map((a) => ({ id: a.id, content: a.content.text })));
-    }
+    // const currentQ = exam.exam_questions[currentQuestion]?.question;
+    // if (currentQ?.question_type.code === 'ordering') {
+    //   const shuffled = exam.settings.shuffleAnswers ? [...currentQ.answers].sort(() => Math.random() - 0.5) : [...currentQ.answers];
+    //   setOrderingItems(shuffled.map((a) => ({ id: a.id, content: a.content.text })));
+    // }
   }, [currentQuestion, exam]);
 
   // Tab switch detection
@@ -648,7 +660,7 @@ export default function ExamTaking() {
       if (document.hidden && !isSubmitted && exam) {
         setTabSwitchCount((prev) => {
           const newCount = prev + 1;
-          if (newCount >= exam.settings.maxTabSwitch) {
+          if (newCount >= exam.max_tab_switch) {
             alert('Bạn đã chuyển tab quá nhiều lần. Bài thi sẽ được nộp tự động.');
             handleSubmit();
           }
@@ -830,7 +842,7 @@ export default function ExamTaking() {
               )}
               {tabSwitchCount > 0 && (
                 <Badge variant="outline" className="text-orange-600">
-                  Chuyển tab: {tabSwitchCount}/{exam.settings.maxTabSwitch}
+                  Chuyển tab: {tabSwitchCount}/{exam.max_tab_switch}
                 </Badge>
               )}
             </div>
@@ -907,11 +919,11 @@ export default function ExamTaking() {
             {/* Single Choice */}
             {currentQ.question_type.code === 'single_choice' && (
               <RadioGroup value={answers[currentQ.id] || ''} onValueChange={(value) => handleAnswerChange(currentQ.id, value)}>
-                {currentQ.answers.map((answer, index) => (
+                {currentQ.answers.map((answer: any, index) => (
                   <div key={answer.id} className="flex items-center space-x-2">
-                    <RadioGroupItem value={answer.content.value || answer.content.text} id={`${currentQ.id}-${answer.id}`} />
+                    <RadioGroupItem value={answer.content || answer.content} id={`${currentQ.id}-${answer.id}`} />
                     <Label htmlFor={`${currentQ.id}-${answer.id}`} className="cursor-pointer">
-                      {answer.content.text}
+                      {answer.content}
                     </Label>
                   </div>
                 ))}
@@ -921,11 +933,11 @@ export default function ExamTaking() {
             {/* Multiple Select */}
             {currentQ.question_type.code === 'multiple_select' && (
               <div className="space-y-3">
-                {currentQ.answers.map((answer, index) => (
+                {currentQ.answers.map((answer: any, index) => (
                   <div key={answer.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`${currentQ.id}-${answer.id}`}
-                      checked={(answers[currentQ.id] || []).includes(answer.content.value || answer.content.text)}
+                      checked={(answers[currentQ.id] || []).includes(answer.content || answer.content)}
                       onCheckedChange={(checked) => {
                         const currentAnswers = answers[currentQ.id] || [];
                         if (checked) {
@@ -939,7 +951,7 @@ export default function ExamTaking() {
                       }}
                     />
                     <Label htmlFor={`${currentQ.id}-${answer.id}`} className="cursor-pointer">
-                      {answer.content.text}
+                      {answer.content}
                     </Label>
                   </div>
                 ))}
@@ -954,7 +966,7 @@ export default function ExamTaking() {
                   <div className="flex flex-wrap gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg">
                     {currentQ.answers
                       .filter((answer) => !answers[currentQ.id]?.[answer.id])
-                      .map((answer) => (
+                      .map((answer: any) => (
                         <div
                           key={answer.id}
                           draggable
@@ -962,7 +974,7 @@ export default function ExamTaking() {
                           className="px-3 py-2 bg-blue-100 border border-blue-300 rounded cursor-move hover:bg-blue-200 transition-colors"
                         >
                           <GripVertical className="h-4 w-4 inline mr-2" />
-                          {answer.content.text}
+                          <p>{answer?.content || ''}</p>
                         </div>
                       ))}
                   </div>
@@ -1037,12 +1049,10 @@ export default function ExamTaking() {
               <div className="flex gap-2">
                 {currentQuestion === exam.exam_questions.length - 1 ? (
                   <AlertDialog>
-                    {/* <AlertDialogTrigger asChild> */}
                     <Button>
                       <Send className="h-4 w-4 mr-2" />
                       Nộp bài
                     </Button>
-                    {/* </AlertDialogTrigger> */}
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận nộp bài</AlertDialogTitle>
