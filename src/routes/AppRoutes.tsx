@@ -8,6 +8,7 @@ import OTPConfirmation from '@/components/forgotPassword/OTPConfirmation';
 import PermissionRole from '@/features/admin/PermissionRole';
 import PermissionUser from '@/features/admin/PermissionUser';
 import AssignSubject from '@/features/admin/AssignSubject';
+import LoadingBar from '@/components/common/LoadingBar';
 
 // Lazy load components
 const Login = lazy(() => import('@/components/login/login'));
@@ -47,6 +48,7 @@ const AppRoutes = () => {
         </div>
       }
     >
+      <LoadingBar />
       <Routes>
         {/* Public routes */}
         <Route path={path.LOGIN} element={<Login />} />

@@ -1,4 +1,4 @@
-import type { QuestionItem } from "@/types/questionType";
+import type { QuestionItem } from '@/types/questionType';
 
 const questionCache = new Map<string, QuestionItem>();
 
@@ -13,9 +13,7 @@ export const getQuestionById = (id: string): QuestionItem | undefined => {
 };
 
 export const getQuestionsByIds = (ids: string[]): QuestionItem[] => {
-  return ids
-    .map((id) => questionCache.get(id))
-    .filter((question): question is QuestionItem => !!question);
+  return ids.map((id) => questionCache.get(id)).filter((question): question is QuestionItem => !!question);
 };
 
 export const clearQuestionCache = () => {

@@ -41,6 +41,7 @@ import { useNavigate } from 'react-router-dom';
 import path from '@/utils/path';
 import { DrawLineText } from '@/components/ui/draw-line-text';
 import Logomini from '../../../public/images/svg/logo-mini-2.svg';
+import HeroSection from './HeroSection';
 
 const useEducationalAnimations = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -386,7 +387,7 @@ export const Page = () => {
       </header>
 
       {/* Hero Section */}
-      <section ref={heroRef} className="py-20 px-6 bg-gradient-to-b from-blue-50 to-white">
+      <section ref={heroRef} className="pt-32 px-6 bg-gradient-to-b from-blue-50 to-white">
         <div className="container mx-auto text-center">
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-center">
@@ -401,69 +402,12 @@ export const Page = () => {
               <Award className="h-4 w-4 text-yellow-500" />
               Nền tảng thi trực tuyến chuyên nghiệp
             </Badge>
-
-            {/* <h1 className="hero-title fade-up text-5xl md:text-6xl font-bold mb-6 text-gray-900 leading-tight">
-              iExam - Hệ thống thi
-              <br />
-              <span className="text-blue-600">trực tuyến hiện đại</span>
-            </h1> */}
-
-            <p className="hero-subtitle fade-up text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Nền tảng quản lý và tổ chức thi trực tuyến với giao diện thân thiện, bảo mật cao và đa dạng loại câu hỏi tương tác. Phù hợp cho các trường học, trung tâm đào tạo và doanh nghiệp.
-            </p>
-
-            <div className="hero-buttons fade-up flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3 edu-button">
-                <Play className="h-5 w-5 mr-2" />
-                Xem demo trực tiếp
-                <ArrowRight className="h-5 w-5 ml-2" />
-              </Button>
-              <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-gray-50 text-lg px-8 py-3 edu-button bg-transparent">
-                <Github className="h-5 w-5 mr-2" />
-                Mã nguồn
-                <ExternalLink className="h-4 w-4 ml-2" />
-              </Button>
-            </div>
-
-            {/* Stats */}
-            <div ref={statsRef} className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-              {stats.map((stat, index) => (
-                <div key={index} className="stat-card fade-up text-center hover-card">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <stat.icon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900 mb-1">{stat.number}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Question Types */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-gray-900">Đa dạng loại câu hỏi</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Hỗ trợ 6+ loại câu hỏi khác nhau để đánh giá toàn diện năng lực học viên</p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {questionTypes.map((type, index) => (
-              <Card key={index} className="hover-card border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <type.icon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{type.type}</h3>
-                  <p className="text-gray-600">{type.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HeroSection />
 
       {/* Features Section */}
       <section ref={featuresRef} className="py-20 px-6 bg-white">
