@@ -64,8 +64,8 @@ export function PreviewTab({ selectedQuestions }: PreviewTabProps) {
             <p className="text-sm text-gray-600">{tab1Data.pass_points}</p>
           </div>
           <div>
-            <Label className="text-sm font-medium">Thang điểm</Label>
-            <p className="text-sm text-gray-600">{commonProps.point_scale_name}</p>
+            <Label className="text-sm font-medium">Số lần chuyển tab</Label>
+            <p className="text-sm text-gray-600">{tab1Data.max_tab_switch}</p>
           </div>
         </div>
         <Separator />
