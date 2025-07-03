@@ -120,3 +120,21 @@
     font-family: 'Roboto', sans-serif;
   }
 }
+
+.ProgressRoot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #e5e7eb; /* Màu nền của thanh */
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.ProgressIndicator {
+  background-color: #3b82f6; /* Màu của thanh tiến trình */
+  height: 100%;
+  width: 100%;
+  transition: transform 0.3s ease-out;
+}

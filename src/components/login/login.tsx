@@ -102,11 +102,11 @@ const Login = () => {
   };
 
   return (
-    <div className="flex w-full h-screen bg-blue-900">
+    <div className="flex w-full h-screen bg-gray-50">
       <div className="w-full h-full flex items-center justify-center">
-        <div className="bg-white justify-center items-center flex border-2 border-gray-200 rounded-lg p-5 shadow-lg">
+        <div className="bg-white justify-center items-center flex border border-gray-200 rounded-lg px-5 pt-5 pb-9 shadow">
           <div className="w-[320px] flex flex-col justify-center gap-4">
-            <div className="flex flex-col items-center mb-4">
+            <div className="flex flex-col items-center mb-2">
               <div className="flex font-bold text-4xl">
                 <img src={Logo} alt="Logo STU" className="w-25 h-25" />
               </div>

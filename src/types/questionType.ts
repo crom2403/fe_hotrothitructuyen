@@ -1,10 +1,10 @@
 export interface QuestionRequest {
   id: string;
   content: string;
-  type_id: string; 
+  type_id: string;
   subject: string;
   topic: string;
-  difficulty: "easy" | "medium" | "hard";
+  difficulty: 'easy' | 'medium' | 'hard';
   answers: {
     content: string;
     is_correct: boolean;
@@ -28,7 +28,7 @@ export interface QuestionItem {
   id: string;
   content: string;
   created_at: string;
-  review_status: "pending" | "approved" | "rejected";
+  review_status: 'pending' | 'approved' | 'rejected';
   is_public: boolean;
   subject: {
     id: string;
