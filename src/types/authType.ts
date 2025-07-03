@@ -1,4 +1,4 @@
 export type LoginType = {
-  code: string
-  password: string
-}
+  code: string;
+  password: string;
+};

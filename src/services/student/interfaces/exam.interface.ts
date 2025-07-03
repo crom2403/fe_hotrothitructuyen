@@ -53,19 +53,19 @@ interface AnswerContent {
 }
 
 // Định nghĩa câu trả lời
-interface Answer {
+export interface Answer {
   id: string;
   content: AnswerContent;
   order_index: number;
 }
 
 // Định nghĩa loại câu hỏi
-interface QuestionType {
+export interface QuestionType {
   code: string; // Ví dụ: video_popup, ordering, matching, drag_drop, multiple_select, single_choice
 }
 
 // Định nghĩa câu hỏi
-interface Question {
+export interface Question {
   id: string;
   content: string;
   answers: Answer[];

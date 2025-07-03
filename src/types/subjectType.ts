@@ -1,21 +1,21 @@
 export interface Subject {
-  id: string
-  code: string
-  name: string
-  credits: number
-  description?: string
-  theory_hours: number
-  practice_hours: number
-  is_active: boolean
+  id: string;
+  code: string;
+  name: string;
+  credits: number;
+  description?: string;
+  theory_hours: number;
+  practice_hours: number;
+  is_active: boolean;
 }
 
 export interface SubjectFormData {
-  code: string
-  name: string
-  description?: string
-  theory_hours?: number
-  practice_hours?: number
-  credits: number
+  code: string;
+  name: string;
+  description?: string;
+  theory_hours?: number;
+  practice_hours?: number;
+  credits: number;
 }
 
 export interface SubjectResponse {
@@ -29,23 +29,23 @@ export interface SubjectResponse {
 }
 
 export interface AssignedSubject {
-  id: string
-  assigned_at: string
+  id: string;
+  assigned_at: string;
   subject: {
-    id: string
-    code: string
-    name: string
-  }
+    id: string;
+    code: string;
+    name: string;
+  };
   teacher: {
-    id: string
-    code: string
-    full_name: string
-  }
+    id: string;
+    code: string;
+    full_name: string;
+  };
   assigned_by: {
-    id: string
-    code: string
-    full_name: string
-  }
+    id: string;
+    code: string;
+    full_name: string;
+  };
 }
 
 export interface AssignedSubjectResponse {
@@ -59,11 +59,11 @@ export interface AssignedSubjectResponse {
 }
 
 export interface AssignedSubjectByTeacher {
-  id: string
-  assigned_at: string
+  id: string;
+  assigned_at: string;
   subject: {
-    id: string
-    code: string
-    name: string
-  }
+    id: string;
+    code: string;
+    name: string;
+  };
 }
