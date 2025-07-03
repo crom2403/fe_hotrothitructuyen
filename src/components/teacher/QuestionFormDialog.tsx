@@ -8,7 +8,7 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Loader2, Plus } from "lucide-react";
-import type { QuestionFormData, QuestionItem, QuestionTypeResponse } from "@/types/questionType";
+import type { QuestionItem, QuestionTypeResponse } from "@/types/questionType";
 import { useForm } from "react-hook-form";
 import type { DifficultyLevel } from "@/types/difficultyLevelType";
 import type { AssignedSubjectByTeacher } from "@/types/subjectType";
@@ -21,34 +21,28 @@ import { useApiCall } from "@/hooks/useApiCall";
 import { apiGetAssignedSubjectByTeacher } from "@/services/admin/subject";
 import { apiCreateQuestion, apiGetDifficultyLevels, apiGetQuestionTypes } from "@/services/teacher/question";
 import QuillEditor from "../common/QuillEditor";
-import { SingleChoiceForm } from "./QuestionType/SingleChoiceForm";
-import MultipleChoiceForm from "./QuestionType/MultipleChoiceForm";
+import SingleChoiceForm from "./QuestionType/SingleChoiceForm";
+import MatchingForm from "./QuestionType/MatchingForm";
+import OrderingForm from "./QuestionType/OrderingForm";
 import InfoPopup from "../common/InfoPopup";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import useAuthStore from "@/stores/authStore";
-import { MatchingForm } from "./QuestionType/MatchingForm";
-import { OrderingForm } from "./QuestionType/OrderingForm";
-
-const questionSchema = z.object({
-  content: z.string().min(1, "Nội dung câu hỏi không được để trống"),
-  type_id: z.string().min(1, "Vui lòng chọn loại câu hỏi"),
-  subject_id: z.string().min(1, "Vui lòng chọn môn học"),
-  difficulty_level_id: z.string().min(1, "Vui lòng chọn độ khó"),
-  options: z.array(z.string()).min(2, "Phải có ít nhất 2 phương án"),
-  correctAnswers: z.array(z.number()).min(1, "Phải có ít nhất 1 đáp án đúng"),
-  explanation: z.string().optional(),
-  is_public: z.boolean().default(false),
-  leftColumn: z.array(z.string()).optional(),
-  rightColumn: z.array(z.string()).optional(),
-  orderingItems: z.array(z.object({
-    id: z.string(),
-    content: z.string(),
-    order: z.number(),
-  })).optional(),
-});
+import DrapDropForm from "./QuestionType/DrapDropForm";
+import { VideoPopupForm } from "./QuestionType/VideoPopupForm";
+import { createQuestionSchema } from "@/types/questionFormValidation";
+import type { QuestionFormData, AnswerConfig, AnswerItem, MatchingConfig } from "@/types/questionFormTypes";
+import {
+  isSingleChoiceConfig,
+  isMultipleSelectConfig,
+  isDragDropConfig,
+  isMatchingConfig,
+  isOrderingConfig,
+  isVideoPopupConfig,
+} from "@/types/questionFormTypes";
+import MultipleChoiceForm from "./QuestionType/MultipleChoiceForm";
+import { v4 as uuidv4 } from "uuid";
 
 interface QuestionFormDialogProps {
   isDialogOpen: boolean;
@@ -58,6 +52,8 @@ interface QuestionFormDialogProps {
   refetchQuestionsPrivate?: () => void;
 }
 
+let questionTypes: QuestionTypeResponse | undefined;
+
 const QuestionFormDialog = ({
   isDialogOpen,
   setIsDialogOpen,
@@ -65,32 +61,27 @@ const QuestionFormDialog = ({
   setEditingQuestion,
   refetchQuestionsPrivate,
 }: QuestionFormDialogProps) => {
-  const { data: questionTypes, isLoading: isLoadingQuestionTypes, refetch: refetchQuestionTypes } = useApiCall<QuestionTypeResponse>(() => apiGetQuestionTypes());
+  const { data: fetchedQuestionTypes, isLoading: isLoadingQuestionTypes, refetch: refetchQuestionTypes } = useApiCall<QuestionTypeResponse>(() => apiGetQuestionTypes());
   const { data: difficultyLevels, isLoading: isLoadingDifficultyLevels, refetch: refetchDifficultyLevels } = useApiCall<{ data: DifficultyLevel[] }>(() => apiGetDifficultyLevels());
-
   const [open, setOpen] = useState(false);
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const { currentUser } = useAuthStore();
   const [assignedSubjects, setAssignedSubjects] = useState<AssignedSubjectByTeacher[]>([]);
   const [isLoadingAssignedSubjects, setIsLoadingAssignedSubjects] = useState(false);
 
+  questionTypes = fetchedQuestionTypes || undefined;
+
   const form = useForm<QuestionFormData>({
-    resolver: zodResolver(questionSchema),
+    resolver: zodResolver(createQuestionSchema(questionTypes)),
     defaultValues: {
       content: "",
       type_id: "",
       subject_id: "",
       difficulty_level_id: "",
-      options: ["", ""],
-      correctAnswers: [],
+      answers: [],
+      answer_config: { kind: "single_choice", options_count: 2, correct: "" },
       explanation: "",
       is_public: false,
-      leftColumn: [""],
-      rightColumn: [""],
-      orderingItems: [
-        { id: crypto.randomUUID(), content: "", order: 0 },
-        { id: crypto.randomUUID(), content: "", order: 1 },
-      ],
     },
   });
 
@@ -106,128 +97,399 @@ const QuestionFormDialog = ({
     } finally {
       setIsLoadingAssignedSubjects(false);
     }
-  }
+  };
+
   useEffect(() => {
     refetchQuestionTypes();
     refetchDifficultyLevels();
     handleGetAssignedSubjects();
   }, []);
 
-  useEffect(() => {
-    if (editingQuestion) {
-      const sortedAnswers = [...editingQuestion.answers].sort((a, b) => a.order_index - b.order_index);
-      form.reset({
-        content: editingQuestion.content,
-        type_id: editingQuestion.question_type.id,
-        subject_id: editingQuestion.subject.id,
-        difficulty_level_id: editingQuestion.difficulty_level.id,
-        options: sortedAnswers.map((answer) => answer.content),
-        correctAnswers: sortedAnswers
-          .filter((answer) => answer.is_correct)
-          .map((answer) => answer.order_index),
-        is_public: editingQuestion.is_public,
-      });
-    } else {
-      form.reset({
-        content: "",
-        type_id: "",
-        subject_id: "",
-        difficulty_level_id: "",
-        options: ["", ""],
-        correctAnswers: [],
-        explanation: "",
-        is_public: false,
-        leftColumn: [""],
-        rightColumn: [""],
-        orderingItems: [
-          { id: crypto.randomUUID(), content: "", order: 0 },
-          { id: crypto.randomUUID(), content: "", order: 1 },
-        ],
-      });
-    }
-  }, [editingQuestion, form]);
-
   const typeId = form.watch("type_id");
   const questionType = questionTypes?.data.find((type) => type.id === typeId)?.code || "";
 
+  useEffect(() => {
+    if (!questionType) return;
+    let newConfig: AnswerConfig;
+    let newAnswers: AnswerItem[] = [];
+    switch (questionType) {
+      case "single_choice":
+        newConfig = { kind: "single_choice", options_count: 2, correct: "" };
+        newAnswers = [
+          { id: uuidv4(), content: { text: "", value: "A" }, order_index: 1 },
+          { id: uuidv4(), content: { text: "", value: "B" }, order_index: 2 },
+        ];
+        break;
+      case "multiple_select":
+        newConfig = { kind: "multiple_select", options_count: 2, correct: [] };
+        newAnswers = [
+          { id: uuidv4(), content: { text: "", value: "A" }, order_index: 1 },
+          { id: uuidv4(), content: { text: "", value: "B" }, order_index: 2 },
+        ];
+        break;
+      case "drag_drop":
+        newConfig = { kind: "drag_drop", zones: ["Vùng 1"], correct: [] };
+        newAnswers = [
+          { id: uuidv4(), content: { text: "Mục 1", value: "A" }, order_index: 1 },
+          { id: uuidv4(), content: { text: "Mục 2", value: "B" }, order_index: 2 },
+        ];
+        break;
+      case "matching":
+        newConfig = {
+          kind: "matching",
+          pairs: [
+            { left: "", right: "" },
+            { left: "", right: "" },
+          ],
+          correct: [
+            { left: "", right: "" },
+            { left: "", right: "" },
+          ],
+        };
+        newAnswers = [
+          { id: uuidv4(), content: { left: "", right: "" }, order_index: 1 },
+          { id: uuidv4(), content: { left: "", right: "" }, order_index: 2 },
+        ];
+        break;
+      case "ordering":
+        newConfig = {
+          kind: "ordering",
+          items_count: 2,
+          correct: [
+            { id: uuidv4(), order: 1 },
+            { id: uuidv4(), order: 2 },
+          ],
+        };
+        newAnswers = [
+          { id: newConfig.correct[0].id, content: { text: "" }, order_index: 1 },
+          { id: newConfig.correct[1].id, content: { text: "" }, order_index: 2 },
+        ];
+        break;
+      case "video_popup":
+        newConfig = { kind: "video_popup", video_id: "", url: "", popup_times: [] };
+        newAnswers = [];
+        break;
+      default:
+        newConfig = { kind: "single_choice", options_count: 2, correct: "" };
+        newAnswers = [
+          { id: uuidv4(), content: { text: "", value: "A" }, order_index: 1 },
+          { id: uuidv4(), content: { text: "", value: "B" }, order_index: 2 },
+        ];
+    }
+    form.setValue("answer_config", newConfig);
+    form.setValue("answers", newAnswers);
+  }, [questionType, form]);
+
+  // useEffect(() => {
+  //   if (editingQuestion) {
+  //     const sortedAnswers = [...editingQuestion.answers].sort((a, b) => a.order_index - b.order_index);
+  //     const questionTypeCode = questionTypes?.data.find((type) => type.id === editingQuestion.question_type.id)?.code || "";
+  //     let answerConfig: AnswerConfig;
+  //     let answers: AnswerItem[] = [];
+  //     switch (questionTypeCode) {
+  //       case "single_choice":
+  //         answerConfig = {
+  //           kind: "single_choice",
+  //           options_count: editingQuestion.answers.length,
+  //           correct: editingQuestion.answers.find((a) => a.is_correct && a.content)?.content?.text || "",
+  //         };
+  //         answers = sortedAnswers.map((answer, index) => ({
+  //           id: answer.id || uuidv4(),
+  //           content: { text: answer.content?.text || "", value: String.fromCharCode(65 + index) },
+  //           order_index: answer.order_index,
+  //         }));
+  //         break;
+  //       case "multiple_select":
+  //         answerConfig = {
+  //           kind: "multiple_select",
+  //           options_count: editingQuestion.answers.length,
+  //           correct: editingQuestion.answers
+  //             .filter((a) => a.is_correct && a.content)
+  //             .map((a) => a.content!.text),
+  //         };
+  //         answers = sortedAnswers.map((answer, index) => ({
+  //           id: answer.id || uuidv4(),
+  //           content: { text: answer.content?.text || "", value: String.fromCharCode(65 + index) },
+  //           order_index: answer.order_index,
+  //         }));
+  //         break;
+  //       case "drag_drop":
+  //         answerConfig = {
+  //           kind: "drag_drop",
+  //           zones: editingQuestion.answers.map((a) => a.drag_drop_zone || "").filter(Boolean),
+  //           correct: editingQuestion.answers
+  //             .filter((a) => a.is_correct && a.drag_drop_zone && a.content)
+  //             .map((a) => ({
+  //               id: a.id,
+  //               zone: a.drag_drop_zone!,
+  //               value: a.content!.text, // Assuming text is used as value
+  //             })),
+  //         };
+  //         answers = sortedAnswers.map((answer, index) => ({
+  //           id: answer.id || uuidv4(),
+  //           content: { text: answer.content?.text || "", value: String.fromCharCode(65 + index) },
+  //           order_index: answer.order_index,
+  //         }));
+  //         break;
+  //       case "matching":
+  //         answerConfig = {
+  //           kind: "matching",
+  //           pairs: editingQuestion.answers
+  //             .filter((a) => a.content && a.match_pair)
+  //             .map((a) => ({
+  //               left: a.content!.text,
+  //               right: a.match_pair || "",
+  //             })),
+  //           correct: editingQuestion.answers
+  //             .filter((a) => a.is_correct && a.content && a.match_pair)
+  //             .map((a) => ({
+  //               left: a.content!.text,
+  //               right: a.match_pair!,
+  //             })),
+  //         };
+  //         answers = sortedAnswers.map((answer) => ({
+  //           id: answer.id || uuidv4(),
+  //           content: { left: answer.content?.text || "", right: answer.match_pair || "" },
+  //           order_index: answer.order_index,
+  //         }));
+  //         break;
+  //       case "ordering":
+  //         answerConfig = {
+  //           kind: "ordering",
+  //           items_count: editingQuestion.answers.length,
+  //           correct: editingQuestion.answers.map((a) => ({
+  //             id: a.id,
+  //             order: a.order_index,
+  //           })),
+  //         };
+  //         answers = sortedAnswers.map((answer) => ({
+  //           id: answer.id || uuidv4(),
+  //           content: { text: answer.content?.text || "" },
+  //           order_index: answer.order_index,
+  //         }));
+  //         break;
+  //       case "video_popup":
+  //         answerConfig = {
+  //           kind: "video_popup",
+  //           video_id: editingQuestion.question_type.config_template?.video_url || "",
+  //           url: editingQuestion.question_type.config_template?.video_url || "",
+  //           popup_times: (editingQuestion.question_type.config_template?.questions || []).map((q) => ({
+  //             time: q.time || 0,
+  //             question: q.question || "",
+  //             options: q.options || [],
+  //             correct: q.correct || "",
+  //           })),
+  //         };
+  //         answers = sortedAnswers.map((answer) => ({
+  //           id: answer.id || uuidv4(),
+  //           content: { text: answer.content?.text || "" },
+  //           order_index: answer.order_index,
+  //         }));
+  //         break;
+  //       default:
+  //         answerConfig = { kind: "single_choice", options_count: 2, correct: "" };
+  //         answers = [
+  //           { id: uuidv4(), content: { text: "", value: "A" }, order_index: 1 },
+  //           { id: uuidv4(), content: { text: "", value: "B" }, order_index: 2 },
+  //         ];
+  //     }
+  //     form.reset({
+  //       content: editingQuestion.content,
+  //       type_id: editingQuestion.question_type.id,
+  //       subject_id: editingQuestion.subject.id,
+  //       difficulty_level_id: editingQuestion.difficulty_level.id,
+  //       answers,
+  //       answer_config: answerConfig,
+  //       explanation: editingQuestion.explanation || "",
+  //       is_public: editingQuestion.is_public,
+  //     });
+  //   }
+  // }, [editingQuestion, form, questionTypes]);
+
   const addOption = () => {
-    const currentOptions = form.getValues("options");
-    form.setValue("options", [...currentOptions, ""]);
+    const currentAnswers = form.getValues("answers");
+    const newAnswer: AnswerItem =
+      questionType === "matching"
+        ? {
+            id: uuidv4(),
+            content: { left: "", right: "" },
+            order_index: currentAnswers.length + 1,
+          }
+        : {
+            id: uuidv4(),
+            content: {
+              text: "",
+              value: questionType === "single_choice" || questionType === "multiple_select" || questionType === "drag_drop" ? String.fromCharCode(65 + currentAnswers.length) : "",
+            },
+            order_index: currentAnswers.length + 1,
+          };
+    form.setValue("answers", [...currentAnswers, newAnswer]);
+
+    const currentConfig = form.getValues("answer_config");
+    if (questionType === "single_choice" && isSingleChoiceConfig(currentConfig)) {
+      form.setValue("answer_config.options_count", currentAnswers.length + 1);
+    } else if (questionType === "multiple_select" && isMultipleSelectConfig(currentConfig)) {
+      form.setValue("answer_config.options_count", currentAnswers.length + 1);
+    } else if (questionType === "ordering" && isOrderingConfig(currentConfig)) {
+      form.setValue("answer_config.items_count", currentAnswers.length + 1);
+      const newCorrect = [...currentConfig.correct, { id: newAnswer.id, order: currentAnswers.length + 1 }];
+      form.setValue("answer_config.correct", newCorrect);
+    } else if (questionType === "matching" && isMatchingConfig(currentConfig)) {
+      form.setValue("answer_config.pairs", [
+        ...currentConfig.pairs,
+        { left: "", right: "" },
+      ]);
+      form.setValue("answer_config.correct", [
+        ...currentConfig.correct,
+        { left: "", right: "" },
+      ]);
+    }
   };
 
   const removeOption = (index: number) => {
-    const currentOptions = form.getValues("options");
-    if (currentOptions.length > 2) {
-      const newOptions = currentOptions.filter((_, i) => i !== index);
-      form.setValue("options", newOptions);
-      const correctAnswers = form.getValues("correctAnswers");
-      const newCorrectAnswers = correctAnswers
-        .filter((answer) => answer !== index)
-        .map((answer) => (answer > index ? answer - 1 : answer));
-      form.setValue("correctAnswers", newCorrectAnswers);
+    const currentAnswers = form.getValues("answers");
+    if (currentAnswers.length <= 2) {
+      toast.error(`Cần ít nhất 2 ${questionType === "ordering" ? "mục" : questionType === "matching" ? "cặp ghép" : "phương án"}`);
+      return;
+    }
+    const removedAnswer = currentAnswers[index];
+    const newAnswers = currentAnswers
+      .filter((_, i) => i !== index)
+      .map((answer, i) => ({
+        ...answer,
+        order_index: i + 1,
+        content:
+          questionType === "matching"
+            ? { left: (answer.content as { left: string; right: string }).left, right: (answer.content as { left: string; right: string }).right }
+            : {
+                text: (answer.content as { text: string; value?: string }).text,
+                value: questionType === "single_choice" || questionType === "multiple_select" || questionType === "drag_drop" ? String.fromCharCode(65 + i) : (answer.content as { text: string; value?: string }).value,
+              },
+      }));
+    form.setValue("answers", newAnswers);
+
+    const currentConfig = form.getValues("answer_config");
+    if (questionType === "single_choice" && isSingleChoiceConfig(currentConfig)) {
+      form.setValue("answer_config.options_count", newAnswers.length);
+      if (currentConfig.correct === ("value" in removedAnswer.content ? removedAnswer.content.value : "text" in removedAnswer.content && removedAnswer.content.text)) {
+        form.setValue("answer_config.correct", "");
+      }
+    } else if (questionType === "multiple_select" && isMultipleSelectConfig(currentConfig)) {
+      form.setValue("answer_config.options_count", newAnswers.length);
+      form.setValue("answer_config.correct", currentConfig.correct.filter((c) => c !== ("value" in removedAnswer.content ? removedAnswer.content.value : "text" in removedAnswer.content && removedAnswer.content.text)));
+    } else if (questionType === "ordering" && isOrderingConfig(currentConfig)) {
+      form.setValue("answer_config.items_count", newAnswers.length);
+      form.setValue("answer_config.correct", newAnswers.map((a, i) => ({ id: a.id, order: i + 1 })));
+    } else if (questionType === "matching" && isMatchingConfig(currentConfig)) {
+      const newPairs = currentConfig.pairs.filter((_, i) => i !== index);
+      const newCorrect = currentConfig.correct.filter((_, i) => i !== index);
+      form.setValue("answer_config.pairs", newPairs);
+      form.setValue("answer_config.correct", newCorrect);
+    } else if (questionType === "drag_drop" && isDragDropConfig(currentConfig)) {
+      form.setValue("answer_config.correct", currentConfig.correct.filter((c) => c.id !== removedAnswer.id));
     }
   };
 
-  const updateOption = (index: number, value: string) => {
-    const currentOptions = form.getValues("options");
-    const newOptions = [...currentOptions];
-    newOptions[index] = value;
-    form.setValue("options", newOptions);
+  const updateOption = (index: number, text: string, value?: string) => {
+    const currentAnswers = form.getValues("answers");
+    const newAnswers = [...currentAnswers];
+    newAnswers[index] = {
+      ...newAnswers[index],
+      content: {
+        text,
+        value: value || (questionType === "single_choice" || questionType === "multiple_select" || questionType === "drag_drop" ? String.fromCharCode(65 + index) : text),
+      },
+    };
+    form.setValue("answers", newAnswers);
+
+    if (questionType === "drag_drop" && isDragDropConfig(form.getValues("answer_config"))) {
+      const currentConfig = form.getValues("answer_config");
+      const newCorrect = currentConfig.correct.map((c) =>
+        c.id === newAnswers[index].id ? { ...c, value: "text" in newAnswers[index].content ? newAnswers[index].content.text : "" } : c
+      );
+      form.setValue("answer_config.correct", newCorrect);
+    }
   };
 
   const toggleCorrectAnswer = (index: number) => {
-    const correctAnswers = form.getValues("correctAnswers");
-    const questionTypeId = form.getValues("type_id");
-    const selectedType = questionTypes?.data.find((type) => type.id === questionTypeId);
-
-    if (selectedType?.code === "single_choice") {
-      form.setValue("correctAnswers", [index]);
-    } else {
-      const newCorrectAnswers = correctAnswers.includes(index)
-        ? correctAnswers.filter((answer) => answer !== index)
-        : [...correctAnswers, index];
-      form.setValue("correctAnswers", newCorrectAnswers);
+    const currentAnswers = form.getValues("answers");
+    const currentConfig = form.getValues("answer_config");
+    if (questionType === "single_choice" && isSingleChoiceConfig(currentConfig)) {
+      const value = "value" in currentAnswers[index].content ? currentAnswers[index].content.value || String.fromCharCode(65 + index) : "text" in currentAnswers[index].content && currentAnswers[index].content.text ? currentAnswers[index].content.text : "";
+      form.setValue("answer_config.correct", value);
+    } else if (questionType === "multiple_select" && isMultipleSelectConfig(currentConfig)) {
+      const value = "value" in currentAnswers[index].content ? currentAnswers[index].content.value || String.fromCharCode(65 + index) : "text" in currentAnswers[index].content && currentAnswers[index].content.text ? currentAnswers[index].content.text : "";
+      form.setValue(
+        "answer_config.correct",
+        currentConfig.correct.includes(value)
+          ? currentConfig.correct.filter((c) => c !== value)
+          : [...currentConfig.correct, value]
+      );
     }
+  };
+
+  const updateMatchContent = (index: number, left: string, right: string) => {
+    const currentAnswers = form.getValues("answers");
+    const newAnswers = [...currentAnswers];
+    newAnswers[index] = {
+      ...newAnswers[index],
+      content: { left, right },
+      order_index: index + 1,
+    };
+    form.setValue("answers", newAnswers);
+    const currentConfig = form.getValues("answer_config") as MatchingConfig;
+    const newPairs = [...currentConfig.pairs];
+    newPairs[index] = { left, right };
+    form.setValue("answer_config.pairs", newPairs);
+    form.setValue("answer_config.correct", newPairs);
   };
 
   const onSubmit = async (data: QuestionFormData) => {
     setIsLoadingSubmit(true);
-    if (editingQuestion === null) {
-      try {
-        const apiData = {
-          subject_id: data.subject_id,
-          type_id: data.type_id,
-          difficulty_level_id: data.difficulty_level_id,
-          content: data.content,
-          is_public: data.is_public,
-          explanation: data.explanation,
-          answers: data.options.map((content, index) => ({
-            content,
-            is_correct: data.correctAnswers.includes(index),
-            order_index: index,
-          })),
-        };
-        const response = await apiCreateQuestion(apiData);
-        if (response.status === 201) {
-          toast.success("Tạo câu hỏi thành công");
-          setIsDialogOpen(false);
-          refetchQuestionsPrivate?.();
-        } else {
-          toast.error("Tạo câu hỏi thất bại");
-        }
-      } catch (error) {
-        const axiosError = error as AxiosError<{ message: string, error: string }>;
-        const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
-        toast.error(errorMessage);
-      } finally {
-        setIsLoadingSubmit(false);
+    try {
+      if (questionType === "drag_drop" && isDragDropConfig(data.answer_config) && data.answers.length !== data.answer_config.correct.length) {
+        toast.error("Tất cả lựa chọn phải được gán vào vùng!");
+        return;
       }
+      const apiData = {
+        subject_id: data.subject_id,
+        type_id: data.type_id,
+        difficulty_level_id: data.difficulty_level_id,
+        content: data.content,
+        is_public: data.is_public,
+        explanation: data.explanation,
+        answer_config: data.answer_config,
+        answers: data.answers.map((answer) => ({
+          content: answer.content,
+          order_index: answer.order_index,
+        })),
+      };
+      console.log("API Data:", apiData);
+      // const response = await apiCreateQuestion(apiData);
+      // if (response.status === 201) {
+      //   toast.success("Tạo câu hỏi thành công");
+      //   setIsDialogOpen(false);
+      //   refetchQuestionsPrivate?.();
+      //   form.reset();
+      // } else {
+      //   toast.error("Tạo câu hỏi thất bại");
+      // }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingSubmit(false);
     }
   };
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={(open) => {
       setIsDialogOpen(open);
+      if (!open) {
+        form.reset();
+        setEditingQuestion?.(null);
+      }
     }}>
       <DialogTrigger>
         <Button
@@ -285,7 +547,13 @@ const QuestionFormDialog = ({
                   <FormItem>
                     <FormLabel>Loại câu hỏi</FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingQuestionTypes}>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                        }}
+                        value={field.value}
+                        disabled={isLoadingQuestionTypes}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder={isLoadingQuestionTypes ? "Đang tải loại câu hỏi..." : "Chọn loại câu hỏi"} />
                         </SelectTrigger>
@@ -342,7 +610,6 @@ const QuestionFormDialog = ({
               />
             </div>
 
-            {/* Dạng câu hỏi */}
             {questionType === "single_choice" && (
               <SingleChoiceForm
                 form={form}
@@ -352,7 +619,7 @@ const QuestionFormDialog = ({
                 toggleCorrectAnswer={toggleCorrectAnswer}
               />
             )}
-            {questionType === "multiple_choice" && (
+            {questionType === "multiple_select" && (
               <MultipleChoiceForm
                 form={form}
                 addOption={addOption}
@@ -361,14 +628,36 @@ const QuestionFormDialog = ({
                 toggleCorrectAnswer={toggleCorrectAnswer}
               />
             )}
-
             {questionType === "matching" && (
-              <MatchingForm form={form} />
+              <MatchingForm
+                form={form}
+                addOption={addOption}
+                removeOption={removeOption}
+                updateMatchContent={updateMatchContent}
+              />
             )}
-
             {questionType === "ordering" && (
-              <OrderingForm form={form} />
+              <OrderingForm
+                form={form}
+                addOption={addOption}
+                removeOption={removeOption}
+              />
             )}
+            {questionType === "drag_drop" && (
+              <DrapDropForm
+                addOption={addOption}
+                removeOption={removeOption}
+                updateOption={updateOption}
+              />
+            )}
+            {/* {questionType === "video_popup" && (
+              <VideoPopupForm
+                form={form}
+                addOption={addOption}
+                removeOption={removeOption}
+                updateOption={updateOption}
+              />
+            )} */}
 
             <div className="space-y-2">
               <FormLabel>Giải thích (tùy chọn)</FormLabel>
@@ -405,10 +694,15 @@ const QuestionFormDialog = ({
             </div>
 
             <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => {
-                form.reset();
-                setIsDialogOpen(false);
-              }}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset();
+                  setIsDialogOpen(false);
+                  setEditingQuestion?.(null);
+                }}
+              >
                 Hủy
               </Button>
               <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoadingSubmit}>

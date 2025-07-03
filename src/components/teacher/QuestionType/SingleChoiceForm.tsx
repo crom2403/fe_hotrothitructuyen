@@ -2,37 +2,36 @@ import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import type { QuestionFormData } from "@/types/questionType";
+import type { QuestionFormData, AnswerItem } from "@/types/questionFormTypes";
 import { Plus, Trash2 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { useWatch } from "react-hook-form";
 
-interface SingleChoiceFormProps {
+export interface SingleChoiceFormProps {
   form: UseFormReturn<QuestionFormData>;
   addOption: () => void;
   removeOption: (index: number) => void;
-  updateOption: (index: number, value: string) => void;
+  updateOption: (index: number, text: string, value?: string) => void;
   toggleCorrectAnswer: (index: number) => void;
 }
 
-export function SingleChoiceForm({
+const SingleChoiceForm = ({
   form,
   addOption,
   removeOption,
   updateOption,
   toggleCorrectAnswer,
-}: SingleChoiceFormProps) {
-
-  const correctAnswers = useWatch({
+}: SingleChoiceFormProps) => {
+  const answers = useWatch({
     control: form.control,
-    name: "correctAnswers",
+    name: "answers",
     defaultValue: [],
   });
 
-  const options = useWatch({
+  const correctAnswer = useWatch({
     control: form.control,
-    name: "options",
-    defaultValue: [],
+    name: "answer_config.correct",
+    defaultValue: "",
   });
 
   return (
@@ -43,8 +42,10 @@ export function SingleChoiceForm({
           type="button"
           variant="outline"
           size="sm"
-          onClick={addOption}
-          disabled={options.length >= 4}
+          onClick={() => {
+            addOption();
+          }}
+          disabled={answers.length >= 4}
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm phương án
@@ -53,50 +54,47 @@ export function SingleChoiceForm({
 
       <FormField
         control={form.control}
-        name="options"
+        name="answers"
         render={({ field }) => (
           <FormItem>
             <div className="space-y-3">
-              {field.value.map((option: string, index: number) => (
-                <div key={index} className="flex items-center gap-3">
-                  <FormField
-                    control={form.control}
-                    name="correctAnswers"
-                    render={() => (
-                      <FormControl>
-                        <RadioGroup
-                          value={correctAnswers[0]?.toString() || ""} // Controlled component
-                          onValueChange={(value) => {
-                            const newIndex = Number.parseInt(value);
-                            if (!isNaN(newIndex)) {
-                              form.setValue("correctAnswers", [newIndex]); // Cập nhật trực tiếp qua form
-                              toggleCorrectAnswer(newIndex); // Gọi hàm toggle để đồng bộ
-                            }
-                          }}
-                          className="space-y-2"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem
-                              value={index.toString()}
-                              id={`option-${index}`}
-                              className="border-gray-700"
-                            />
-                            <label htmlFor={`option-${index}`}></label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                    )}
-                  />
+              {field.value.map((answer: AnswerItem, index: number) => (
+                <div key={answer.id} className="flex items-center gap-3">
+                  <FormControl>
+                    <RadioGroup
+                      value={correctAnswer as string}
+                      onValueChange={() => toggleCorrectAnswer(index)}
+                      className="space-y-2"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem
+                          value={("value" in answer.content && answer.content.value) || String.fromCharCode(65 + index)}
+                          id={`answer-${answer.id}`}
+                          className="border-gray-700"
+                        />
+                        <label htmlFor={`answer-${answer.id}`}>
+                          {("value" in answer.content && answer.content.value) || String.fromCharCode(65 + index)}
+                        </label>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
                   <FormControl>
                     <Input
-                      value={option}
-                      onChange={(e) => updateOption(index, e.target.value)}
-                      placeholder={`Phương án ${index + 1}`}
+                      value={("text" in answer.content && answer.content.text) || ""}
+                      onChange={(e) => updateOption(index, e.target.value, String.fromCharCode(65 + index))}
+                      placeholder={`Phương án ${String.fromCharCode(65 + index)}`}
                       className="flex-1"
                     />
                   </FormControl>
                   {field.value.length > 2 && (
-                    <Button type="button" variant="outline" size="sm" onClick={() => removeOption(index)}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        removeOption(index);
+                      }}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
@@ -110,7 +108,7 @@ export function SingleChoiceForm({
 
       <FormField
         control={form.control}
-        name="correctAnswers"
+        name="answer_config.correct"
         render={() => (
           <FormItem>
             <FormMessage />
@@ -120,3 +118,5 @@ export function SingleChoiceForm({
     </div>
   );
 }
+
+export default SingleChoiceForm;

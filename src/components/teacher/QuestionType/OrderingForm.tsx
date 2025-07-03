@@ -1,13 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
-import { useFieldArray, useWatch } from "react-hook-form";
+import { useFieldArray } from "react-hook-form";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { QuestionFormData } from "@/types/questionType";
+import type { QuestionFormData } from "@/types/questionFormTypes";
 import type { UseFormReturn } from "react-hook-form";
+
+interface OrderingFormProps { 
+  form: UseFormReturn<QuestionFormData>;
+  addOption: () => void;
+  removeOption: (index: number) => void;
+}
+
+const MAX_ITEMS = 7;
 
 const SortableItem = ({ id, index, field, remove }: any) => {
   const { setNodeRef, attributes, listeners, transform, transition } = useSortable({ id });
@@ -20,18 +28,25 @@ const SortableItem = ({ id, index, field, remove }: any) => {
     <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 border rounded bg-white hover:bg-gray-50">
       <GripVertical className="h-4 w-4 text-gray-400 cursor-grab" {...attributes} {...listeners} />
       <span className="text-xs text-gray-500">{index + 1}</span>
-      <Input className="flex-1" {...field} placeholder={`Mục ${index + 1}`} />
-      <Button variant="ghost" size="icon" onClick={() => remove(index)}>
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      <Input
+        className="flex-1"
+        value={field.value}
+        onChange={field.onChange}
+        placeholder={`Mục ${index + 1}`}
+      />
+      {index >= 2 && (
+        <Button variant="ghost" size="icon" onClick={() => remove(index)}>
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 };
 
-export function OrderingForm({ form }: { form: UseFormReturn<QuestionFormData> }) {
-  const { fields, append, remove, move } = useFieldArray({
+const OrderingForm = ({ form, addOption, removeOption }: OrderingFormProps) => {
+  const { fields, move } = useFieldArray({
     control: form.control,
-    name: "orderingItems",
+    name: "answers",
   });
 
   const sensors = useSensors(useSensor(PointerSensor));
@@ -42,12 +57,23 @@ export function OrderingForm({ form }: { form: UseFormReturn<QuestionFormData> }
       const oldIndex = fields.findIndex((f) => f.id === active.id);
       const newIndex = fields.findIndex((f) => f.id === over.id);
       move(oldIndex, newIndex);
-      // Cập nhật order cho tất cả items
-      const updatedItems = fields.map((item, idx) => ({
+
+      // Cập nhật answers với order_index mới
+      const updatedAnswers = form.getValues("answers").map((item, idx) => ({
         ...item,
-        order: idx,
+        order_index: idx + 1,
       }));
-      form.setValue("orderingItems", updatedItems);
+      form.setValue("answers", updatedAnswers);
+
+      // Cập nhật answer_config.correct
+      form.setValue("answer_config", {
+        kind: "ordering",
+        items_count: updatedAnswers.length,
+        correct: updatedAnswers.map((item, idx) => ({
+          id: item.id,
+          order: idx + 1,
+        })),
+      });
     }
   };
 
@@ -59,8 +85,10 @@ export function OrderingForm({ form }: { form: UseFormReturn<QuestionFormData> }
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => append({ id: crypto.randomUUID(), content: "", order: fields.length })}
-          disabled={fields.length >= 7}
+          onClick={() => {
+            addOption();
+          }}
+          disabled={fields.length >= MAX_ITEMS}
         >
           <Plus className="mr-2 h-4 w-4" /> Thêm mục
         </Button>
@@ -73,10 +101,10 @@ export function OrderingForm({ form }: { form: UseFormReturn<QuestionFormData> }
               <FormField
                 key={field.id}
                 control={form.control}
-                name={`orderingItems.${index}.content`} // Sửa cú pháp name
+                name={`answers.${index}.content.text`}
                 render={({ field: itemField }) => (
                   <FormItem>
-                    <SortableItem id={field.id} index={index} field={itemField} remove={remove} />
+                    <SortableItem id={field.id} index={index} field={itemField} remove={removeOption} />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -88,7 +116,16 @@ export function OrderingForm({ form }: { form: UseFormReturn<QuestionFormData> }
 
       <FormField
         control={form.control}
-        name="orderingItems"
+        name="answers"
+        render={() => (
+          <FormItem>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="answer_config.correct"
         render={() => (
           <FormItem>
             <FormMessage />
@@ -98,3 +135,5 @@ export function OrderingForm({ form }: { form: UseFormReturn<QuestionFormData> }
     </div>
   );
 }
+
+export default OrderingForm;
