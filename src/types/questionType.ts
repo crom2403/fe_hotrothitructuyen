@@ -1,4 +1,3 @@
-
 export interface QuestionRequest {
   id: string;
   content: string;
@@ -25,7 +24,6 @@ export interface QuestionRequest {
 //   drag_drop_zone?: string | null;
 // }
 
-
 export interface QuestionItem {
   id: string;
   content: string;
@@ -50,7 +48,6 @@ export interface QuestionItem {
   };
   answers: Answer[];
 }
-
 
 export interface QuestionType {
   id: string;
@@ -126,7 +123,7 @@ export interface QuestionItem {
   id: string;
   content: string;
   created_at: string;
-  review_status: "pending" | "approved" | "rejected";
+  review_status: 'pending' | 'approved' | 'rejected';
   is_public: boolean;
   subject: {
     id: string;
@@ -164,16 +161,16 @@ export type OrderingItem = {
   order: number;
 };
 
-export type QuestionFormData = {
-  content: string;
-  type_id: string;
-  subject_id: string;
-  difficulty_level_id: string;
-  options: string[];
-  correctAnswers: number[];
-  explanation?: string;
-  is_public?: boolean;
-  leftColumn?: string[];
-  rightColumn?: string[];
-  orderingItems?: OrderingItem[];
-};
+// export type QuestionFormData = {
+//   content: string;
+//   type_id: string;
+//   subject_id: string;
+//   difficulty_level_id: string;
+//   options: string[];
+//   correctAnswers: number[];
+//   explanation?: string;
+//   is_public?: boolean;
+//   leftColumn?: string[];
+//   rightColumn?: string[];
+//   orderingItems?: OrderingItem[];
+// };

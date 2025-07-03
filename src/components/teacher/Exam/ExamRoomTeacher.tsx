@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,10 +8,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Search, Users, UserCheck, UserX, Clock, CheckCircle, AlertTriangle, Eye, Filter, BarChart3, RefreshCw, Maximize2, Monitor, BookOpen, GraduationCap, Laptop } from 'lucide-react';
+import { Search, Users, UserCheck, UserX, Clock, CheckCircle, AlertTriangle, Filter, BarChart3, RefreshCw, Maximize2, Monitor, GraduationCap } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
-// import { MatrixStudent } from '@/components/teacher/Exam/MatrixStudent';
 import { FlipReveal, FlipRevealItem } from '@/components/ui/flip-reveal';
+import path from '@/utils/path';
 
 export interface Student {
   studentId: string;
@@ -46,7 +45,7 @@ export default function ExamRoomTeacher({ examId, studyGroupId }: { examId: stri
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   useEffect(() => {
-    const socketInstance = io('http://localhost:3000/events', {
+    const socketInstance = io(path.SOCKET_URL, {
       withCredentials: true,
     });
 
