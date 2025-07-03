@@ -33,6 +33,7 @@ import { apiGenerateQuestion } from '@/services/admin/question';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import IconAI from '../../../public/gifs/turing-test.gif';
 import { Label } from '@/components/ui/label';
+import useAppStore from '@/stores/appStore';
 
 interface QuestionFormDialogProps {
   isDialogOpen: boolean;
@@ -42,11 +43,8 @@ interface QuestionFormDialogProps {
   refetchQuestionsPrivate?: () => void;
 }
 
-let questionTypes: QuestionTypeResponse | undefined;
-
 const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, setEditingQuestion, refetchQuestionsPrivate }: QuestionFormDialogProps) => {
-  const { data: fetchedQuestionTypes, isLoading: isLoadingQuestionTypes, refetch: refetchQuestionTypes } = useApiCall<QuestionTypeResponse>(() => apiGetQuestionTypes());
-  const { data: difficultyLevels, isLoading: isLoadingDifficultyLevels, refetch: refetchDifficultyLevels } = useApiCall<{ data: DifficultyLevel[] }>(() => apiGetDifficultyLevels());
+  const { questionTypes, difficultyLevels } = useAppStore();
   const [open, setOpen] = useState(false);
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const { currentUser } = useAuthStore();
@@ -55,10 +53,8 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
   const [isLoadingGenerateQuestion, setIsLoadingGenerateQuestion] = useState(false);
   const [contentGenerateQuestion, setContentGenerateQuestion] = useState<string>('');
 
-  questionTypes = fetchedQuestionTypes || undefined;
-
   const form = useForm<QuestionFormData>({
-    resolver: zodResolver(createQuestionSchema(questionTypes)),
+    resolver: zodResolver(createQuestionSchema(questionTypes as unknown as QuestionTypeResponse)),
     defaultValues: {
       content: '',
       type_id: '',
@@ -86,13 +82,11 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
   };
 
   useEffect(() => {
-    refetchQuestionTypes();
-    refetchDifficultyLevels();
     handleGetAssignedSubjects();
   }, []);
 
   const typeId = form.watch('type_id');
-  const questionType = questionTypes?.data.find((type) => type.id === typeId)?.code || '';
+  const questionType = questionTypes.find((type) => type.id === typeId)?.code || '';
 
   useEffect(() => {
     if (!questionType) return;
@@ -487,7 +481,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
     const formValues = form.getValues();
     console.log('formValues', formValues);
     const subject_name: string = assignedSubjects.find((e) => e.subject.id === formValues.subject_id)?.subject.name || '';
-    const difficultyLevel: any = difficultyLevels?.data.find((e) => e.id === form.getValues('difficulty_level_id'));
+    const difficultyLevel: any = difficultyLevels.find((e) => e.id === form.getValues('difficulty_level_id'));
 
     try {
       const res: any = await apiGenerateQuestion({
@@ -617,13 +611,12 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                           field.onChange(value);
                         }}
                         value={field.value}
-                        disabled={isLoadingQuestionTypes}
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder={isLoadingQuestionTypes ? 'Đang tải loại câu hỏi...' : 'Chọn loại câu hỏi'} />
+                          <SelectValue placeholder="Chọn loại câu hỏi" />
                         </SelectTrigger>
                         <SelectContent>
-                          {questionTypes?.data.map((type) => (
+                          {questionTypes.map((type) => (
                             <SelectItem key={type.id} value={type.id}>
                               {type.name}
                             </SelectItem>
@@ -642,12 +635,12 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                   <FormItem>
                     <FormLabel>Độ khó</FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingDifficultyLevels}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder={isLoadingDifficultyLevels ? 'Đang tải độ khó...' : 'Chọn độ khó'} />
+                          <SelectValue placeholder="Chọn độ khó" />
                         </SelectTrigger>
                         <SelectContent>
-                          {difficultyLevels?.data.map((difficulty) => (
+                          {difficultyLevels.map((difficulty) => (
                             <SelectItem key={difficulty.id} value={difficulty.id}>
                               {difficulty.name}
                             </SelectItem>
