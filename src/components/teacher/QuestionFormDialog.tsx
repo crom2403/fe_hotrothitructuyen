@@ -115,8 +115,14 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
       case 'matching':
         newConfig = {
           kind: 'matching',
-          pairs: [{ left: '', right: '' }, { left: '', right: '' }],
-          correct: [{ left: '', right: '' }, { left: '', right: '' }],
+          pairs: [
+            { left: '', right: '' },
+            { left: '', right: '' },
+          ],
+          correct: [
+            { left: '', right: '' },
+            { left: '', right: '' },
+          ],
         };
         newAnswers = [
           { id: uuidv4(), content: { left: '', right: '' }, order_index: 1 },
@@ -127,7 +133,10 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
         newConfig = {
           kind: 'ordering',
           items_count: 2,
-          correct: [{ id: uuidv4(), order: 1 }, { id: uuidv4(), order: 2 }],
+          correct: [
+            { id: uuidv4(), order: 1 },
+            { id: uuidv4(), order: 2 },
+          ],
         };
         newAnswers = [
           { id: newConfig.correct[0].id, content: { text: '' }, order_index: 1 },
@@ -158,9 +167,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
             id: uuidv4(),
             content: {
               text: '',
-              value: ['single_choice', 'multiple_select', 'drag_drop'].includes(questionType)
-                ? String.fromCharCode(65 + currentAnswers.length)
-                : '',
+              value: ['single_choice', 'multiple_select', 'drag_drop'].includes(questionType) ? String.fromCharCode(65 + currentAnswers.length) : '',
             },
             order_index: currentAnswers.length + 1,
           };
@@ -198,9 +205,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
             ? { left: (answer.content as { left: string; right: string }).left, right: (answer.content as { left: string; right: string }).right }
             : {
                 text: (answer.content as { text: string; value?: string }).text,
-                value: ['single_choice', 'multiple_select', 'drag_drop'].includes(questionType)
-                  ? String.fromCharCode(65 + i)
-                  : (answer.content as { text: string; value?: string }).value,
+                value: ['single_choice', 'multiple_select', 'drag_drop'].includes(questionType) ? String.fromCharCode(65 + i) : (answer.content as { text: string; value?: string }).value,
               },
       }));
     form.setValue('answers', newAnswers);
@@ -219,7 +224,10 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
       );
     } else if (questionType === 'ordering' && isOrderingConfig(currentConfig)) {
       form.setValue('answer_config.items_count', newAnswers.length);
-      form.setValue('answer_config.correct', newAnswers.map((a, i) => ({ id: a.id, order: i + 1 })));
+      form.setValue(
+        'answer_config.correct',
+        newAnswers.map((a, i) => ({ id: a.id, order: i + 1 })),
+      );
     } else if (questionType === 'matching' && isMatchingConfig(currentConfig)) {
       const newPairs = currentConfig.pairs.filter((_, i) => i !== index);
       const newCorrect = currentConfig.correct.filter((_, i) => i !== index);
@@ -247,9 +255,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
 
     if (questionType === 'drag_drop' && isDragDropConfig(form.getValues('answer_config'))) {
       const currentConfig = form.getValues('answer_config');
-      const newCorrect = (currentConfig as DragDropConfig).correct.map((c: any) =>
-        c.id === newAnswers[index].id ? { ...c, value: text } : c,
-      );
+      const newCorrect = (currentConfig as DragDropConfig).correct.map((c: any) => (c.id === newAnswers[index].id ? { ...c, value: text } : c));
       form.setValue('answer_config.correct', newCorrect);
     }
   };
@@ -258,7 +264,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
     const currentAnswers = form.getValues('answers');
     const currentConfig = form.getValues('answer_config');
     const answer = currentAnswers[index];
-    const value = answer.content.value || answer.content.text || String.fromCharCode(65 + index);
+    const value = (answer.content as { value?: string; text?: string }).value || (answer.content as { value?: string; text?: string }).text || String.fromCharCode(65 + index);
 
     if (questionType === 'single_choice' && isSingleChoiceConfig(currentConfig)) {
       form.setValue('answer_config.correct', value);
@@ -394,9 +400,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           <div className="flex justify-between">
             <div>
               <DialogTitle>{editingQuestion ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
-              <DialogDescription>
-                {editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 04/07/2025, 03:34 PM)'}
-              </DialogDescription>
+              <DialogDescription>{editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 04/07/2025, 03:34 PM)'}</DialogDescription>
             </div>
             <div>
               {form.getValues('subject_id') && questionType === 'single_choice' && (
@@ -407,14 +411,8 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                   <PopoverContent className="" side="left">
                     <div className="flex flex-col gap-4">
                       <Label>Tạo câu hỏi với AI</Label>
-                      <Textarea
-                        rows={4}
-                        placeholder="Nhập nội dung câu hỏi mẫu..."
-                        onChange={(e) => setContentGenerateQuestion(e.target.value)}
-                      />
-                      <Button onClick={handleGenerateQuestionByAI}>
-                        {isLoadingGenerateQuestion ? 'Đang tạo...' : 'Gửi yêu cầu'}
-                      </Button>
+                      <Textarea rows={4} placeholder="Nhập nội dung câu hỏi mẫu..." onChange={(e) => setContentGenerateQuestion(e.target.value)} />
+                      <Button onClick={handleGenerateQuestionByAI}>{isLoadingGenerateQuestion ? 'Đang tạo...' : 'Gửi yêu cầu'}</Button>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -432,15 +430,9 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                   <FormItem>
                     <FormLabel>Môn học</FormLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        disabled={isLoadingAssignedSubjects}
-                      >
+                      <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingAssignedSubjects}>
                         <SelectTrigger className="w-full">
-                          <SelectValue
-                            placeholder={isLoadingAssignedSubjects ? 'Đang tải môn học...' : 'Chọn môn học'}
-                          />
+                          <SelectValue placeholder={isLoadingAssignedSubjects ? 'Đang tải môn học...' : 'Chọn môn học'} />
                         </SelectTrigger>
                         <SelectContent>
                           {assignedSubjects.map((subject) => (
@@ -507,56 +499,18 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
               />
             </div>
             <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <QuillEditor
-                    form={form}
-                    name="content"
-                    label="Nội dung câu hỏi"
-                    placeholder="Nhập nội dung câu hỏi..."
-                  />
-                )}
-              />
+              <FormField control={form.control} name="content" render={({ field }) => <QuillEditor form={form} name="content" label="Nội dung câu hỏi" placeholder="Nhập nội dung câu hỏi..." />} />
             </div>
 
             {questionType === 'single_choice' && (
-              <SingleChoiceForm
-                form={form}
-                addOption={addOption}
-                removeOption={removeOption}
-                updateOption={updateOption}
-                toggleCorrectAnswer={toggleCorrectAnswer}
-              />
+              <SingleChoiceForm form={form} addOption={addOption} removeOption={removeOption} updateOption={updateOption} toggleCorrectAnswer={toggleCorrectAnswer} />
             )}
             {questionType === 'multiple_select' && (
-              <MultipleChoiceForm
-                form={form}
-                addOption={addOption}
-                removeOption={removeOption}
-                updateOption={updateOption}
-                toggleCorrectAnswer={toggleCorrectAnswer}
-              />
+              <MultipleChoiceForm form={form} addOption={addOption} removeOption={removeOption} updateOption={updateOption} toggleCorrectAnswer={toggleCorrectAnswer} />
             )}
-            {questionType === 'matching' && (
-              <MatchingForm
-                form={form}
-                addOption={addOption}
-                removeOption={removeOption}
-                updateMatchContent={updateMatchContent}
-              />
-            )}
-            {questionType === 'ordering' && (
-              <OrderingForm form={form} addOption={addOption} removeOption={removeOption} />
-            )}
-            {questionType === 'drag_drop' && (
-              <DragDropForm
-                addOption={addOption}
-                removeOption={removeOption}
-                updateOption={updateOption}
-              />
-            )}
+            {questionType === 'matching' && <MatchingForm form={form} addOption={addOption} removeOption={removeOption} updateMatchContent={updateMatchContent} />}
+            {questionType === 'ordering' && <OrderingForm form={form} addOption={addOption} removeOption={removeOption} />}
+            {questionType === 'drag_drop' && <DragDropForm addOption={addOption} removeOption={removeOption} updateOption={updateOption} />}
             {questionType === 'video_popup' && <VideoPopupForm form={form} updateOption={updateOption} />}
 
             <div className="space-y-2">
@@ -567,12 +521,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                   <FormItem>
                     <FormLabel>Giải thích</FormLabel>
                     <FormControl>
-                      <Textarea
-                        id="explanation"
-                        rows={2}
-                        {...field}
-                        placeholder="Giải thích đáp án đúng..."
-                      />
+                      <Textarea id="explanation" rows={2} {...field} placeholder="Giải thích đáp án đúng..." />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -590,17 +539,9 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                       <div className="flex items-center gap-2 justify-between">
                         <div className="flex items-center gap-2">
                           <FormLabel className="text-md font-medium">Lưu vào ngân hàng câu hỏi?</FormLabel>
-                          <InfoPopup
-                            text="Khi lưu vào ngân hàng câu hỏi cần phải qua sự kiểm duyệt của quản trị viên"
-                            open={open}
-                            setOpen={setOpen}
-                          />
+                          <InfoPopup text="Khi lưu vào ngân hàng câu hỏi cần phải qua sự kiểm duyệt của quản trị viên" open={open} setOpen={setOpen} />
                         </div>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          className="data-[state=unchecked]:bg-gray-300 cursor-pointer"
-                        />
+                        <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=unchecked]:bg-gray-300 cursor-pointer" />
                       </div>
                     </FormControl>
                   </FormItem>
