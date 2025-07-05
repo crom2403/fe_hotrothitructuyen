@@ -77,9 +77,12 @@ const PermissionRole = () => {
     <div>
       <Card>
         <Select value={selectedRole?.id || ''} onValueChange={(value) => setSelectedRole(roles.find((role) => role.id === value) || null)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Chọn vai trò" />
-          </SelectTrigger>
+          <div className="flex items-center justify-between px-6">
+            <h1 className="text-2xl font-bold">Phân quyền vai trò</h1>
+            <SelectTrigger>
+              <SelectValue placeholder="Chọn vai trò" />
+            </SelectTrigger>
+          </div>
           <SelectContent>
             {roles.map((role) => (
               <SelectItem key={role.id} value={role.id}>

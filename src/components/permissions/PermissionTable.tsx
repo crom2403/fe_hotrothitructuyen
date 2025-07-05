@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { IPermission } from '@/types/permissionType';
+import { SelectTrigger } from '@/components/ui/select';
 
 interface PermissionTableProps {
   permissions: IPermission[];
@@ -80,7 +81,6 @@ const PermissionTable: React.FC<PermissionTableProps> = ({ permissions, handleCh
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Ma Trận Phân Quyền</h1>
       <Table>
         <TableHeader>
           <TableRow>
