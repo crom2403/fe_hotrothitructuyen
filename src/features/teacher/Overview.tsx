@@ -7,13 +7,18 @@ import { apiGetDifficultyLevels, apiGetQuestionTypes } from '@/services/teacher/
 import { BarChart3, Clock, Eye, FileText, Plus, Users } from 'lucide-react';
 import { useEffect } from 'react';
 import useAppStore from '@/stores/appStore';
+import { apiGetAcademicYears } from '@/services/admin/yearSemester';
 
 const Overview = () => {
-  const { setQuestionTypes, setDifficultyLevels, setSubjects } = useAppStore();
+  const { setQuestionTypes, setDifficultyLevels, setSubjects, setAcademicYears } = useAppStore();
   const handleGetDefaultData = async () => {
-    const [resType, resDifficultyLevel, resSubject] = await Promise.all([apiGetQuestionTypes(), apiGetDifficultyLevels(), apiGetSubjects(1, '', '', 10)]);
+    const [resType, resDifficultyLevel, resSubject, resAcademicYear] = await Promise.all([
+      apiGetQuestionTypes(), 
+      apiGetDifficultyLevels(),
+      apiGetSubjects(1, '', '', 100), 
+      apiGetAcademicYears()]);
 
-    console.log(resType, resDifficultyLevel, resSubject);
+    console.log(resType, resDifficultyLevel, resSubject, resAcademicYear);
     if (resType.status === 200) {
       setQuestionTypes(resType.data.data);
     }
@@ -22,6 +27,9 @@ const Overview = () => {
     }
     if (resSubject.status === 200) {
       setSubjects(resSubject.data.data);
+    }
+    if (resAcademicYear.status === 200) {
+      setAcademicYears(resAcademicYear.data.data);
     }
   };
 

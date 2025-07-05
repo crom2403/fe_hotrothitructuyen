@@ -3,6 +3,7 @@ import type { QuestionType } from '@/types/questionType';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Subject } from '@/types/subjectType';
+import type { Year } from '@/types/year_semesterType';
 
 interface AppStore {
   openSidebar: boolean;
@@ -13,6 +14,8 @@ interface AppStore {
   setDifficultyLevels: (difficultyLevels: DifficultyLevel[]) => void;
   subjects: Subject[];
   setSubjects: (subjects: Subject[]) => void;
+  academicYears: Year[];
+  setAcademicYears: (academicYears: Year[]) => void;
 }
 
 const useAppStore = create<AppStore>()(
@@ -36,9 +39,13 @@ const useAppStore = create<AppStore>()(
       setSubjects: (subjects: Subject[]) => {
         set({ subjects });
       },
+      academicYears: [],
+      setAcademicYears: (academicYears: Year[]) => {
+        set({ academicYears });
+      },
     }),
     {
-      name: 'app-storage', // Tên key trong localStorage
+      name: 'app-storage',
       storage: createJSONStorage(() =>
         typeof window !== 'undefined'
           ? localStorage
@@ -47,7 +54,7 @@ const useAppStore = create<AppStore>()(
               setItem: () => {},
               removeItem: () => {},
             },
-      ), // Lưu vào localStorage
+      ),
     },
   ),
 );

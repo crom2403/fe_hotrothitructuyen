@@ -21,7 +21,7 @@ export const answerContentSchema = z.union([
   }),
 ]);
 
-// Schema for AnswerItem (removed match_content)
+// Schema for AnswerItem
 export const answerItemSchema = z.object({
   id: z.string(),
   content: answerContentSchema,
@@ -114,7 +114,9 @@ export const createQuestionSchema = (questionTypes: QuestionTypeResponse | undef
     explanation: z.string().optional(),
     is_public: z.boolean().default(false),
   }).superRefine((data, ctx) => {
-    const questionTypeCode = questionTypes?.data.find((type) => type.id === data.type_id)?.code || "";
+    // Kiểm tra nếu questionTypes là undefined hoặc không có data
+    const questionTypesData = questionTypes?.data || [];
+    const questionTypeCode = questionTypesData.find((type) => type.id === data.type_id)?.code || "";
 
     // Validate answer content structure based on question type
     data.answers.forEach((answer, index) => {
@@ -146,7 +148,9 @@ export const createQuestionSchema = (questionTypes: QuestionTypeResponse | undef
           message: "Số lượng đáp án phải khớp với options_count",
         });
       }
-      const validValues = data.answers.map((a) => ("value" in a.content && a.content.value ? a.content.value : "text" in a.content && a.content.text ? a.content.text : ""));
+      const validValues = data.answers.map((a) =>
+        "value" in a.content && a.content.value ? a.content.value : "text" in a.content && a.content.text ? a.content.text : ""
+      );
       if (!validValues.includes(data.answer_config.correct)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -162,7 +166,9 @@ export const createQuestionSchema = (questionTypes: QuestionTypeResponse | undef
           message: "Số lượng đáp án phải khớp với options_count",
         });
       }
-      const validValues = data.answers.map((a) => ("value" in a.content && a.content.value ? a.content.value : "text" in a.content && a.content.text ? a.content.text : ""));
+      const validValues = data.answers.map((a) =>
+        "value" in a.content && a.content.value ? a.content.value : "text" in a.content && a.content.text ? a.content.text : ""
+      );
       if (!data.answer_config.correct.every((c) => validValues.includes(c))) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
