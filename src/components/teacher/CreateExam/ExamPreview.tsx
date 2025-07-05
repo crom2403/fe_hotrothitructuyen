@@ -65,7 +65,7 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Nhóm học</Label>
-                <p className="text-sm text-gray-900">{commonProps.study_group_name || tab1Data.study_group || "Chưa chọn"}</p>
+                <p className="text-sm text-gray-900">{commonProps.study_group_name || tab1Data.study_groups || "Chưa chọn"}</p>
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Thời gian</Label>
@@ -85,7 +85,7 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
               </div>
             </div>
             <Separator className="bg-gray-200" />
-            <div>
+            {/* <div>
               <Label className="text-sm font-medium text-gray-700">Danh sách câu hỏi</Label>
               <div className="mt-4 space-y-6 max-h-[500px] overflow-y-auto">
                 {selectedQuestions.map((question, index) => (
@@ -98,7 +98,7 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
                     <CardContent className="p-4">
                       <div className="space-y-2">
                         {question.answers?.map((option, optIndex) => {
-                          const isCorrect = option.is_correct;
+                          const isCorrect = option;
                           return (
                             <div
                               key={optIndex}
@@ -109,7 +109,7 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
                               <span className="font-medium text-gray-800">
                                 {String.fromCharCode(65 + optIndex)}.
                               </span>
-                              <span className="text-gray-700 flex-1">{option.content}</span>
+                              <span className="text-gray-700 flex-1">{option.content?.text || ""}</span>
                               {isCorrect && (
                                 <CheckCircle className="text-green-600 w-4 h-4" />
                               )}
@@ -124,7 +124,7 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
                   <p className="text-gray-500 text-center">Chưa có câu hỏi nào được chọn.</p>
                 )}
               </div>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </DialogContent>

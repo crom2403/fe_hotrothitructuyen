@@ -11,13 +11,13 @@ const MAX_ZONES = 10;
 const MIN_ANSWERS = 2;
 const MAX_ANSWERS = 20;
 
-interface DrapDropFormProps {
+interface DragDropFormProps {
   addOption: () => void;
   removeOption: (index: number) => void;
   updateOption: (index: number, text: string, value?: string) => void;
 }
 
-const DrapDropForm = ({ addOption, removeOption, updateOption }: DrapDropFormProps) => {
+const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormProps) => {
   const { control, setValue, formState: { errors } } = useFormContext<QuestionFormData>();
   const answers = useWatch({ control, name: "answers" }) || [];
   const zones = useWatch({ control, name: "answer_config.zones" }) || [];
@@ -250,4 +250,4 @@ const DrapDropForm = ({ addOption, removeOption, updateOption }: DrapDropFormPro
   );
 };
 
-export default DrapDropForm;
+export default DragDropForm;

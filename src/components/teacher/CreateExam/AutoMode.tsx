@@ -8,10 +8,9 @@ import { Loader2, Shuffle } from "lucide-react";
 interface AutoModeProps {
   examMode: string;
   isLoading: boolean;
-  generateAutoExam: () => void;
 }
 
-const AutoMode = ({ examMode, isLoading, generateAutoExam }: AutoModeProps) => {
+const AutoMode = ({ examMode, isLoading }: AutoModeProps) => {
   const { tab2Data, setDifficulty } = useExamStore();
 
   // Khởi tạo difficulty nếu undefined

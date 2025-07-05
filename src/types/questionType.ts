@@ -14,16 +14,6 @@ export interface QuestionRequest {
   is_public?: boolean;
 }
 
-// export interface Answer {
-//   id: string;
-//   content: string;
-//   is_correct: number;
-//   order_index: number;
-//   match_pair?: string | null;
-//   hotspot_coords?: string | null;
-//   drag_drop_zone?: string | null;
-// }
-
 export interface QuestionItem {
   id: string;
   content: string;
@@ -76,26 +66,6 @@ export interface QuestionType {
 export interface QuestionTypeResponse {
   data: QuestionType[];
 }
-
-// export type OrderingItem = {
-//   id: string;
-//   content: string;
-//   order: number;
-// };
-
-// export type QuestionFormData = {
-//   content: string;
-//   type_id: string;
-//   subject_id: string;
-//   difficulty_level_id: string;
-//   options: string[];
-//   correctAnswers: number[];
-//   explanation?: string;
-//   is_public?: boolean;
-//   leftColumn?: string[];
-//   rightColumn?: string[];
-//   orderingItems?: OrderingItem[];
-// };
 
 export interface AnswerConfig {
   correct?: string[] | { left: string; right: string }[];
@@ -160,17 +130,3 @@ export type OrderingItem = {
   content: string;
   order: number;
 };
-
-// export type QuestionFormData = {
-//   content: string;
-//   type_id: string;
-//   subject_id: string;
-//   difficulty_level_id: string;
-//   options: string[];
-//   correctAnswers: number[];
-//   explanation?: string;
-//   is_public?: boolean;
-//   leftColumn?: string[];
-//   rightColumn?: string[];
-//   orderingItems?: OrderingItem[];
-// };

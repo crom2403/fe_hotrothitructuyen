@@ -1,3 +1,4 @@
+import type { QuestionItem } from "@/types/questionType";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -39,6 +40,7 @@ export interface CommonProps {
   point_scale_name: string;
   subject_name: string;
   study_group_name: string;
+  list_questions: QuestionItem[];
 }
 
 interface ExamStore {
@@ -74,6 +76,7 @@ interface ExamStore {
   setPointScaleName: (name: string) => void;
   setSubjectName: (name: string) => void;
   setStudyGroupName: (name: string) => void;
+  setListQuestionsFull: (questions: QuestionItem[]) => void;
 
   resetExamData: () => void;
 }
@@ -126,6 +129,7 @@ const useExamStore = create<ExamStore>()(
         point_scale_name: "",
         subject_name: "",
         study_group_name: "",
+        list_questions: [],
       },
       setTab1Name: (name) => set({ tab1Data: { ...get().tab1Data, name } }),
       setTab1Subject: (subject) => set({ tab1Data: { ...get().tab1Data, subject } }),
@@ -164,6 +168,7 @@ const useExamStore = create<ExamStore>()(
       setPointScaleName: (name) => set({ commonProps: { ...get().commonProps, point_scale_name: name } }),
       setSubjectName: (name) => set({ commonProps: { ...get().commonProps, subject_name: name } }),
       setStudyGroupName: (name) => set({ commonProps: { ...get().commonProps, study_group_name: name } }),
+      setListQuestionsFull: (list_questions) => set({ commonProps: { ...get().commonProps, list_questions: list_questions } }),
 
       resetExamData: () =>
         set({
@@ -212,6 +217,7 @@ const useExamStore = create<ExamStore>()(
             point_scale_name: "",
             subject_name: "",
             study_group_name: "",
+            list_questions: [],
           },
         }),
     }),
