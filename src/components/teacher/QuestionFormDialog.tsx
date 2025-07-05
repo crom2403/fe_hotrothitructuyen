@@ -144,8 +144,31 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
         ];
         break;
       case 'video_popup':
-        newConfig = { kind: 'video_popup', video_id: '', url: '', popup_times: [] };
-        newAnswers = [];
+        newConfig = {
+          kind: 'video_popup',
+          video_id: uuidv4(),
+          url: '',
+          popup_times: [
+            {
+              time: 0,
+              question: '',
+              options: ['A', 'B'],
+              correct: '',
+            },
+          ],
+        };
+        newAnswers = [
+          {
+            id: uuidv4(),
+            content: { text: '', value: 'A' },
+            order_index: 1,
+          },
+          {
+            id: uuidv4(),
+            content: { text: '', value: 'B' },
+            order_index: 2,
+          },
+        ];
         break;
       default:
         newConfig = { kind: 'single_choice', options_count: 2, correct: '' };
