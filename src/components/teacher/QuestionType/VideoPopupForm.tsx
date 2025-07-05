@@ -8,8 +8,9 @@ import { isVideoPopupConfig, type QuestionFormData, type VideoPopupConfig } from
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import type { UseFormReturn } from 'react-hook-form';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { VideoUpload } from '@/components/upload/VideoUpload';
 
 interface VideoPopupFormProps {
   form: UseFormReturn<QuestionFormData>;
@@ -24,6 +25,7 @@ export const VideoPopupForm = ({ form, updateOption }: VideoPopupFormProps) => {
   const answers = useFieldArray({ control, name: 'answers' });
   const config = watch('answer_config');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
   const isVideoPopup = isVideoPopupConfig(config);
 
@@ -128,19 +130,15 @@ export const VideoPopupForm = ({ form, updateOption }: VideoPopupFormProps) => {
   return (
     <div className="space-y-6" ref={scrollRef}>
       <div className="space-y-2">
-        <Label>Video URL</Label>
-        <Input {...register('answer_config.url')} placeholder="https://example.com/video.mp4" accept-charset="UTF-8" />
+        <Label>Upload video</Label>
+        <VideoUpload onUploadSuccess={setVideoUrl} />
       </div>
 
       <div className="space-y-4">
         <Label className="text-lg font-medium">Câu hỏi Popup</Label>
         {popupTimes.fields.map((popup, index) => (
           <div key={popup.id} className="border rounded-lg p-4 space-y-4 relative">
-            <button
-              type="button"
-              onClick={() => handleRemovePopup(index)}
-              className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-            >
+            <button type="button" onClick={() => handleRemovePopup(index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">
               <Trash2 className="h-4 w-4" />
             </button>
 
@@ -162,43 +160,27 @@ export const VideoPopupForm = ({ form, updateOption }: VideoPopupFormProps) => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Phương án</Label>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleAddOptionToPopup(index)}
-                  disabled={popup.options?.length >= MAX_OPTIONS}
-                >
+                <Button type="button" size="sm" variant="outline" onClick={() => handleAddOptionToPopup(index)} disabled={popup.options?.length >= MAX_OPTIONS}>
                   <Plus className="h-4 w-4 mr-1" /> Thêm phương án
                 </Button>
               </div>
-              <RadioGroup
-                value={watch(`answer_config.popup_times.${index}.correct`) || ''}
-                onValueChange={(value) => handleToggleCorrect(index, value)}
-                className="space-y-2"
-              >
+              <RadioGroup value={watch(`answer_config.popup_times.${index}.correct`) || ''} onValueChange={(value) => handleToggleCorrect(index, value)} className="space-y-2">
                 {(popup.options || []).map((opt, optIndex) => (
                   <div key={optIndex} className="flex items-center gap-2">
-                    <RadioGroupItem
-                      value={opt}
-                      id={`answer-${index}-${optIndex}`}
-                      className="border-gray-700"
-                    />
+                    <RadioGroupItem value={opt} id={`answer-${index}-${optIndex}`} className="border-gray-700" />
                     <span className="w-8">{opt}</span>
                     <Input
                       className="flex-1"
-                      value={answers.fields[isVideoPopup ? (config as VideoPopupConfig).popup_times.slice(0, index).reduce((acc, p) => acc + (p.options?.length || 0), 0) + optIndex : 0]?.content?.text || ''}
+                      value={
+                        answers.fields[isVideoPopup ? (config as VideoPopupConfig).popup_times.slice(0, index).reduce((acc, p) => acc + (p.options?.length || 0), 0) + optIndex : 0]?.content?.value ||
+                        ''
+                      }
                       onChange={(e) => handleUpdateOption(index, optIndex, e.target.value)}
                       placeholder={`Phương án ${opt}`}
                       accept-charset="UTF-8"
                     />
                     {(popup.options?.length || 0) > 2 && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleRemoveOptionFromPopup(index, optIndex)}
-                      >
+                      <Button type="button" size="sm" variant="ghost" onClick={() => handleRemoveOptionFromPopup(index, optIndex)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
