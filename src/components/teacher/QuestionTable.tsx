@@ -1,4 +1,4 @@
-import type { QuestionItem, QuestionTypeResponse } from "@/types/questionType"
+import type { QuestionItem } from "@/types/questionType"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Input } from "../ui/input"
 import { Edit, Eye, Loader2, MoreHorizontal, Search, Trash2 } from "lucide-react"
@@ -10,14 +10,9 @@ import { Button } from "../ui/button"
 import Paginate from "../common/Pagination"
 import parse from "html-react-parser"
 import { useEffect, useState } from "react"
-import type { SubjectResponse } from "@/types/subjectType"
-import type { DifficultyLevel } from "@/types/difficultyLevelType"
-import { apiGetSubjects } from "@/services/admin/subject"
-import { toast } from "sonner"
-import type { AxiosError } from "axios"
-import { apiGetDifficultyLevels, apiGetQuestionTypes } from "@/services/teacher/question"
 import { Dialog } from "../ui/dialog"
 import QuestionDetail from "../admin/question/QuestionDetail"
+import useAppStore from "@/stores/appStore"
 
 interface QuestionTableProps {
   questions: QuestionItem[],
@@ -38,12 +33,7 @@ interface QuestionTableProps {
 }
 
 const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, typeFilter, setTypeFilter, difficultyFilter, setDifficultyFilter, page, totalPages, handleEdit, handleDelete, handlePageClick, isLoading }: QuestionTableProps) => {
-  const [subjects, setSubjects] = useState<SubjectResponse | null>(null);
-  const [difficultyLevels, setDifficultyLevels] = useState<DifficultyLevel[]>([]);
-  const [questionTypes, setQuestionTypes] = useState<QuestionTypeResponse | null>(null);
-  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false);
-  const [isLoadingDifficultyLevels, setIsLoadingDifficultyLevels] = useState(false);
-  const [isLoadingQuestionTypes, setIsLoadingQuestionTypes] = useState(false);
+  const { subjects, difficultyLevels, questionTypes } = useAppStore();
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionItem | null>(null);
   const [openDetail, setOpenDetail] = useState(false);
 
@@ -55,60 +45,6 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
       default: return "bg-gray-100 text-gray-800";
     }
   };
-
-  const handleGetSubjects = async () => {
-    setIsLoadingSubjects(true);
-    try {
-      const response = await apiGetSubjects(1, "active", "", 100);
-      if (response.status === 200) {
-        setSubjects(response.data);
-      }
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
-      toast.error(errorMessage);
-    } finally {
-      setIsLoadingSubjects(false);
-    }
-  }
-
-  const handleGetDifficultyLevels = async () => {
-    setIsLoadingDifficultyLevels(true);
-    try {
-      const response = await apiGetDifficultyLevels();
-      if (response.status === 200) {
-        setDifficultyLevels(response.data.data);
-      }
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
-      toast.error(errorMessage);
-    } finally {
-      setIsLoadingDifficultyLevels(false);
-    }
-  }
-
-  const handleGetQuestionTypes = async () => {
-    setIsLoadingQuestionTypes(true);
-    try {
-      const response = await apiGetQuestionTypes();
-      if (response.status === 200) {
-        setQuestionTypes(response.data);
-      }
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
-      toast.error(errorMessage);
-    } finally {
-      setIsLoadingQuestionTypes(false);
-    }
-  }
-
-  useEffect(() => {
-    handleGetSubjects();
-    handleGetDifficultyLevels();
-    handleGetQuestionTypes();
-  }, []);
 
   const handleViewDetail = (question: QuestionItem) => {
     setSelectedQuestion(question);
@@ -137,19 +73,11 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
               <SelectValue placeholder="Môn học" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Tất cả môn học</SelectItem>
               {
-                isLoadingSubjects ? (
-                  <SelectItem value="all">Đang tải...</SelectItem>
-                ) : (
-                  <>
-                    <SelectItem value="all">Tất cả môn học</SelectItem>
-                    {
-                      subjects?.data.map((subject) => (
-                        <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
-                      ))
-                    }
-                  </>
-                )
+                subjects.map((subject) => (
+                  <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
+                ))
               }
             </SelectContent>
           </Select>
@@ -158,19 +86,11 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
               <SelectValue placeholder="Độ khó" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
               {
-                isLoadingDifficultyLevels ? (
-                  <SelectItem value="all">Đang tải...</SelectItem>
-                ) : (
-                  <>
-                    <SelectItem value="all">Tất cả</SelectItem>
-                    {
-                      difficultyLevels.map((difficultyLevel) => (
-                        <SelectItem key={difficultyLevel.id} value={difficultyLevel.id}>{difficultyLevel.name}</SelectItem>
-                      ))
-                    }
-                  </>
-                )
+                difficultyLevels.map((difficultyLevel) => (
+                  <SelectItem key={difficultyLevel.id} value={difficultyLevel.id}>{difficultyLevel.name}</SelectItem>
+                ))
               }
             </SelectContent>
           </Select>
@@ -179,19 +99,11 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
               <SelectValue placeholder="Loại câu hỏi" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">Tất cả loại</SelectItem>
               {
-                isLoadingQuestionTypes ? (
-                  <SelectItem value="all">Đang tải...</SelectItem>
-                ) : (
-                  <>
-                    <SelectItem value="all">Tất cả loại</SelectItem>
-                    {
-                      questionTypes?.data.map((questionType) => (
-                        <SelectItem key={questionType.id} value={questionType.id}>{questionType.name}</SelectItem>
-                      ))
-                    }
-                  </>
-                )
+                questionTypes.map((questionType) => (
+                  <SelectItem key={questionType.id} value={questionType.id}>{questionType.name}</SelectItem>
+                ))
               }
             </SelectContent>
           </Select>

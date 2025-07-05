@@ -39,7 +39,6 @@ export interface QuestionItem {
   answers: Answer[];
 }
 
-
 export interface QuestionType {
   id: string;
   code: string;
@@ -94,7 +93,7 @@ export interface QuestionItem {
   id: string;
   content: string;
   created_at: string;
-  review_status: "pending" | "approved" | "rejected";
+  review_status: 'pending' | 'approved' | 'rejected';
   is_public: boolean;
   subject: {
     id: string;
@@ -131,4 +130,3 @@ export type OrderingItem = {
   content: string;
   order: number;
 };
-

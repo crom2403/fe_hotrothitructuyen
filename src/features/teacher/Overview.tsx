@@ -1,99 +1,131 @@
-import StatCard from "@/components/common/StatCard";
-import QuickActionButton from "@/components/teacher/QuickActionButton";
-import RecentExamCard from "@/components/teacher/RecentExamCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, Clock, Eye, FileText, Plus, Users } from "lucide-react";
+import StatCard from '@/components/common/StatCard';
+import QuickActionButton from '@/components/teacher/QuickActionButton';
+import RecentExamCard from '@/components/teacher/RecentExamCard';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { apiGetSubjects } from '@/services/admin/subject';
+import { apiGetDifficultyLevels, apiGetQuestionTypes } from '@/services/teacher/question';
+import { BarChart3, Clock, Eye, FileText, Plus, Users } from 'lucide-react';
+import { useEffect } from 'react';
+import useAppStore from '@/stores/appStore';
+import { apiGetAcademicYears } from '@/services/admin/yearSemester';
 
 const Overview = () => {
+  const { setQuestionTypes, setDifficultyLevels, setSubjects, setAcademicYears } = useAppStore();
+  const handleGetDefaultData = async () => {
+    const [resType, resDifficultyLevel, resSubject, resAcademicYear] = await Promise.all([
+      apiGetQuestionTypes(), 
+      apiGetDifficultyLevels(),
+      apiGetSubjects(1, '', '', 100), 
+      apiGetAcademicYears()]);
+
+    console.log(resType, resDifficultyLevel, resSubject, resAcademicYear);
+    if (resType.status === 200) {
+      setQuestionTypes(resType.data.data);
+    }
+    if (resDifficultyLevel.status === 200) {
+      setDifficultyLevels(resDifficultyLevel.data.data);
+    }
+    if (resSubject.status === 200) {
+      setSubjects(resSubject.data.data);
+    }
+    if (resAcademicYear.status === 200) {
+      setAcademicYears(resAcademicYear.data.data);
+    }
+  };
+
+  useEffect(() => {
+    handleGetDefaultData();
+  }, []);
+
   const stats = [
     {
-      title: "Câu hỏi trong NHCH",
+      title: 'Câu hỏi trong NHCH',
       value: 245,
-      description: "15 câu mới tuần này",
+      description: '15 câu mới tuần này',
       icon: FileText,
-      color: "text-blue-600",
+      color: 'text-blue-600',
     },
     {
-      title: "Đề thi đã tạo",
+      title: 'Đề thi đã tạo',
       value: 12,
-      description: "3 đề thi đang hoạt động",
+      description: '3 đề thi đang hoạt động',
       icon: Clock,
-      color: "text-green-600",
+      color: 'text-green-600',
     },
     {
-      title: "Sinh viên tham gia",
+      title: 'Sinh viên tham gia',
       value: 156,
-      description: "Trong tất cả lớp học",
+      description: 'Trong tất cả lớp học',
       icon: Users,
-      color: "text-purple-600",
+      color: 'text-purple-600',
     },
     {
-      title: "Điểm trung bình",
+      title: 'Điểm trung bình',
       value: 7.8,
-      description: "+0.3 so với kỳ trước",
+      description: '+0.3 so với kỳ trước',
       icon: BarChart3,
-      color: "text-orange-600",
+      color: 'text-orange-600',
     },
   ];
 
   const recentExams = [
     {
       id: 1,
-      title: "Kiểm tra giữa kỳ - Lập trình Web",
-      subject: "Lập trình Web",
+      title: 'Kiểm tra giữa kỳ - Lập trình Web',
+      subject: 'Lập trình Web',
       students: 45,
-      status: "Đang diễn ra",
-      endTime: "14:30 hôm nay",
+      status: 'Đang diễn ra',
+      endTime: '14:30 hôm nay',
     },
     {
       id: 2,
-      title: "Bài tập lớn - Cơ sở dữ liệu",
-      subject: "Cơ sở dữ liệu",
+      title: 'Bài tập lớn - Cơ sở dữ liệu',
+      subject: 'Cơ sở dữ liệu',
       students: 38,
-      status: "Sắp diễn ra",
-      endTime: "09:00 ngày mai",
+      status: 'Sắp diễn ra',
+      endTime: '09:00 ngày mai',
     },
     {
       id: 3,
-      title: "Thi cuối kỳ - Mạng máy tính",
-      subject: "Mạng máy tính",
+      title: 'Thi cuối kỳ - Mạng máy tính',
+      subject: 'Mạng máy tính',
       students: 52,
-      status: "Đã kết thúc",
-      endTime: "2 ngày trước",
+      status: 'Đã kết thúc',
+      endTime: '2 ngày trước',
     },
   ];
 
   const quickActions = [
     {
-      title: "Tạo câu hỏi mới",
-      description: "Thêm câu hỏi vào ngân hàng",
+      title: 'Tạo câu hỏi mới',
+      description: 'Thêm câu hỏi vào ngân hàng',
       icon: Plus,
-      action: "questions",
+      action: 'questions',
     },
     {
-      title: "Tạo đề thi",
-      description: "Tạo đề thi từ NHCH",
+      title: 'Tạo đề thi',
+      description: 'Tạo đề thi từ NHCH',
       icon: FileText,
-      action: "exams",
+      action: 'exams',
     },
     {
-      title: "Xem kết quả",
-      description: "Thống kê và báo cáo",
+      title: 'Xem kết quả',
+      description: 'Thống kê và báo cáo',
       icon: BarChart3,
-      action: "results",
+      action: 'results',
     },
     {
-      title: "Quản lý phòng thi",
-      description: "Giám sát bài thi",
+      title: 'Quản lý phòng thi',
+      description: 'Giám sát bài thi',
       icon: Eye,
-      action: "exam-rooms",
+      action: 'exam-rooms',
     },
   ];
 
-  const normalizeStatus = (status: string): "Đang diễn ra" | "Sắp diễn ra" | "Đã kết thúc" => {
-    if (status.toLowerCase().includes("đang")) return "Đang diễn ra";
-    if (status.toLowerCase().includes("sắp")) return "Sắp diễn ra";
-    return "Đã kết thúc";
+  const normalizeStatus = (status: string): 'Đang diễn ra' | 'Sắp diễn ra' | 'Đã kết thúc' => {
+    if (status.toLowerCase().includes('đang')) return 'Đang diễn ra';
+    if (status.toLowerCase().includes('sắp')) return 'Sắp diễn ra';
+    return 'Đã kết thúc';
   };
 
   const handleQuickAction = (action: string) => {
@@ -121,15 +153,7 @@ const Overview = () => {
             <CardContent>
               <div className="space-y-4">
                 {recentExams.map((exam) => (
-                  <RecentExamCard
-                    key={exam.id}
-                    id={exam.id}
-                    title={exam.title}
-                    subject={exam.subject}
-                    student={exam.students}
-                    status={normalizeStatus(exam.status)}
-                    endTime={exam.endTime}
-                  />
+                  <RecentExamCard key={exam.id} id={exam.id} title={exam.title} subject={exam.subject} student={exam.students} status={normalizeStatus(exam.status)} endTime={exam.endTime} />
                 ))}
               </div>
             </CardContent>
@@ -144,12 +168,7 @@ const Overview = () => {
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 {quickActions.map((action) => (
-                  <QuickActionButton
-                    key={action.title}
-                    icon={<action.icon />}
-                    label={action.title}
-                    onClick={() => handleQuickAction(action.action)}
-                  />
+                  <QuickActionButton key={action.title} icon={<action.icon />} label={action.title} onClick={() => handleQuickAction(action.action)} />
                 ))}
               </div>
             </CardContent>

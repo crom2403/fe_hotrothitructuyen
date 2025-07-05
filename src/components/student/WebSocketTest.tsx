@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import path from '@/utils/path';
 
 const WebSocketTest = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -12,7 +13,7 @@ const WebSocketTest = () => {
 
   // Kết nối tới server WebSocket khi component mount
   useEffect(() => {
-    const socketInstance = io('https://successful-laura-tsondev-c5a7fe4d.koyeb.app/events', {
+    const socketInstance = io(path.SOCKET_URL, {
       reconnection: false,
     });
 

@@ -13,20 +13,21 @@ interface QuestionTabProps {
 }
 
 const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
-  const [examMode, setExamMode] = useState<"manual" | "auto" | "ai">("manual");
+  const [examMode, setExamMode] = useState<'manual' | 'auto' | 'ai'>('manual');
   const [selectedQuestions, setSelectedQuestions] = useState<QuestionItem[]>([]);
   const { tab2Data, setListQuestions, setListQuestionsFull, commonProps } = useExamStore();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (tab2Data.exam_type && tab2Data.exam_type !== examMode) {
-      setExamMode(tab2Data.exam_type as "manual" | "auto" | "ai");
+      setExamMode(tab2Data.exam_type as 'manual' | 'auto' | 'ai');
     }
   }, [tab2Data.exam_type, examMode]);
 
   useEffect(() => {
     setSelectedQuestions(commonProps.list_questions);
   }, [commonProps.list_questions]);
+
 
 
   const addQuestionToExam = (question: QuestionItem) => {
@@ -37,7 +38,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
         updatedQuestions.map((q, index) => ({
           question_id: q.id,
           order_index: index + 1,
-        }))
+        })),
       );
       setQuestionsToCache([question]);
       setListQuestionsFull(
@@ -53,7 +54,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
       updatedQuestions.map((q, index) => ({
         question_id: q.id,
         order_index: index + 1,
-      }))
+      })),
     );
     setQuestionsToCache(updatedQuestions);
     setListQuestionsFull(
@@ -63,7 +64,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
 
   return (
     <div className="space-y-6">
-      {examMode === "manual" && (
+      {examMode === 'manual' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="flex flex-col gap-4">
             <Card>
@@ -77,15 +78,11 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
             </Card>
             <QuestionList selectedQuestions={selectedQuestions} addQuestionToExam={addQuestionToExam} selectedSubjectId={selectedSubjectId} />
           </div>
-          <SelectedQuestions
-            selectedQuestions={selectedQuestions}
-            setSelectedQuestions={setSelectedQuestions}
-            removeQuestionFromExam={removeQuestionFromExam}
-          />
+          <SelectedQuestions selectedQuestions={selectedQuestions} setSelectedQuestions={setSelectedQuestions} removeQuestionFromExam={removeQuestionFromExam} />
         </div>
       )}
 
-      {examMode === "auto" && (
+      {examMode === 'auto' && (
         <div className="grid grid-cols-1 gap-4">
           <div className="flex flex-col gap-4">
             <Card>
@@ -101,7 +98,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
           </div>
         </div>
       )}
-      {examMode === "ai" && (
+      {examMode === 'ai' && (
         <div className="grid grid-cols-1 gap-4">
           <div className="flex flex-col gap-4">
             <Card>

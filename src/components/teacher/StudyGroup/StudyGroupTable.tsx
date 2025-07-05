@@ -17,6 +17,7 @@ import { apiGetAcademicYears } from "@/services/admin/yearSemester"
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { apiGetStudyGroupDetail, apiRemoveStudentFromStudyGroup } from "@/services/teacher/studyGroup"
 import StudyGroupDetailDialog from "./StudyGroupDetailDialog"
+import useAppStore from "@/stores/appStore"
 
 interface StudyGroupTableProps {
   studyGroups: StudyGroupInfo[]
@@ -36,50 +37,10 @@ interface StudyGroupTableProps {
   handleGetStudyGroup: () => void
 }
 const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, yearFilter, setYearFilter, page, totalPages, handlePageClick, copyInviteCode, handleGetStudyGroup }: StudyGroupTableProps) => {
-  const [academicYear, setAcademicYear] = useState<Year[]>([])
-  const [subject, setSubject] = useState<SubjectResponse | null>(null)
-  const [isLoadingSubject, setIsLoadingSubject] = useState(false)
-  const [isLoadingAcademicYear, setIsLoadingAcademicYear] = useState(false)
+  const { subjects, academicYears } = useAppStore();
   const [openDetail, setOpenDetail] = useState(false)
   const [studyGroupDetail, setStudyGroupDetail] = useState<StudyGroupDetail | null>(null)
   const [isLoadingDetail, setIsLoadingDetail] = useState(false)
-  
-  const handleGetSubject = async () => {
-    setIsLoadingSubject(true)
-    try {
-      const response = await apiGetSubjects(1, "active", "", 100)
-      if (response.status === 200) {
-        setSubject(response.data)
-      }
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra'
-      toast.error(errorMessage)
-    } finally {
-      setIsLoadingSubject(false)
-    }
-  }
-
-  const handleGetAcademicYear = async () => {
-    setIsLoadingAcademicYear(true)
-    try {
-      const response = await apiGetAcademicYears()
-      if (response.status === 200) {
-        setAcademicYear(response.data.data)
-      }
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra'
-      toast.error(errorMessage)
-    } finally {
-      setIsLoadingAcademicYear(false)
-    }
-  }
-
-  useEffect(() => {
-    handleGetSubject()
-    handleGetAcademicYear()
-  }, [])
 
   const handleViewDetail = async (studyGroupId: string) => {
     setIsLoadingDetail(true)
@@ -145,24 +106,24 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
               className="pl-10"
             />
           </div>
-          <Select onValueChange={(value) => setSubjectFilter(value)} disabled={isLoadingSubject}>
+          <Select onValueChange={(value) => setSubjectFilter(value)}>
             <SelectTrigger>
               <SelectValue placeholder="Lọc theo môn học" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả môn học</SelectItem>
-              {subject?.data.map((subject) => (
+              {subjects.map((subject) => (
                 <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <Select onValueChange={(value) => setYearFilter(value)} disabled={isLoadingAcademicYear}>
+          <Select onValueChange={(value) => setYearFilter(value)}>
             <SelectTrigger>
               <SelectValue placeholder="Lọc theo năm học" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả năm học</SelectItem>
-              {academicYear.map((year) => (
+              {academicYears.map((year) => (
                 <SelectItem key={year.id} value={year.id}>{year.code}</SelectItem>
               ))}
             </SelectContent>

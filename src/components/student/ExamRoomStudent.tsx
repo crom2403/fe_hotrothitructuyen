@@ -14,6 +14,7 @@ interface StudentInfo {
   avatar: string;
 }
 import { listAvatar } from '@/components/profile/ChooseAvatarDialog';
+import path from '@/utils/path';
 
 export default function ExamRoomStudent({ examId = '123', studyGroupId = 'abc' }: { examId: string; studyGroupId: string }) {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -27,7 +28,7 @@ export default function ExamRoomStudent({ examId = '123', studyGroupId = 'abc' }
 
   useEffect(() => {
     // Kết nối tới WebSocket server
-    const socketInstance = io('http://localhost:3000/events', {
+    const socketInstance = io(path.SOCKET_URL, {
       withCredentials: true,
     });
 

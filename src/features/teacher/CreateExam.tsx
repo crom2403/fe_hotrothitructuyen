@@ -19,32 +19,6 @@ const CreateExam = () => {
 
   const isSubjectSelected = !!tab1Data.subject;
 
-  // useEffect(() => {
-  //   const loadSelectedQuestions = async () => {
-  //     setIsLoading(true);
-  //     try {
-  //       const questionIds = tab2Data.list_questions.map((q) => q.question_id);
-  //       if (questionIds.length > 0) {
-  //         const cachedQuestions = getQuestionsByIds(questionIds);
-  //         if (cachedQuestions.length === questionIds.length) {
-  //           setSelectedQuestions(cachedQuestions);
-  //         } else {
-  //           const promises = questionIds.map((id) => apiGetQuestionById(id));
-  //           const questions = await Promise.all(promises);
-  //           setSelectedQuestions(questions.map((q) => q.data));
-  //         }
-  //       } else {
-  //         setSelectedQuestions([]);
-  //       }
-  //     } catch (error) {
-  //       console.error("Failed to load selected questions:", error);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-  //   loadSelectedQuestions();
-  // }, [tab2Data.list_questions]);
-
   const validateTime = (start: string, end: string): boolean => {
     if (!start || !end) {
       toast.error("Vui lòng nhập cả thời gian bắt đầu và kết thúc!");
