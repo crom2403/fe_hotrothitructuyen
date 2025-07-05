@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useRef } from 'react';
 import axios from 'axios';
+import type { CancelTokenSource } from 'axios';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Upload, FileVideo, X } from 'lucide-react';
+import { Upload, FileVideo, X, Loader2, Ban } from 'lucide-react';
 
 const CLOUD_NAME = 'dgbryseip'; // Cloudinary Cloud Name của bạn
 const UPLOAD_PRESET = 'hotrothitructuyen'; // Unsigned upload preset của bạn
@@ -11,23 +12,38 @@ const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
 interface VideoUploadProps {
   onUploadSuccess?: (url: string) => void;
   onUploadError?: (error: string) => void;
+  maxSizeMB?: number;
 }
 
-export const VideoUpload: React.FC<VideoUploadProps> = ({ onUploadSuccess, onUploadError }) => {
+export const VideoUpload: React.FC<VideoUploadProps> = ({
+  onUploadSuccess,
+  onUploadError,
+  maxSizeMB = 1000, // Default max size is 1GB
+}) => {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [videoLoading, setVideoLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cancelTokenRef = useRef<CancelTokenSource | null>(null);
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
 
   const validateFile = (file: File): string | null => {
     if (!['video/mp4', 'video/webm', 'video/ogg'].includes(file.type)) {
       return 'Please upload a valid video (MP4, WebM, OGG)';
     }
-    if (file.size > 1000 * 1024 * 1024) {
-      return 'Video size must be less than 1GB';
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      return `Video size must be less than ${maxSizeMB}MB (Selected: ${formatFileSize(file.size)})`;
     }
     return null;
   };
@@ -39,6 +55,17 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({ onUploadSuccess, onUpl
     setProgress(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const cancelUpload = () => {
+    if (cancelTokenRef.current) {
+      cancelTokenRef.current.cancel('Upload cancelled by user');
+      cancelTokenRef.current = null;
+      setUploading(false);
+      setProgress(0);
+      setError('Upload cancelled');
+      setSelectedFileName(null);
     }
   };
 
@@ -56,6 +83,9 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({ onUploadSuccess, onUpl
       setUploading(true);
       setSelectedFileName(file.name);
 
+      // Create a new cancel token
+      cancelTokenRef.current = axios.CancelToken.source();
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', UPLOAD_PRESET);
@@ -65,6 +95,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({ onUploadSuccess, onUpl
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        cancelToken: cancelTokenRef.current.token,
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -81,13 +112,18 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({ onUploadSuccess, onUpl
         throw new Error('Upload failed: No URL returned');
       }
     } catch (err) {
-      console.error('Upload error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Upload failed. Please try again.';
-      setError(errorMessage);
-      onUploadError?.(errorMessage);
-      setSelectedFileName(null);
+      if (axios.isCancel(err)) {
+        console.log('Upload cancelled:', err.message);
+      } else {
+        console.error('Upload error:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Upload failed. Please try again.';
+        setError(errorMessage);
+        onUploadError?.(errorMessage);
+        setSelectedFileName(null);
+      }
     } finally {
       setUploading(false);
+      cancelTokenRef.current = null;
     }
   };
 
@@ -142,6 +178,10 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({ onUploadSuccess, onUpl
     [uploading],
   );
 
+  const handleVideoLoad = () => {
+    setVideoLoading(false);
+  };
+
   return (
     <div className="w-full max-w-md">
       <div
@@ -162,7 +202,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({ onUploadSuccess, onUpl
             <Button type="button" variant="outline" size="sm" className="mt-2" disabled={uploading} onClick={handleButtonClick}>
               Select Video
             </Button>
-            <p className="mt-2 text-xs text-gray-500">MP4, WebM or OGG (max. 1GB)</p>
+            <p className="mt-2 text-xs text-gray-500">MP4, WebM or OGG (max. {maxSizeMB}MB)</p>
           </>
         )}
 
@@ -176,7 +216,13 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({ onUploadSuccess, onUpl
         {uploading && (
           <div className="w-full space-y-3">
             <Progress value={progress} className="w-full" />
-            <p className="text-sm text-center text-gray-600">Uploading: {progress}%</p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">Uploading: {progress}%</p>
+              <Button type="button" variant="ghost" size="sm" onClick={cancelUpload} className="text-red-500 hover:text-red-700">
+                <Ban className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
+            </div>
           </div>
         )}
 
@@ -195,7 +241,14 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({ onUploadSuccess, onUpl
                 Upload Another
               </Button>
             </div>
-            <video src={videoUrl} controls className="w-full rounded-lg border shadow-sm" />
+            <div className="relative">
+              {videoLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 bg-opacity-50">
+                  <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                </div>
+              )}
+              <video src={videoUrl} controls className="w-full rounded-lg border shadow-sm" onLoadStart={() => setVideoLoading(true)} onLoadedData={handleVideoLoad} />
+            </div>
           </div>
         )}
       </div>
