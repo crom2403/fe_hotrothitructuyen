@@ -22,8 +22,8 @@ import useAuthStore from '@/stores/authStore';
 import DragDropForm from './QuestionType/DragDropForm';
 import { VideoPopupForm } from './QuestionType/VideoPopupForm';
 import { createQuestionSchema } from '@/types/questionFormValidation';
-import type { QuestionFormData, AnswerConfig, AnswerItem, MatchingConfig, DragDropConfig } from '@/types/questionFormTypes';
-import { isSingleChoiceConfig, isMultipleSelectConfig, isDragDropConfig, isMatchingConfig, isOrderingConfig } from '@/types/questionFormTypes';
+import type { QuestionFormData, AnswerConfig, AnswerItem, MatchingConfig, DragDropConfig, VideoPopupConfig, SingleChoiceConfig, MultipleSelectConfig } from '@/types/questionFormTypes';
+import { isSingleChoiceConfig, isMultipleSelectConfig, isDragDropConfig, isMatchingConfig, isOrderingConfig, isVideoPopupConfig } from '@/types/questionFormTypes';
 import MultipleChoiceForm from './QuestionType/MultipleChoiceForm';
 import { v4 as uuidv4 } from 'uuid';
 import { apiGenerateQuestion } from '@/services/admin/question';
@@ -40,6 +40,8 @@ interface QuestionFormDialogProps {
   setEditingQuestion?: (question: QuestionItem | null) => void;
   refetchQuestionsPrivate?: () => void;
 }
+
+const DEFAULT_OPTIONS = ['A', 'B', 'C', 'D'];
 
 const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, setEditingQuestion, refetchQuestionsPrivate }: QuestionFormDialogProps) => {
   const { questionTypes, difficultyLevels } = useAppStore();
@@ -144,31 +146,25 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
         ];
         break;
       case 'video_popup':
+        const videoId = uuidv4();
         newConfig = {
           kind: 'video_popup',
-          video_id: uuidv4(),
+          video_id: videoId,
           url: '',
           popup_times: [
             {
               time: 0,
               question: '',
-              options: ['A', 'B'],
+              options: DEFAULT_OPTIONS,
               correct: '',
             },
           ],
         };
-        newAnswers = [
-          {
-            id: uuidv4(),
-            content: { text: '', value: 'A' },
-            order_index: 1,
-          },
-          {
-            id: uuidv4(),
-            content: { text: '', value: 'B' },
-            order_index: 2,
-          },
-        ];
+        newAnswers = DEFAULT_OPTIONS.map((opt, idx) => ({
+          id: uuidv4(),
+          content: { text: '', value: opt },
+          order_index: idx + 1,
+        }));
         break;
       default:
         newConfig = { kind: 'single_choice', options_count: 2, correct: '' };
@@ -278,8 +274,14 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
 
     if (questionType === 'drag_drop' && isDragDropConfig(form.getValues('answer_config'))) {
       const currentConfig = form.getValues('answer_config');
-      const newCorrect = (currentConfig as DragDropConfig).correct.map((c: any) => (c.id === newAnswers[index].id ? { ...c, value: text } : c));
+      const newCorrect = (currentConfig as DragDropConfig).correct.map((c) => (c.id === newAnswers[index].id ? { ...c, value: text } : c));
       form.setValue('answer_config.correct', newCorrect);
+    }
+
+    if (questionType === 'video_popup' && isVideoPopupConfig(form.getValues('answer_config'))) {
+      const currentConfig = form.getValues('answer_config');
+      const newCorrect = (currentConfig as VideoPopupConfig).popup_times.map((c) => (c.id === newAnswers[index].id ? { ...c, value: text } : c));
+      form.setValue('answer_config.popup_times', newCorrect);
     }
   };
 
@@ -321,11 +323,23 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
   };
 
   const onSubmit = async (data: QuestionFormData) => {
+    console.log('Form Data before submit:', data);
     setIsLoadingSubmit(true);
     try {
       if (questionType === 'drag_drop' && isDragDropConfig(data.answer_config) && data.answers.length !== data.answer_config.correct.length) {
         toast.error('Tất cả lựa chọn phải được gán vào vùng!');
         return;
+      }
+      if (questionType === 'video_popup' && isVideoPopupConfig(data.answer_config)) {
+        if (!data.answer_config.url) {
+          toast.error('Vui lòng tải lên video!');
+          return;
+        }
+        const totalOptions = data.answer_config.popup_times.reduce((acc, p) => acc + p.options.length, 0);
+        if (data.answers.length !== totalOptions) {
+          toast.error(`Số lượng đáp án (${data.answers.length}) không khớp với tổng số phương án (${totalOptions})!`);
+          return;
+        }
       }
       const apiData = {
         subject_id: data.subject_id,
@@ -340,7 +354,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           order_index: answer.order_index,
         })),
       };
-      console.log('API Data:', apiData); // Debug dữ liệu gửi đi
+      console.log('API Data:', apiData);
       const response = await apiCreateQuestion(apiData);
       if (response.status === 201) {
         toast.success('Tạo câu hỏi thành công');
@@ -348,12 +362,12 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
         refetchQuestionsPrivate?.();
         form.reset();
       } else {
-        toast.error('Tạo câu hỏi thất bại');
+        toast.error(`Tạo câu hỏi thất bại: ${response.statusText}`);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
-      console.error('API Error:', errorMessage); // Debug lỗi API
+      console.error('API Error:', errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsLoadingSubmit(false);
@@ -363,8 +377,13 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
   const handleGenerateQuestionByAI = async () => {
     setIsLoadingGenerateQuestion(true);
     const formValues = form.getValues();
+    if (!formValues.subject_id || !formValues.type_id || !formValues.difficulty_level_id) {
+      toast.error('Vui lòng chọn môn học, loại câu hỏi và độ khó trước khi tạo bằng AI');
+      setIsLoadingGenerateQuestion(false);
+      return;
+    }
     const subject_name = assignedSubjects.find((e) => e.subject.id === formValues.subject_id)?.subject.name || '';
-    const difficultyLevel = difficultyLevels.find((e) => e.id === form.getValues('difficulty_level_id'));
+    const difficultyLevel = difficultyLevels.find((e) => e.id === formValues.difficulty_level_id);
 
     try {
       const res = await apiGenerateQuestion({
@@ -376,10 +395,11 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
 
       if (res.status === 200) {
         form.setValue('content', res.data.question);
-        let answerConfig = '';
+        let answerConfig: AnswerConfig = { kind: questionType, correct: '', options_count: 0 };
         const answers = res.data.options.map((answer: any, index: number) => {
           if (answer.is_correct) {
-            answerConfig = String.fromCharCode(65 + index);
+            if (questionType === 'single_choice') (answerConfig as SingleChoiceConfig).correct = String.fromCharCode(65 + index);
+            else if (questionType === 'multiple_select') (answerConfig as MultipleSelectConfig).correct = [String.fromCharCode(65 + index)];
           }
           return {
             id: uuidv4(),
@@ -387,9 +407,9 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
             order_index: index + 1,
           };
         });
-
+        answerConfig = { ...answerConfig, options_count: answers.length };
         form.setValue('answers', answers);
-        form.setValue('answer_config', { kind: 'single_choice', options_count: answers.length, correct: answerConfig });
+        form.setValue('answer_config', answerConfig);
         form.setValue('explanation', res.data.explanation);
       }
     } catch (error) {
@@ -424,7 +444,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
             <div>
               <DialogTitle>{editingQuestion ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
               <DialogDescription>
-                {editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 06/07/2025, 07:42 AM)'}
+                {editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 06/07/2025, 11:41 AM)'}
               </DialogDescription>
             </div>
             <div>
@@ -599,9 +619,8 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                 )}
               </Button>
             </div>
-            {/* Debug errors */}
             {Object.keys(form.formState.errors).length > 0 && (
-              <pre>{JSON.stringify(form.formState.errors, null, 2)}</pre>
+              <pre className="text-red-500 bg-gray-100 p-2 rounded">{JSON.stringify(form.formState.errors, null, 2)}</pre>
             )}
           </form>
         </Form>
