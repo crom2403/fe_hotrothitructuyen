@@ -321,7 +321,6 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
   };
 
   const onSubmit = async (data: QuestionFormData) => {
-    console.log('onSubmit called with data:', data);
     setIsLoadingSubmit(true);
     try {
       if (questionType === 'drag_drop' && isDragDropConfig(data.answer_config) && data.answers.length !== data.answer_config.correct.length) {
@@ -341,7 +340,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           order_index: answer.order_index,
         })),
       };
-      console.log('API Data:', apiData);
+      console.log('API Data:', apiData); // Debug dữ liệu gửi đi
       const response = await apiCreateQuestion(apiData);
       if (response.status === 201) {
         toast.success('Tạo câu hỏi thành công');
@@ -354,6 +353,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      console.error('API Error:', errorMessage); // Debug lỗi API
       toast.error(errorMessage);
     } finally {
       setIsLoadingSubmit(false);
@@ -423,7 +423,9 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           <div className="flex justify-between">
             <div>
               <DialogTitle>{editingQuestion ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
-              <DialogDescription>{editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 04/07/2025, 03:34 PM)'}</DialogDescription>
+              <DialogDescription>
+                {editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 06/07/2025, 07:42 AM)'}
+              </DialogDescription>
             </div>
             <div>
               {form.getValues('subject_id') && questionType === 'single_choice' && (
@@ -597,6 +599,10 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                 )}
               </Button>
             </div>
+            {/* Debug errors */}
+            {Object.keys(form.formState.errors).length > 0 && (
+              <pre>{JSON.stringify(form.formState.errors, null, 2)}</pre>
+            )}
           </form>
         </Form>
       </DialogContent>
