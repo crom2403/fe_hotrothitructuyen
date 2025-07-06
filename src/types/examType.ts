@@ -60,15 +60,41 @@ export type ExamFormData = {
   time_limit: boolean;
 };
 
-export type QuestionFormData = {
-  content: string;
-  type: 'single' | 'multiple' | 'matching' | 'drag-drop';
-  topic: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  points: number;
-  options?: string[];
-  correctAnswers?: number[];
-  explanation?: string;
-  matchingPairs?: { left: string; right: string }[];
-  dragDropItems?: { id: string; content: string; correctPosition: number }[];
-};
+// export type QuestionFormData = {
+//   content: string;
+//   type: 'single' | 'multiple' | 'matching' | 'drag-drop';
+//   topic: string;
+//   difficulty: 'easy' | 'medium' | 'hard';
+//   points: number;
+//   options?: string[];
+//   correctAnswers?: number[];
+//   explanation?: string;
+//   matchingPairs?: { left: string; right: string }[];
+//   dragDropItems?: { id: string; content: string; correctPosition: number }[];
+// };
+
+export type ExamForStudyGroupItem= {
+  id: string;
+  name: string;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  test_type: string;
+  description: string;
+  subject_id: string;
+  subject_name: string;
+  question_count: number;
+  attempt_count: number;
+  opening_status: string;
+  study_group_id: string;
+}
+
+export type ExamForStudyGroup = {
+  data: ExamForStudyGroupItem[];
+  metadata: {
+    total: number;
+    size: number;
+    page: number;
+    last_page: number;
+  };
+}

@@ -4,7 +4,6 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Subject } from '@/types/subjectType';
 import type { Year } from '@/types/year_semesterType';
-import type { VideoPopupConfig } from '@/types/questionFormTypes';
 
 interface AppStore {
   openSidebar: boolean;
@@ -17,10 +16,11 @@ interface AppStore {
   setSubjects: (subjects: Subject[]) => void;
   academicYears: Year[];
   setAcademicYears: (academicYears: Year[]) => void;
-  videoPopupQuestions: string[];
-  setVideoPopupQuestions: (questions: string[]) => void;
-  videoPopupConfig?: VideoPopupConfig;
-  setVideoPopupConfig: (config: VideoPopupConfig | undefined) => void;
+
+  examId: string;
+  setExamId: (examId: string) => void;
+  studyGroupId: string;
+  setStudyGroupId: (studyGroupId: string) => void;
 }
 
 const useAppStore = create<AppStore>()(
@@ -48,13 +48,13 @@ const useAppStore = create<AppStore>()(
       setAcademicYears: (academicYears: Year[]) => {
         set({ academicYears });
       },
-      videoPopupQuestions: [], // Khởi tạo mảng rỗng cho các câu hỏi
-      setVideoPopupQuestions: (questions: string[]) => {
-        set({ videoPopupQuestions: questions });
+      examId: '',
+      setExamId: (examId: string) => {
+        set({ examId });
       },
-      videoPopupConfig: undefined, // Khởi tạo không có cấu hình ban đầu
-      setVideoPopupConfig: (config: VideoPopupConfig | undefined) => {
-        set({ videoPopupConfig: config });
+      studyGroupId: '',
+      setStudyGroupId: (studyGroupId: string) => {
+        set({ studyGroupId });
       },
     }),
     {

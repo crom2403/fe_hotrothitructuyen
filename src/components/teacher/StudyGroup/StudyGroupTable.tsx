@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { StudyGroupDetail, StudyGroupInfo } from "@/types/studyGroupType"
 import AddStudentDialog from "./AddStudentDialog"
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/ui/table"
-import { Copy, Eye, Loader2, MoreHorizontal, Search, Users } from "lucide-react"
+import { Copy, Eye, FileText, Loader2, MoreHorizontal, Search, Users } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectValue, SelectTrigger, SelectItem } from "@/components/ui/select"
 import type { SubjectResponse } from "@/types/subjectType"
@@ -18,6 +18,9 @@ import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigge
 import { apiGetStudyGroupDetail, apiRemoveStudentFromStudyGroup } from "@/services/teacher/studyGroup"
 import StudyGroupDetailDialog from "./StudyGroupDetailDialog"
 import useAppStore from "@/stores/appStore"
+import ExamListDialog from "./ExamStudyGroupDialog"
+import type { ExamForStudyGroup } from "@/types/examType"
+import { apiExamForStudyGroup } from "@/services/teacher/createExam"
 
 interface StudyGroupTableProps {
   studyGroups: StudyGroupInfo[]
@@ -36,11 +39,32 @@ interface StudyGroupTableProps {
   copyInviteCode: (inviteCode: string) => void
   handleGetStudyGroup: () => void
 }
+
 const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, yearFilter, setYearFilter, page, totalPages, handlePageClick, copyInviteCode, handleGetStudyGroup }: StudyGroupTableProps) => {
   const { subjects, academicYears } = useAppStore();
   const [openDetail, setOpenDetail] = useState(false)
   const [studyGroupDetail, setStudyGroupDetail] = useState<StudyGroupDetail | null>(null)
   const [isLoadingDetail, setIsLoadingDetail] = useState(false)
+  const [openExam, setOpenExam] = useState(false)
+  const [exams, setExams] = useState<ExamForStudyGroup | null>(null)
+  const [isLoadingExams, setIsLoadingExams] = useState(false)
+  const [pageExams, setPageExams] = useState(1)
+
+  const handleGetExams = async (studyGroupId: string) => {
+    setIsLoadingExams(true)
+    try {
+      const response = await apiExamForStudyGroup(studyGroupId)
+      if (response.status === 200) {
+        setExams(response.data)
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string, error: string }>
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra'
+      toast.error(errorMessage)
+    } finally {
+      setIsLoadingExams(false)
+    }
+  }
 
   const handleViewDetail = async (studyGroupId: string) => {
     setIsLoadingDetail(true)
@@ -60,20 +84,30 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
   }
 
   const handleRemoveStudent = async (studentCodes: string[]) => {
-    try{
+    try {
       const response = await apiRemoveStudentFromStudyGroup(studyGroupDetail?.id || "", studentCodes)
-      if(response.status === 200){
+      if (response.status === 200) {
         toast.success("Xóa sinh viên thành công")
         handleGetStudyGroup()
         setOpenDetail(false)
       }
-    }catch(error){
+    } catch (error) {
       const axiosError = error as AxiosError<{ message: string, error: string }>
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra'
       toast.error(errorMessage)
-    }finally{
+    } finally {
       setIsLoadingDetail(false)
     }
+  }
+
+  const handleViewExam = async (studyGroupId: string) => {
+    setIsLoadingExams(true);
+    setOpenExam(true);
+    await handleGetExams(studyGroupId);
+  }
+
+  const handlePageChange = (page: number) => {
+    setPageExams(page)
   }
 
   return (
@@ -81,7 +115,7 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle >Danh sách lớp học phần</CardTitle>
+            <CardTitle>Danh sách lớp học phần</CardTitle>
             <CardDescription>Tổng cộng {studyGroups.length} lớp học phần</CardDescription>
           </div>
           <div>
@@ -94,7 +128,6 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
         </div>
       </CardHeader>
       <CardContent>
-
         <div className="flex items-center space-x-4 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -142,62 +175,64 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
             </TableRow>
           </TableHeader>
           <TableBody>
-            {
-              isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    <div className="flex justify-center items-center h-32">
-                      <Loader2 className="w-10 h-10 animate-spin" />
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <div className="flex justify-center items-center h-32">
+                    <Loader2 className="w-10 h-10 animate-spin" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              studyGroups.map((studyGroup) => (
+                <TableRow key={studyGroup.study_group_id}>
+                  <TableCell>{studyGroup.study_group_code}</TableCell>
+                  <TableCell>{studyGroup.study_group_name}</TableCell>
+                  <TableCell>{studyGroup.subject_name}</TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      <div>{studyGroup.academic_year_code}</div>
+                      <div className="text-gray-500">{studyGroup.semester_name}</div>
                     </div>
                   </TableCell>
-                </TableRow>
-              ) : (
-                studyGroups.map((studyGroup) => (
-                  <TableRow key={studyGroup.study_group_id}>
-                    <TableCell>{studyGroup.study_group_code}</TableCell>
-                    <TableCell>{studyGroup.study_group_name}</TableCell>
-                    <TableCell>{studyGroup.subject_name}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div>{studyGroup.academic_year_code}</div>
-                        <div className="text-gray-500">{studyGroup.semester_name}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-500" />
-                        <span>
-                          {studyGroup.student_count} / {studyGroup.study_group_max_students}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded text-sm">{studyGroup.study_group_invite_code}</code>
-                        <Button variant="ghost" size="sm" onClick={() => copyInviteCode(studyGroup.study_group_invite_code)}>
-                          <Copy className="h-4 w-4" />
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-gray-500" />
+                      <span>
+                        {studyGroup.student_count} / {studyGroup.study_group_max_students}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <code className="bg-gray-100 px-2 py-1 rounded text-sm">{studyGroup.study_group_invite_code}</code>
+                      <Button variant="ghost" size="sm" onClick={() => copyInviteCode(studyGroup.study_group_invite_code)}>
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleViewDetail(studyGroup.study_group_id)}>
-                            <Eye className="mr-2 h-4 w-4" />
-                            Xem chi tiết
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )
-            }
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleViewDetail(studyGroup.study_group_id)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Xem chi tiết
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewExam(studyGroup.study_group_id)}>
+                          <FileText className="mr-2 h-4 w-4" />
+                          Xem đề thi
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
         {studyGroups.length === 0 && !isLoading && (
@@ -211,6 +246,16 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
           setOpen={setOpenDetail}
           onRemoveStudent={handleRemoveStudent}
           isLoading={isLoadingDetail}
+        />
+        
+        <ExamListDialog
+          open={openExam}
+          setOpen={setOpenExam}
+          exams={exams?.data || []}
+          isLoading={isLoadingExams}
+          page={pageExams}
+          totalPages={exams?.metadata.last_page || 0}
+          handlePageChange={handlePageChange}
         />
       </CardContent>
     </Card>
