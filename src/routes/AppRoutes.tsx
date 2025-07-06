@@ -56,16 +56,24 @@ const AppRoutes = () => {
         <Route path={path.ACCESS_DENIED} element={<AccessDeniedPage />} />
         <Route path={path.OTP_CONFIRMATION} element={<OTPConfirmation />} />
         <Route path={path.PUBLIC} element={<IEduLandingPage />} />
-        <Route path={'/exam-room-student'} element={<ExamRoomStudent examId="123" studyGroupId="abc" />} />
-        <Route path={'/exam-room-teacher'} element={<ExamRoomTeacher examId="123" studyGroupId="abc" />} />
+        <Route path={path.STUDENT.EXAM_ROOM_STUDENT} element={<ExamRoomStudent />} />
+        <Route path={path.TEACHER.EXAM_ROOM_TEACHER} element={<ExamRoomTeacher />} />
         <Route
-          path={path.STUDENT.EXAM_TAKING}
+          path={path.STUDENT.EXAM_ROOM_STUDENT}
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <ExamTaking />
             </ProtectedRoute>
           }
         />
+        {/* <Route
+          path={path.STUDENT.EXAM_TAKING}
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <ExamTaking />
+            </ProtectedRoute>
+          }
+        /> */}
         {/* Protected routes under MainLayout */}
         <Route
           element={

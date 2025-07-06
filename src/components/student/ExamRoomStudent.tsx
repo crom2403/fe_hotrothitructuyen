@@ -15,8 +15,11 @@ interface StudentInfo {
 }
 import { listAvatar } from '@/components/profile/ChooseAvatarDialog';
 import path from '@/utils/path';
+import { useParams } from 'react-router-dom';
 
-export default function ExamRoomStudent({ examId = '123', studyGroupId = 'abc' }: { examId: string; studyGroupId: string }) {
+export default function ExamRoomStudent() {
+  const { examId, studyGroupId } = useParams();
+  console.log(examId, studyGroupId);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [studentInfo, setStudentInfo] = useState<StudentInfo>({

@@ -14,6 +14,7 @@ import MatchingQuestion from './Exam/MatchingQuestion';
 import OrderingQuestion from './Exam/OrderingQuestion';
 import VideoPopupQuestion from './Exam/VideoPopupQuestion';
 import Loading from '@/components/common/Loading';
+import { useParams } from 'react-router-dom';
 
 // Định nghĩa cấu trúc dữ liệu từ API
 interface Answer {
@@ -48,6 +49,10 @@ interface ExamData {
 
 // Component chính ExamTaking
 export default function ExamTaking() {
+  // const { examId: examIdFromParams, studyGroupId: studyGroupIdFromParams } = useParams();
+  const { examId, studyGroupId } = JSON.parse(localStorage.getItem('currentExam') || '{}');
+
+  console.log(examId, studyGroupId);
   const [exam, setExam] = useState<IExam | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -58,7 +63,8 @@ export default function ExamTaking() {
 
   const handleGetExam = async () => {
     try {
-      const exam = await apiGetDetailExam('ed830f51-2eab-4d3f-ae45-edf5d75b3bfb');
+      // const exam = await apiGetDetailExam('ed830f51-2eab-4d3f-ae45-edf5d75b3bfb');
+      const exam = await apiGetDetailExam(examId as string);
       if (exam) {
         console.log('Exam data:', JSON.stringify(exam.data, null, 2));
         setExam(exam.data);

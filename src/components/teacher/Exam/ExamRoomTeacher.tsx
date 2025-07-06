@@ -12,6 +12,7 @@ import { Search, Users, UserCheck, UserX, Clock, CheckCircle, AlertTriangle, Fil
 import { io, Socket } from 'socket.io-client';
 import { FlipReveal, FlipRevealItem } from '@/components/ui/flip-reveal';
 import path from '@/utils/path';
+import { useParams } from 'react-router-dom';
 
 export interface Student {
   studentId: string;
@@ -33,7 +34,9 @@ interface ExamStats {
   late: number;
 }
 
-export default function ExamRoomTeacher({ examId, studyGroupId }: { examId: string; studyGroupId: string }) {
+export default function ExamRoomTeacher() {
+  const { examId, studyGroupId } = useParams();
+  console.log(examId, studyGroupId);
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);

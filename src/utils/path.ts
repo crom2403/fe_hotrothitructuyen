@@ -34,6 +34,7 @@ const path = {
     SUBJECT: '/teacher/subject',
     ASSIGNMENT: '/teacher/assignment',
     EXAM: '/teacher/exam',
+    EXAM_ROOM_TEACHER: '/teacher/exam_room_teacher',
 
     NOTIFICATION: '/teacher/notification',
   },
@@ -46,6 +47,7 @@ const path = {
     EXAM_RESULTS: '/student/exam_results',
     EXAM_CALENDAR: '/student/exam_calendar',
     EXAM_TAKING: '/student/exam_taking',
+    EXAM_ROOM_STUDENT: '/student/exam_room_student',
   },
 };
 
