@@ -1,7 +1,7 @@
 const path = {
   SERVER_URL: 'https://successful-laura-tsondev-c5a7fe4d.koyeb.app',
-  SOCKET_URL: 'https://successful-laura-tsondev-c5a7fe4d.koyeb.app/events',
-  // SOCKET_URL: 'http://localhost:3000/events',
+  // SOCKET_URL: 'https://successful-laura-tsondev-c5a7fe4d.koyeb.app/events',
+  SOCKET_URL: 'http://localhost:3000/events',
   PUBLIC: '/',
   HOME: '',
   LOGIN: '/login',
@@ -34,7 +34,7 @@ const path = {
     SUBJECT: '/teacher/subject',
     ASSIGNMENT: '/teacher/assignment',
     EXAM: '/teacher/exam',
-    EXAM_ROOM_TEACHER: '/teacher/exam_room_teacher',
+    EXAM_ROOM_TEACHER: '/teacher/exam-room-teacher',
 
     NOTIFICATION: '/teacher/notification',
   },
@@ -46,8 +46,8 @@ const path = {
     EXAM_LIST: '/student/exam_list',
     EXAM_RESULTS: '/student/exam_results',
     EXAM_CALENDAR: '/student/exam_calendar',
-    EXAM_TAKING: '/student/exam_taking',
-    EXAM_ROOM_STUDENT: '/student/exam_room_student',
+    EXAM_TAKING: '/student/exam-taking',
+    EXAM_ROOM_STUDENT: '/student/exam-room-student',
   },
 };
 

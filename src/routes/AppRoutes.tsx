@@ -56,7 +56,8 @@ const AppRoutes = () => {
         <Route path={path.ACCESS_DENIED} element={<AccessDeniedPage />} />
         <Route path={path.OTP_CONFIRMATION} element={<OTPConfirmation />} />
         <Route path={path.PUBLIC} element={<IEduLandingPage />} />
-        <Route path={path.STUDENT.EXAM_ROOM_STUDENT} element={<ExamRoomStudent />} />
+        <Route path={path.STUDENT.EXAM_ROOM_STUDENT} element={<ExamTaking />} />
+        <Route path={path.STUDENT.EXAM_TAKING} element={<ExamRoomStudent />} />
         <Route path={path.TEACHER.EXAM_ROOM_TEACHER} element={<ExamRoomTeacher />} />
         <Route
           path={path.STUDENT.EXAM_ROOM_STUDENT}

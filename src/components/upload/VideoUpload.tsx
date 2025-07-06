@@ -12,12 +12,14 @@ const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`;
 interface VideoUploadProps {
   onUploadSuccess?: (url: string) => void;
   onUploadError?: (error: string) => void;
+  setValue?: (name: string, value: string) => void;
   maxSizeMB?: number;
 }
 
 export const VideoUpload: React.FC<VideoUploadProps> = ({
   onUploadSuccess,
   onUploadError,
+  setValue,
   maxSizeMB = 1000, // Default max size is 1GB
 }) => {
   const [progress, setProgress] = useState(0);
@@ -56,6 +58,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    if (setValue) setValue('answer_config.url', '');
   };
 
   const cancelUpload = () => {
@@ -66,6 +69,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       setProgress(0);
       setError('Upload cancelled');
       setSelectedFileName(null);
+      if (setValue) setValue('answer_config.url', '');
     }
   };
 
@@ -83,7 +87,6 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
       setUploading(true);
       setSelectedFileName(file.name);
 
-      // Create a new cancel token
       cancelTokenRef.current = axios.CancelToken.source();
 
       const formData = new FormData();
@@ -108,6 +111,8 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
         const uploadedUrl = response.data.secure_url;
         setVideoUrl(uploadedUrl);
         onUploadSuccess?.(uploadedUrl);
+        if (setValue) setValue('answer_config.url', uploadedUrl); // Cập nhật url vào form
+        console.log('Uploaded URL:', uploadedUrl);
       } else {
         throw new Error('Upload failed: No URL returned');
       }
@@ -120,6 +125,7 @@ export const VideoUpload: React.FC<VideoUploadProps> = ({
         setError(errorMessage);
         onUploadError?.(errorMessage);
         setSelectedFileName(null);
+        if (setValue) setValue('answer_config.url', ''); // Reset khi lỗi
       }
     } finally {
       setUploading(false);

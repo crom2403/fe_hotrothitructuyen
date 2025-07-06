@@ -18,7 +18,7 @@ const Overview = () => {
       apiGetSubjects(1, '', '', 100), 
       apiGetAcademicYears()]);
 
-    console.log(resType, resDifficultyLevel, resSubject, resAcademicYear);
+    // console.log(resType, resDifficultyLevel, resSubject, resAcademicYear);
     if (resType.status === 200) {
       setQuestionTypes(resType.data.data);
     }

@@ -47,12 +47,13 @@ const MultipleChoiceForm = ({
           variant="outline"
           size="sm"
           onClick={() => {
-            if (answers.length >= 4) {
-              toast.error("Tối đa 4 phương án!");
+            if (answers.length >= 7) {
+              toast.error("Tối đa 7 phương án!");
               return;
             }
             addOption();
           }}
+          disabled={answers.length >= 7}
         >
           <Plus className="mr-2 h-4 w-4" />
           Thêm phương án

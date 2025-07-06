@@ -8,17 +8,18 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Search, Users, UserCheck, UserX, Clock, CheckCircle, AlertTriangle, Filter, BarChart3, RefreshCw, Maximize2, Monitor, GraduationCap } from 'lucide-react';
+import { Search, Users, Clock, CheckCircle, AlertTriangle, Filter, BarChart3, RefreshCw, Maximize2, Monitor, GraduationCap, Play, Pause } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { FlipReveal, FlipRevealItem } from '@/components/ui/flip-reveal';
 import path from '@/utils/path';
-import { useParams } from 'react-router-dom';
+import { apiGetDetailExam } from '@/services/student/exam';
+import { toast } from 'sonner';
 
 export interface Student {
   studentId: string;
   name: string;
   avatar: string;
-  status: 'online' | 'offline' | 'late' | 'submitted';
+  status: 'taking_exam' | 'out_of_exam' | 'submitted' | 'waiting';
   tab_count: number;
   last_seen?: string;
   exam_progress?: number;
@@ -28,15 +29,15 @@ export interface Student {
 
 interface ExamStats {
   total: number;
-  online: number;
-  offline: number;
+  taking_exam: number;
+  out_of_exam: number;
   submitted: number;
-  late: number;
+  waiting: number;
 }
 
 export default function ExamRoomTeacher() {
-  const { examId, studyGroupId } = useParams();
-  console.log(examId, studyGroupId);
+  const { examId, studyGroupId } = { examId: 'da98c8e1-7e7c-47e6-898b-d57277a4fc8f', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
+
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,8 +45,19 @@ export default function ExamRoomTeacher() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [stats, setStats] = useState<ExamStats>({ total: 0, online: 0, offline: 0, submitted: 0, late: 0 });
+  const [stats, setStats] = useState<ExamStats>({ total: 0, taking_exam: 0, out_of_exam: 0, submitted: 0, waiting: 0 });
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [examOpened, setExamOpened] = useState(false);
+
+  const handleGetExam = async () => {
+    try {
+      const response = await apiGetDetailExam(examId);
+      console.log('Exam data:', response.data);
+    } catch (error) {
+      console.error('Error fetching exam:', error);
+      toast.error('Không thể tải thông tin kỳ thi');
+    }
+  };
 
   useEffect(() => {
     const socketInstance = io(path.SOCKET_URL, {
@@ -57,15 +69,28 @@ export default function ExamRoomTeacher() {
     socketInstance.emit('joinTeacher', { examId, studyGroupId });
 
     socketInstance.on('examMatrix', (data: Student[]) => {
-      setStudents(data);
+      console.log('data', data);
+      // setStudents(data);
+      setFilteredStudents(data);
       setIsLoading(false);
       setLastUpdate(new Date());
       calculateStats(data);
     });
 
+    socketInstance.on('openExam', () => {
+      setExamOpened(true);
+      toast.success('Đề thi đã được mở!');
+    });
+
+    socketInstance.on('pauseExam', () => {
+      setExamOpened(false);
+      toast.info('Đề thi đã bị tạm dừng.');
+    });
+
     socketInstance.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
       setIsLoading(false);
+      toast.error('Lỗi kết nối tới máy chủ');
     });
 
     return () => {
@@ -91,26 +116,27 @@ export default function ExamRoomTeacher() {
   const calculateStats = (studentsData: Student[]) => {
     const newStats = {
       total: studentsData.length,
-      online: studentsData.filter((s) => s.status === 'online').length,
-      offline: studentsData.filter((s) => s.status === 'offline').length,
+      taking_exam: studentsData.filter((s) => s.status === 'taking_exam').length,
+      out_of_exam: studentsData.filter((s) => s.status === 'out_of_exam').length,
       submitted: studentsData.filter((s) => s.status === 'submitted').length,
-      late: studentsData.filter((s) => s.status === 'late').length,
+      waiting: studentsData.filter((s) => s.status === 'waiting').length,
     };
     setStats(newStats);
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'online':
-        return <UserCheck className="w-4 h-4" />;
-      case 'offline':
-        return <UserX className="w-4 h-4" />;
-      case 'late':
-        return <Clock className="w-4 h-4" />;
-      case 'submitted':
-        return <CheckCircle className="w-4 h-4" />;
-      default:
-        return <Users className="w-4 h-4" />;
+  useEffect(() => {
+    handleGetExam();
+  }, [examId]);
+
+  const handleOpenExam = () => {
+    if (socket) {
+      socket.emit('openExam', { examId, studyGroupId });
+    }
+  };
+
+  const handlePauseExam = () => {
+    if (socket) {
+      socket.emit('pauseExam', { examId, studyGroupId });
     }
   };
 
@@ -118,25 +144,25 @@ export default function ExamRoomTeacher() {
     const baseClasses = 'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium';
 
     switch (status) {
-      case 'online':
+      case 'taking_exam':
         return (
           <Badge className={`${baseClasses} bg-emerald-100 text-emerald-700 border border-emerald-200 text-[10px] px-2 py-0`}>
             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
             Đang thi
           </Badge>
         );
-      case 'offline':
+      case 'out_of_exam':
         return (
           <Badge className={`${baseClasses} bg-red-100 text-red-700 border border-red-200`}>
             <div className="w-2 h-2 bg-red-500 rounded-full" />
-            Ngắt kết nối
+            Rời khỏi phòng thi
           </Badge>
         );
-      case 'late':
+      case 'waiting':
         return (
           <Badge className={`${baseClasses} bg-amber-100 text-amber-700 border border-amber-200`}>
             <Clock className="w-3 h-3" />
-            Trễ
+            Chờ
           </Badge>
         );
       case 'submitted':
@@ -156,7 +182,8 @@ export default function ExamRoomTeacher() {
     }
   };
 
-  const getSuspiciousActivityLevel = (count: number) => {
+  const getSuspiciousActivityLevel = (count: number | undefined) => {
+    if (!count) return 'none';
     if (count >= 5) return 'high';
     if (count >= 3) return 'medium';
     if (count >= 1) return 'low';
@@ -214,6 +241,10 @@ export default function ExamRoomTeacher() {
                 <div className="text-xs text-blue-200">Cập nhật lúc</div>
                 <div className="font-semibold text-xs">{lastUpdate.toLocaleTimeString()}</div>
               </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
+                <div className="text-xs text-blue-200">Trạng thái đề thi</div>
+                <div className="font-semibold text-xs">{examOpened ? 'Đang mở' : 'Đã tạm dừng'}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -240,10 +271,10 @@ export default function ExamRoomTeacher() {
             </SelectTrigger>
             <SelectContent className="bg-white">
               <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value="online">Đang thi</SelectItem>
-              <SelectItem value="offline">Ngắt kết nối</SelectItem>
+              <SelectItem value="waiting">Chờ</SelectItem>
+              <SelectItem value="taking_exam">Đang thi</SelectItem>
+              <SelectItem value="out_of_exam">Rời khỏi phòng thi</SelectItem>
               <SelectItem value="submitted">Đã nộp bài</SelectItem>
-              <SelectItem value="late">Trễ</SelectItem>
             </SelectContent>
           </Select>
 
@@ -260,6 +291,16 @@ export default function ExamRoomTeacher() {
             <RefreshCw className="w-4 h-4 mr-2" />
             Làm mới
           </Button>
+
+          <Button onClick={handleOpenExam} disabled={examOpened} variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
+            <Play className="w-4 h-4 mr-2" />
+            Mở đề thi
+          </Button>
+
+          <Button onClick={handlePauseExam} disabled={!examOpened} variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700">
+            <Pause className="w-4 h-4 mr-2" />
+            Tạm dừng đề thi
+          </Button>
         </div>
 
         <div className="flex gap-2 py-4">
@@ -268,6 +309,22 @@ export default function ExamRoomTeacher() {
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-500">Tổng số sinh viên</p>
                 <p className="text-sm text-gray-500">{stats.total}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">Đang thi</p>
+                <p className="text-sm text-gray-500">{stats.taking_exam}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">Rời khỏi phòng thi</p>
+                <p className="text-sm text-gray-500">{stats.out_of_exam}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">Đã nộp bài</p>
+                <p className="text-sm text-gray-500">{stats.submitted}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500">Chờ</p>
+                <p className="text-sm text-gray-500">{stats.waiting}</p>
               </div>
             </div>
           </div>
@@ -281,57 +338,55 @@ export default function ExamRoomTeacher() {
                 <p className="text-gray-500">{searchTerm || statusFilter !== 'all' ? 'Không tìm thấy sinh viên phù hợp với bộ lọc' : 'Chưa có sinh viên tham gia kỳ thi'}</p>
               </div>
             ) : viewMode === 'grid' ? (
-              <div className="flex min-h-120 flex-col items-center gap-8 ">
-                <FlipReveal className="grid grid-cols-6 gap-3 sm:gap-4" keys={[statusFilter]} showClass="flex" hideClass="hidden">
+              <div className="flex min-h-[480px] flex-col items-center gap-8">
+                <FlipReveal className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4" keys={[statusFilter]} showClass="flex" hideClass="hidden">
                   {filteredStudents.map((student) => (
-                    <FlipRevealItem flipKey={student.studentId}>
+                    <FlipRevealItem flipKey={student.studentId} key={student.studentId}>
                       <div className="flex items-center justify-center w-[100px] h-[100px] border rounded-md shadow bg-white">
                         <Tooltip>
                           <TooltipTrigger>
                             <div className="flex flex-col items-center justify-center">
-                              <div className="flex items-center justify-center">
-                                <Avatar className="shadow-lg size-12">
-                                  <AvatarImage src={student.avatar} alt={student.name} className="object-cover" />
-                                  <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white font-semibold">{student?.name?.charAt(0) || ''}</AvatarFallback>
-                                </Avatar>
-                              </div>
-                              <p className="text-xs">{student.name}</p>
-                              <div className="flex items-center justify-between">{renderStatusBadge(student.status)}</div>
+                              <Avatar className="shadow-lg size-12">
+                                <AvatarImage src={student.avatar} alt={student.name} className="object-cover" />
+                                <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white font-semibold">{student?.name?.charAt(0) || ''}</AvatarFallback>
+                              </Avatar>
+                              <p className="text-xs text-center truncate w-full mt-1">{student.name}</p>
+                              <div className="flex items-center justify-center mt-1">{renderStatusBadge(student.status)}</div>
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent className="w-full h-full bg-white text-gray-800 border border-gray-200 shadow-xl">
+                          <TooltipContent className="bg-white text-gray-800 border border-gray-200 shadow-xl p-4">
                             <p>
-                              <span className="font-semibold">ID:</span>
-                              {student.studentId}
+                              <span className="font-semibold">ID:</span> {student.studentId}
                             </p>
                             <p>
-                              <span className="font-semibold">Họ và tên:</span>
-                              {student.name}
+                              <span className="font-semibold">Họ và tên:</span> {student.name}
                             </p>
                             <p>
-                              <span className="font-semibold">Trạng thái:</span>
-                              {student.status}
+                              <span className="font-semibold">Trạng thái:</span> {student.status}
                             </p>
                             <p>
-                              <span className="font-semibold">Số tab mở:</span>
-                              {student.tab_count}
+                              <span className="font-semibold">Số tab mở:</span> {student.tab_count}
                             </p>
-                            <p>
-                              <span className="font-semibold">Tiến độ bài thi:</span>
-                              {student.exam_progress}%
-                            </p>
-                            <p>
-                              <span className="font-semibold">Hoạt động đáng nghi:</span>
-                              {student.suspicious_activity}
-                            </p>
-                            <p>
-                              <span className="font-semibold">Lần cuối online:</span>
-                              {student.last_seen}
-                            </p>
-                            <p>
-                              <span className="font-semibold">Cảnh báo:</span>
-                              {student.warnings?.join(', ')}
-                            </p>
+                            {student.exam_progress !== undefined && (
+                              <p>
+                                <span className="font-semibold">Tiến độ bài thi:</span> {student.exam_progress}%
+                              </p>
+                            )}
+                            {student.suspicious_activity !== undefined && (
+                              <p>
+                                <span className="font-semibold">Hoạt động đáng nghi:</span> {student.suspicious_activity}
+                              </p>
+                            )}
+                            {student.last_seen && (
+                              <p>
+                                <span className="font-semibold">Lần cuối online:</span> {student.last_seen}
+                              </p>
+                            )}
+                            {student.warnings?.length && (
+                              <p>
+                                <span className="font-semibold">Cảnh báo:</span> {student.warnings.join(', ')}
+                              </p>
+                            )}
                           </TooltipContent>
                         </Tooltip>
                       </div>
@@ -358,16 +413,14 @@ export default function ExamRoomTeacher() {
                                 </Avatar>
                                 <div
                                   className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                                    student.status === 'online' ? 'bg-emerald-500' : student.status === 'submitted' ? 'bg-blue-500' : student.status === 'late' ? 'bg-amber-500' : 'bg-red-500'
+                                    student.status === 'taking_exam' ? 'bg-emerald-500' : student.status === 'submitted' ? 'bg-blue-500' : student.status === 'waiting' ? 'bg-amber-500' : 'bg-red-500'
                                   }`}
                                 />
                               </div>
-
                               <div className="flex-1">
                                 <div className="font-semibold text-gray-800">{student.name}</div>
                                 <div className="text-sm text-gray-500">{student.studentId}</div>
                               </div>
-
                               <div className="flex items-center gap-3">
                                 {renderStatusBadge(student.status)}
                                 {student.suspicious_activity && student.suspicious_activity > 0 && (
@@ -390,7 +443,6 @@ export default function ExamRoomTeacher() {
                           <p className="text-sm text-gray-500">{student.studentId}</p>
                         </TooltipContent>
                       </Tooltip>
-
                       <PopoverContent className="w-80 p-0 bg-white shadow-2xl rounded-xl border border-gray-100" side="top" align="center">
                         <div className="p-6">
                           <div className="flex items-center gap-4 mb-6">
@@ -403,22 +455,18 @@ export default function ExamRoomTeacher() {
                               <p className="text-gray-600">{student.studentId}</p>
                             </div>
                           </div>
-
                           <Separator className="my-4" />
-
                           <div className="space-y-4">
                             <div className="flex items-center justify-between">
                               <span className="font-medium text-gray-700">Trạng thái:</span>
                               {renderStatusBadge(student.status)}
                             </div>
-
                             <div className="flex items-center justify-between">
                               <span className="font-medium text-gray-700">Số tab mở:</span>
                               <Badge variant={student.tab_count > 1 ? 'destructive' : 'secondary'} className="font-semibold">
                                 {student.tab_count} tab{student.tab_count > 1 ? 's' : ''}
                               </Badge>
                             </div>
-
                             {student.exam_progress !== undefined && (
                               <div>
                                 <div className="flex items-center justify-between mb-2">
@@ -428,7 +476,6 @@ export default function ExamRoomTeacher() {
                                 <Progress value={student.exam_progress} className="h-3" />
                               </div>
                             )}
-
                             {student.suspicious_activity !== undefined && student.suspicious_activity > 0 && (
                               <div className="flex items-center justify-between">
                                 <span className="font-medium text-gray-700">Hoạt động đáng nghi:</span>
@@ -438,14 +485,12 @@ export default function ExamRoomTeacher() {
                                 </Badge>
                               </div>
                             )}
-
                             {student.last_seen && (
                               <div className="flex items-center justify-between">
                                 <span className="font-medium text-gray-700">Lần cuối online:</span>
                                 <span className="text-gray-600">{student.last_seen}</span>
                               </div>
                             )}
-
                             {student.warnings && student.warnings.length > 0 && (
                               <div>
                                 <span className="font-medium text-gray-700 block mb-2">Cảnh báo:</span>
