@@ -3,7 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogTrigger,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Clock, ChevronLeft, ChevronRight, Flag, Send, AlertTriangle } from 'lucide-react';
 import type { IExam, Question } from '@/services/student/interfaces/exam.interface';
 import { apiGetDetailExam } from '@/services/student/exam';
@@ -14,8 +24,13 @@ import MatchingQuestion from './Exam/MatchingQuestion';
 import OrderingQuestion from './Exam/OrderingQuestion';
 import VideoPopupQuestion from './Exam/VideoPopupQuestion';
 import Loading from '@/components/common/Loading';
+import { Drawer, DrawerContent, DrawerFooter, DrawerClose } from '@/components/ui/drawer';
+import { useNavigate } from 'react-router-dom';
+import useAuthStore from '@/stores/authStore';
+import { io, Socket } from 'socket.io-client';
+import { toast } from 'sonner';
+import path from '@/utils/path';
 
-// Định nghĩa cấu trúc dữ liệu từ API
 interface Answer {
   id: string;
   content: {
@@ -46,8 +61,12 @@ interface ExamData {
   };
 }
 
-// Component chính ExamTaking
 export default function ExamTaking() {
+  const navigate = useNavigate();
+  const { currentUser } = useAuthStore();
+  const { examId, studyGroupId } = { examId: 'da98c8e1-7e7c-47e6-898b-d57277a4fc8f', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
+
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [exam, setExam] = useState<IExam | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -55,49 +74,157 @@ export default function ExamTaking() {
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
+  const [examOpened, setExamOpened] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isValidSession, setIsValidSession] = useState(true);
 
-  const handleGetExam = async () => {
-    try {
-      const exam = await apiGetDetailExam('ed830f51-2eab-4d3f-ae45-edf5d75b3bfb');
-      if (exam) {
-        console.log('Exam data:', JSON.stringify(exam.data, null, 2));
-        setExam(exam.data);
-        setTimeLeft(exam.data.duration_minutes * 60);
-      }
-    } catch (error) {
-      console.error('Error fetching exam:', error);
+  // Kiểm tra điều kiện hợp lệ và điều hướng nếu cần
+  useEffect(() => {
+    if (!examId || !studyGroupId || !currentUser?.id) {
+      setIsValidSession(false);
+      toast.error('Thông tin kỳ thi hoặc tài khoản không hợp lệ');
+      navigate('/student/study-groups');
     }
-  };
+  }, [examId, studyGroupId, currentUser?.id, navigate]);
 
+  // Khởi tạo Socket và xử lý các sự kiện
   useEffect(() => {
-    handleGetExam();
-  }, []);
+    if (!isValidSession) return;
 
+    const socketInstance = io(path.SOCKET_URL, {
+      withCredentials: true,
+    });
+
+    setSocket(socketInstance);
+
+    socketInstance.emit('joinExam', {
+      examId,
+      studyGroupId,
+      studentId: currentUser?.id,
+      name: currentUser?.full_name,
+      avatar: currentUser?.avatar,
+      tab_count: 1,
+      status: 'waiting',
+    });
+
+    socketInstance.on('joinExam', () => {
+      toast.success(`Đã tham gia phòng thi ${examId}`);
+    });
+
+    socketInstance.on('openExam', () => {
+      setExamOpened(true);
+      toast.success('Đề thi đã được mở! Bạn có thể bắt đầu làm bài.');
+    });
+
+    socketInstance.on('pauseExam', () => {
+      setExamOpened(false);
+      toast.info('Đề thi đã bị tạm dừng.');
+    });
+
+    socketInstance.on('submitExam', (data: { studentId: string }) => {
+      if (data.studentId === currentUser?.id) {
+        setIsSubmitted(true);
+        toast.success('Bài thi đã được nộp thành công!');
+        navigate('/student/study-groups');
+      }
+    });
+
+    socketInstance.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+      toast.error('Lỗi kết nối tới máy chủ');
+    });
+
+    return () => {
+      if (socketInstance) {
+        socketInstance.emit('leaveExam', {
+          examId,
+          studyGroupId,
+          studentId: currentUser?.id,
+        });
+        socketInstance.disconnect();
+      }
+    };
+  }, [examId, studyGroupId, currentUser?.id, currentUser?.full_name, currentUser?.avatar, isValidSession, navigate]);
+
+  // Xử lý sự kiện chuyển tab
   useEffect(() => {
+    if (!isValidSession || !socket || !exam || isSubmitted) return;
+
     const handleVisibilityChange = () => {
-      if (document.hidden && !isSubmitted && exam) {
+      if (document.hidden) {
+        socket.emit('tabOut', {
+          examId,
+          studyGroupId,
+          studentId: currentUser?.id,
+          status: 'out_of_exam',
+        });
         setTabSwitchCount((prev) => {
           const newCount = prev + 1;
           if (newCount >= exam.max_tab_switch) {
-            alert('Bạn đã chuyển tab quá nhiều lần. Bài thi sẽ được nộp tự động.');
+            toast.error('Bạn đã chuyển tab quá nhiều lần. Bài thi sẽ được nộp tự động.');
             handleSubmit();
+          } else {
+            toast.warning(`Cảnh báo: Bạn đã chuyển tab ${newCount} lần!`);
           }
           return newCount;
         });
+      } else {
+        socket.emit('tabIn', {
+          examId,
+          studyGroupId,
+          studentId: currentUser?.id,
+          status: 'taking_exam',
+        });
       }
     };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isSubmitted, exam]);
+  }, [isValidSession, socket, exam, isSubmitted, examId, studyGroupId, currentUser?.id]);
 
+  // Quản lý thời gian
   useEffect(() => {
-    if (timeLeft > 0 && !isSubmitted) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (timeLeft === 0) {
+    if (!isValidSession || timeLeft <= 0 || isSubmitted || !examOpened) return;
+
+    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [isValidSession, timeLeft, isSubmitted, examOpened]);
+
+  // Tải dữ liệu kỳ thi
+  useEffect(() => {
+    if (!isValidSession) return;
+
+    const handleGetExam = async () => {
+      try {
+        setIsLoading(true);
+        const response = await apiGetDetailExam(examId);
+        if (response?.data) {
+          setExam(response.data);
+          setTimeLeft(response.data.duration_minutes * 60);
+        } else {
+          toast.error('Không tìm thấy thông tin kỳ thi');
+          setIsValidSession(false);
+          navigate('/student/study-groups');
+        }
+      } catch (error) {
+        console.error('Error fetching exam:', error);
+        toast.error('Lỗi khi tải thông tin kỳ thi');
+        setIsValidSession(false);
+        navigate('/student/study-groups');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    handleGetExam();
+  }, [examId, isValidSession, navigate]);
+
+  // Tự động nộp bài khi hết giờ
+  useEffect(() => {
+    if (timeLeft === 0 && !isSubmitted && examOpened && isValidSession) {
       handleSubmit();
     }
-  }, [timeLeft, isSubmitted]);
+  }, [timeLeft, isSubmitted, examOpened, isValidSession]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -125,27 +252,22 @@ export default function ExamTaking() {
   };
 
   const handleSubmit = () => {
-    setIsSubmitted(true);
+    if (!socket || isSubmitted || !exam || !isValidSession) return;
 
-    // Chuẩn bị dữ liệu nộp bài
-    const submissionData = {
-      exam_id: exam?.id,
-      answers: Object.entries(answers).map(([questionId, answer]) => ({
-        question_id: questionId,
-        answer_content: answer,
-      })),
-      time_spent: exam ? exam.duration_minutes * 60 - timeLeft : 0,
-      tab_switches: tabSwitchCount,
-    };
-
-    console.log('=== SUBMISSION DATA ===');
-    console.log('Exam ID:', submissionData.exam_id);
-    console.log('Time spent:', Math.floor(submissionData.time_spent / 60), 'minutes', submissionData.time_spent % 60, 'seconds');
-    console.log('Tab switches:', submissionData.tab_switches);
-    console.log('Total questions:', exam?.exam_questions.length);
-    console.log('Answered questions:', submissionData.answers.length);
-    console.log('Detailed answers:', submissionData.answers);
-    console.log('=== END SUBMISSION ===');
+    socket.emit('submitExam', {
+      examId,
+      studyGroupId,
+      studentId: currentUser?.id,
+      submissionData: {
+        exam_id: exam.id,
+        answers: Object.entries(answers).map(([questionId, answer]) => ({
+          question_id: questionId,
+          answer_content: answer,
+        })),
+        time_spent: exam.duration_minutes * 60 - timeLeft,
+        tab_switches: tabSwitchCount,
+      },
+    });
   };
 
   const getProgress = () => {
@@ -154,7 +276,11 @@ export default function ExamTaking() {
     return (answeredQuestions / exam.exam_questions.length) * 100;
   };
 
-  if (!exam) {
+  if (!isValidSession) {
+    return null; // Đã điều hướng trong useEffect
+  }
+
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Loading />
@@ -162,13 +288,52 @@ export default function ExamTaking() {
     );
   }
 
+  if (!exam) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center space-y-4">
+          <h3 className="text-xl font-semibold text-gray-700">Không tìm thấy kỳ thi</h3>
+          <p className="text-gray-500">Vui lòng kiểm tra lại mã kỳ thi hoặc liên hệ giáo viên.</p>
+        </div>
+      </div>
+    );
+  }
+
   const currentQ = exam.exam_questions[currentQuestion]?.question;
   if (!currentQ) {
-    return <div>Không tìm thấy câu hỏi</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center space-y-4">
+          <h3 className="text-xl font-semibold text-gray-700">Không tìm thấy câu hỏi</h3>
+          <p className="text-gray-500">Đã xảy ra lỗi khi tải câu hỏi. Vui lòng thử lại.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!examOpened) {
+    return (
+      <Drawer open={!examOpened}>
+        <DrawerContent>
+          <div className="flex flex-col gap-4 items-center justify-center text-center h-full py-8">
+            <h2 className="text-xl font-bold">Thông báo</h2>
+            <p className="text-sm text-gray-500">{examOpened ? 'Đề thi đã bị tạm dừng. Vui lòng chờ giáo viên mở lại đề thi.' : 'Đề thi chưa được mở. Vui lòng chờ giáo viên bắt đầu kỳ thi.'}</p>
+            {exam.instructions && <div className="text-left max-w-md mx-auto" dangerouslySetInnerHTML={{ __html: exam.instructions }} />}
+            <DrawerFooter>
+              <DrawerClose asChild>
+                <Button variant="outline" disabled>
+                  Đang chờ...
+                </Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 p-4">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -283,10 +448,12 @@ export default function ExamTaking() {
               <div className="flex gap-2">
                 {currentQuestion === exam.exam_questions.length - 1 ? (
                   <AlertDialog>
-                    <Button onClick={handleSubmit}>
-                      <Send className="h-4 w-4 mr-2" />
-                      Nộp bài
-                    </Button>
+                    <AlertDialogTrigger asChild>
+                      <Button>
+                        <Send className="h-4 w-4 mr-2" />
+                        Nộp bài
+                      </Button>
+                    </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận nộp bài</AlertDialogTitle>

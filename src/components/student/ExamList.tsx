@@ -8,6 +8,8 @@ import { Search, Play, Clock, Users, BookOpen, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiGetListExams } from '@/services/student/exam';
 import Loading from '@/components/common/Loading';
+import path from '@/utils/path';
+import { Link } from 'react-router-dom';
 
 interface Exam {
   id: string;
@@ -22,6 +24,7 @@ interface Exam {
   question_count: number;
   is_taked: boolean;
   opening_status: string; // Thay opening_status bằng handle_exam_status
+  study_group_id: string;
 }
 
 interface Subject {
@@ -82,6 +85,8 @@ const ExamList = () => {
       const response: any = await apiGetListExams(params);
       const { data, metadata } = response.data;
 
+      console.log(data);
+
       if (data?.length > 0) {
         setExams(data);
         setMetadata(metadata);
@@ -97,6 +102,10 @@ const ExamList = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleJoinExamRoom = (examId: string, studyGroupId: string) => {
+    localStorage.setItem('currentExam', JSON.stringify({ examId, studyGroupId }));
   };
 
   useEffect(() => {
@@ -257,11 +266,19 @@ const ExamList = () => {
                       {new Date(exam.end_time).toLocaleDateString('vi-VN')} {new Date(exam.end_time).toLocaleTimeString('vi-VN').slice(0, 5)}
                     </span>
                   </div>
-
-                  <Button className="w-full" disabled={exam.is_taked || exam.opening_status !== 'opening'} variant={exam.is_taked ? 'secondary' : 'default'}>
-                    {exam.is_taked ? 'Đã làm' : 'Bắt đầu thi'}
-                    <Play className="h-4 w-4 ml-2" />
-                  </Button>
+                  {exam.is_taked ? (
+                    <Button className="w-full" disabled={exam.is_taked || exam.opening_status !== 'opening'} variant={exam.is_taked ? 'secondary' : 'default'}>
+                      Đã làm
+                      <Play className="h-4 w-4 ml-2" />
+                    </Button>
+                  ) : (
+                    <Link to={`${path.STUDENT.EXAM_ROOM_STUDENT}`} onClick={() => handleJoinExamRoom(exam.id, exam.study_group_id)}>
+                      <Button className="w-full" disabled={exam.is_taked || exam.opening_status !== 'opening'} variant={exam.is_taked ? 'secondary' : 'default'}>
+                        Bắt đầu thi
+                        <Play className="h-4 w-4 ml-2" />
+                      </Button>
+                    </Link>
+                  )}
                 </CardContent>
               </Card>
             ))}

@@ -15,8 +15,13 @@ interface StudentInfo {
 }
 import { listAvatar } from '@/components/profile/ChooseAvatarDialog';
 import path from '@/utils/path';
+import { useParams } from 'react-router-dom';
 
-export default function ExamRoomStudent({ examId = '123', studyGroupId = 'abc' }: { examId: string; studyGroupId: string }) {
+export default function ExamRoomStudent() {
+  // const { examId, studyGroupId } = useParams();
+  const { examId, studyGroupId } = { examId: 'da98c8e1-7e7c-47e6-898b-d57277a4fc8f', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
+
+  console.log(examId, studyGroupId);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [studentInfo, setStudentInfo] = useState<StudentInfo>({
@@ -84,7 +89,7 @@ export default function ExamRoomStudent({ examId = '123', studyGroupId = 'abc' }
       name: 'John Doe',
       avatar: listAvatar[Math.floor(Math.random() * listAvatar.length)].image,
       tab_count: 1, // Giả lập số tab đang mở
-      status: 'online',
+      status: 'waiting',
     });
 
     // Lắng nghe phản hồi từ server
