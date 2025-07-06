@@ -36,7 +36,7 @@ interface ExamStats {
 }
 
 export default function ExamRoomTeacher() {
-  const { examId, studyGroupId } = { examId: 'da98c8e1-7e7c-47e6-898b-d57277a4fc8f', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
+  const { examId, studyGroupId } = { examId: '2aa18870-08bb-4373-b066-840c6027bda8', studyGroupId: 'bd7f2735-e9d5-4b61-b02a-bacda54e5a20' };
 
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);

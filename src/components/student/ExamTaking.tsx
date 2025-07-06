@@ -64,7 +64,7 @@ interface ExamData {
 export default function ExamTaking() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
-  const { examId, studyGroupId } = { examId: 'da98c8e1-7e7c-47e6-898b-d57277a4fc8f', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
+  const { examId, studyGroupId } = { examId: '2aa18870-08bb-4373-b066-840c6027bda8', studyGroupId: 'bd7f2735-e9d5-4b61-b02a-bacda54e5a20' };
 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [exam, setExam] = useState<IExam | null>(null);
@@ -122,11 +122,13 @@ export default function ExamTaking() {
     });
 
     socketInstance.on('submitExam', (data: { studentId: string }) => {
-      if (data.studentId === currentUser?.id) {
-        setIsSubmitted(true);
-        toast.success('Bài thi đã được nộp thành công!');
-        navigate('/student/study-groups');
-      }
+      // if (data.studentId === currentUser?.id) {
+      //   setIsSubmitted(true);
+      //   toast.success('Bài thi đã được nộp thành công!');
+      //   navigate('/student/exam_list');
+      // }
+
+      console.log(data);
     });
 
     socketInstance.on('connect_error', (error) => {
@@ -254,20 +256,55 @@ export default function ExamTaking() {
   const handleSubmit = () => {
     if (!socket || isSubmitted || !exam || !isValidSession) return;
 
-    socket.emit('submitExam', {
-      examId,
-      studyGroupId,
-      studentId: currentUser?.id,
-      submissionData: {
-        exam_id: exam.id,
-        answers: Object.entries(answers).map(([questionId, answer]) => ({
+    const submissionData = {
+      exam_id: exam.id,
+      answers: Object.entries(answers).map(([questionId, answer], index) => {
+        const question = exam.exam_questions.find((q) => q.question.id === questionId);
+        console.log('question', question);
+        if (question?.question.question_type.code === 'matching') {
+          console.log(' Object.entries(answer)', Object.entries(answer));
+          const formattedAnswer = Object.entries(answer).map(([leftId, rightId]) => ({
+            left: question?.question.answers.find((a) => a.id === leftId)?.content.left,
+            right: question?.question.answers.find((a) => a.id === rightId)?.content.right,
+          }));
+
+          return {
+            question_id: questionId,
+            question_type: question?.question.question_type.code,
+            order_index: index + 1,
+            answer_content: formattedAnswer,
+          };
+        }
+
+        return {
           question_id: questionId,
+          question_type: question?.question.question_type.code,
+          order_index: index + 1,
           answer_content: answer,
-        })),
-        time_spent: exam.duration_minutes * 60 - timeLeft,
-        tab_switches: tabSwitchCount,
-      },
-    });
+        };
+      }),
+      time_spent: exam.duration_minutes * 60 - timeLeft,
+      tab_switches: tabSwitchCount,
+    };
+
+    // In dữ liệu submissionData ra console
+    console.log('Dữ liệu exam:', JSON.stringify(exam, null, 2));
+    console.log('Dữ liệu bài làm của sinh viên:', JSON.stringify(submissionData, null, 2));
+
+    // socket.emit('submitExam', {
+    //   examId,
+    //   studyGroupId,
+    //   studentId: currentUser?.id,
+    //   submissionData: {
+    //     exam_id: exam.id,
+    //     answers: Object.entries(answers).map(([questionId, answer]) => ({
+    //       question_id: questionId,
+    //       answer_content: answer,
+    //     })),
+    //     time_spent: exam.duration_minutes * 60 - timeLeft,
+    //     tab_switches: tabSwitchCount,
+    //   },
+    // });
   };
 
   const getProgress = () => {

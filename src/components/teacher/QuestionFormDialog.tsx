@@ -146,10 +146,9 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
         ];
         break;
       case 'video_popup':
-        const videoId = uuidv4();
         newConfig = {
           kind: 'video_popup',
-          video_id: videoId,
+          video_id: uuidv4(),
           url: '',
           popup_times: [
             {
@@ -443,9 +442,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           <div className="flex justify-between">
             <div>
               <DialogTitle>{editingQuestion ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
-              <DialogDescription>
-                {editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 06/07/2025, 11:41 AM)'}
-              </DialogDescription>
+              <DialogDescription>{editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 06/07/2025, 11:41 AM)'}</DialogDescription>
             </div>
             <div>
               {form.getValues('subject_id') && questionType === 'single_choice' && (
@@ -619,9 +616,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                 )}
               </Button>
             </div>
-            {Object.keys(form.formState.errors).length > 0 && (
-              <pre className="text-red-500 bg-gray-100 p-2 rounded">{JSON.stringify(form.formState.errors, null, 2)}</pre>
-            )}
+            {Object.keys(form.formState.errors).length > 0 && <pre className="text-red-500 bg-gray-100 p-2 rounded">{JSON.stringify(form.formState.errors, null, 2)}</pre>}
           </form>
         </Form>
       </DialogContent>
