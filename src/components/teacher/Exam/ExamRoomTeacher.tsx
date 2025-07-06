@@ -70,7 +70,7 @@ export default function ExamRoomTeacher() {
 
     socketInstance.on('examMatrix', (data: Student[]) => {
       console.log('data', data);
-      // setStudents(data);
+      setStudents(data);
       setFilteredStudents(data);
       setIsLoading(false);
       setLastUpdate(new Date());
@@ -79,12 +79,12 @@ export default function ExamRoomTeacher() {
 
     socketInstance.on('openExam', () => {
       setExamOpened(true);
-      toast.success('Đề thi đã được mở!');
+      // toast.success('Đề thi đã được mở!');
     });
 
     socketInstance.on('pauseExam', () => {
       setExamOpened(false);
-      toast.info('Đề thi đã bị tạm dừng.');
+      // toast.info('Đề thi đã bị tạm dừng.');
     });
 
     socketInstance.on('connect_error', (error) => {
@@ -153,29 +153,29 @@ export default function ExamRoomTeacher() {
         );
       case 'out_of_exam':
         return (
-          <Badge className={`${baseClasses} bg-red-100 text-red-700 border border-red-200`}>
-            <div className="w-2 h-2 bg-red-500 rounded-full" />
-            Rời khỏi phòng thi
+          <Badge className={`${baseClasses} bg-red-100 text-red-700 border border-red-200 text-[10px] px-2 py-0`}>
+            <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+            Thoát tab
           </Badge>
         );
       case 'waiting':
         return (
-          <Badge className={`${baseClasses} bg-amber-100 text-amber-700 border border-amber-200`}>
-            <Clock className="w-3 h-3" />
+          <Badge className={`${baseClasses} bg-amber-100 text-amber-700 border border-amber-200 text-[10px] px-2 py-0`}>
+            <Clock className="w-1.5 h-1.5" />
             Chờ
           </Badge>
         );
       case 'submitted':
         return (
-          <Badge className={`${baseClasses} bg-blue-100 text-blue-700 border border-blue-200`}>
-            <CheckCircle className="w-3 h-3" />
+          <Badge className={`${baseClasses} bg-blue-100 text-blue-700 border border-blue-200 text-[10px] px-2 py-0`}>
+            <CheckCircle className="w-1.5 h-1.5" />
             Đã nộp bài
           </Badge>
         );
       default:
         return (
-          <Badge className={`${baseClasses} bg-gray-100 text-gray-700 border border-gray-200`}>
-            <Users className="w-3 h-3" />
+          <Badge className={`${baseClasses} bg-gray-100 text-gray-700 border border-gray-200 text-[10px] px-2 py-0`}>
+            <Users className="w-1.5 h-1.5" />
             Không xác định
           </Badge>
         );
