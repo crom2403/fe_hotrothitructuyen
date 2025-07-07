@@ -108,7 +108,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
         ];
         break;
       case 'drag_drop':
-        newConfig = { kind: 'drag_drop', zones: ['Vùng 1'], correct: [] };
+        newConfig = { kind: 'drag_drop', zones: [{ text: 'Vùng 1', value: 'zone1' }], correct: [] };
         newAnswers = [
           { id: uuidv4(), content: { text: 'Mục 1', value: 'A' }, order_index: 1 },
           { id: uuidv4(), content: { text: 'Mục 2', value: 'B' }, order_index: 2 },

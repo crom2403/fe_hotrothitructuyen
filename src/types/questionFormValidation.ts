@@ -36,7 +36,14 @@ export const multipleSelectConfigSchema = z.object({
 
 export const dragDropConfigSchema = z.object({
   kind: z.literal('drag_drop'),
-  zones: z.array(z.string()).min(1, 'Phải có ít nhất 1 vùng'),
+  zones: z
+    .array(
+      z.object({
+        text: z.string().min(1, 'Tên vùng không được để trống'),
+        value: z.string().min(1, 'Giá trị vùng không được để trống'),
+      }),
+    )
+    .min(1, 'Phải có ít nhất 1 vùng'),
   correct: z
     .array(
       z.object({

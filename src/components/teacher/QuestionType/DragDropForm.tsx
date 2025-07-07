@@ -27,28 +27,29 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
 
   useEffect(() => {
     if (zones.length === 0) {
-      setValue("answer_config.zones", ["Vùng 1"]);
+      setValue("answer_config.zones", [{ text: "Vùng 1", value: "zone1" }]);
       setValue("answer_config.correct", []);
     }
 
-  }, [zones, answers, correctMap, setValue]);
+  }, [zones.length, setValue]);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedId(id);
     e.dataTransfer.setData("text/plain", id);
   };
 
-  const handleDrop = (e: React.DragEvent, zone: string) => {
+  const handleDrop = (e: React.DragEvent, zoneIndex: number) => {
     e.preventDefault();
     if (!draggedId) return;
     const answer = answers.find((a: AnswerItem) => a.id === draggedId);
     if (!answer) return;
 
+    const targetZone = zones[zoneIndex];
     const updatedCorrect = correctMap.filter((c) => c.id !== draggedId);
     updatedCorrect.push({
       id: draggedId,
-      zone,
-      value: "value" in answer.content ? answer.content.value || answer.content.text :  "text" in answer.content && answer.content.text ? answer.content.text : "",
+      zone: targetZone.value,
+      value: "value" in answer.content ? answer.content.value || answer.content.text : "text" in answer.content && answer.content.text ? answer.content.text : "",
     });
     setValue("answer_config.correct", updatedCorrect);
     setDraggedId(null);
@@ -59,7 +60,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
       toast.error(`Tối đa ${MAX_ZONES} vùng!`);
       return;
     }
-    const newZone = `Vùng ${zones.length + 1}`;
+    const newZone = { text: `Vùng ${zones.length + 1}`, value: `zone${zones.length + 1}` };
     const newZones = [...zones, newZone];
     setValue("answer_config.zones", newZones);
   };
@@ -79,7 +80,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
   const handleZoneNameChange = (index: number, value: string) => {
     const newZones = [...zones];
     const oldName = newZones[index];
-    newZones[index] = value || `Vùng ${index + 1}`;
+    newZones[index] = { text: value || `Vùng ${index + 1}`, value: `zone${index + 1}` };
     setValue("answer_config.zones", newZones);
     const newCorrect = correctMap.map((c) => (c.zone === oldName ? { ...c, zone: newZones[index] } : c));
     setValue("answer_config.correct", newCorrect);
@@ -193,12 +194,12 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
                     key={index}
                     className="p-4 border-2 border-dashed border-gray-400 rounded bg-gray-50 min-h-24"
                     onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => handleDrop(e, zone)}
+                    onDrop={(e) => handleDrop(e, index)}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <Input
                         placeholder={`Tên vùng ${index + 1}`}
-                        value={zone}
+                        value={zone.text}
                         onChange={(e) => handleZoneNameChange(index, e.target.value)}
                         className="flex-1"
                       />
@@ -213,7 +214,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
                     </div>
                     <div className="space-y-2">
                       {correctMap
-                        .filter((c) => c.zone === zone)
+                        .filter((c) => c.zone === zone.value)
                         .map((c) => {
                           const answer = answers.find((a) => a.id === c.id);
                           return (
@@ -225,7 +226,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleRemoveAnswerFromZone(c.id, zone)}
+                                onClick={() => handleRemoveAnswerFromZone(c.id, zone.text)}
                               >
                                 <X className="h-4 w-4 text-red-500" />
                               </Button>

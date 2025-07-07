@@ -24,7 +24,7 @@ export interface MultipleSelectConfig {
 // Drag Drop Types
 export interface DragDropConfig {
   kind: 'drag_drop';
-  zones: string[];
+  zones: { text: string; value: string }[];
   correct: { id: string; zone: string; value: string }[];
 }
 
