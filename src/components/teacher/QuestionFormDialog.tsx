@@ -146,10 +146,9 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
         ];
         break;
       case 'video_popup':
-        const videoId = uuidv4();
         newConfig = {
           kind: 'video_popup',
-          video_id: videoId,
+          video_id: uuidv4(),
           url: '',
           popup_times: [
             {
@@ -183,13 +182,13 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
       questionType === 'matching'
         ? { id: uuidv4(), content: { left: '', right: '' }, order_index: currentAnswers.length + 1 }
         : {
-          id: uuidv4(),
-          content: {
-            text: '',
-            value: ['single_choice', 'multiple_select', 'drag_drop'].includes(questionType) ? String.fromCharCode(65 + currentAnswers.length) : '',
-          },
-          order_index: currentAnswers.length + 1,
-        };
+            id: uuidv4(),
+            content: {
+              text: '',
+              value: ['single_choice', 'multiple_select', 'drag_drop'].includes(questionType) ? String.fromCharCode(65 + currentAnswers.length) : '',
+            },
+            order_index: currentAnswers.length + 1,
+          };
     form.setValue('answers', [...currentAnswers, newAnswer]);
 
     const currentConfig = form.getValues('answer_config');
@@ -223,9 +222,9 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           questionType === 'matching'
             ? { left: (answer.content as { left: string; right: string }).left, right: (answer.content as { left: string; right: string }).right }
             : {
-              text: (answer.content as { text: string; value?: string }).text,
-              value: ['single_choice', 'multiple_select', 'drag_drop'].includes(questionType) ? String.fromCharCode(65 + i) : (answer.content as { text: string; value?: string }).value,
-            },
+                text: (answer.content as { text: string; value?: string }).text,
+                value: ['single_choice', 'multiple_select', 'drag_drop'].includes(questionType) ? String.fromCharCode(65 + i) : (answer.content as { text: string; value?: string }).value,
+              },
       }));
     form.setValue('answers', newAnswers);
 
@@ -280,7 +279,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
 
     if (questionType === 'video_popup' && isVideoPopupConfig(form.getValues('answer_config'))) {
       const currentConfig = form.getValues('answer_config');
-      const newCorrect = (currentConfig as VideoPopupConfig).popup_times.map((c) => (c.id === newAnswers[index].id ? { ...c, value: text } : c));
+      const newCorrect = (currentConfig as VideoPopupConfig).popup_times.map((c: any) => (c.id === newAnswers[index].id ? { ...c, value: text } : c));
       form.setValue('answer_config.popup_times', newCorrect);
     }
   };
@@ -449,9 +448,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           <div className="flex justify-between">
             <div>
               <DialogTitle>{editingQuestion ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
-              <DialogDescription>
-                {editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 06/07/2025, 11:41 AM)'}
-              </DialogDescription>
+              <DialogDescription>{editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 06/07/2025, 11:41 AM)'}</DialogDescription>
             </div>
             <div>
               {form.getValues('subject_id') && questionType === 'single_choice' && (
@@ -562,7 +559,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
             {questionType === 'matching' && <MatchingForm form={form} addOption={addOption} removeOption={removeOption} updateMatchContent={updateMatchContent} />}
             {questionType === 'ordering' && <OrderingForm form={form} addOption={addOption} removeOption={removeOption} />}
             {questionType === 'drag_drop' && <DragDropForm addOption={addOption} removeOption={removeOption} updateOption={updateOption} />}
-            {questionType === 'video_popup' && <VideoPopupForm form={form} onSaveSuccess={handleSaveSuccess}/>}
+            {questionType === 'video_popup' && <VideoPopupForm form={form} onSaveSuccess={handleSaveSuccess} />}
 
             <div className="space-y-2">
               <FormField
@@ -601,36 +598,35 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
             </div>
 
             <div className="flex justify-end space-x-2">
-              {
-                questionType !== 'video_popup' && (
-                  <>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        form.reset();
-                        setIsDialogOpen(false);
-                        setEditingQuestion?.(null);
-                      }}
-                    >
-                      Hủy
-                    </Button>
-                    <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoadingSubmit}>
-                      {isLoadingSubmit ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {editingQuestion ? 'Đang cập nhật...' : 'Đang tạo...'}
-                        </>
-                      ) : editingQuestion ? (
-                        'Cập nhật'
-                      ) : (
-                        'Tạo câu hỏi'
-                      )}
-                    </Button>
-                  </>
-                )
-              }
+              {questionType !== 'video_popup' && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      form.reset();
+                      setIsDialogOpen(false);
+                      setEditingQuestion?.(null);
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                  <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoadingSubmit}>
+                    {isLoadingSubmit ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {editingQuestion ? 'Đang cập nhật...' : 'Đang tạo...'}
+                      </>
+                    ) : editingQuestion ? (
+                      'Cập nhật'
+                    ) : (
+                      'Tạo câu hỏi'
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
+
             {/* {Object.keys(form.formState.errors).length > 0 && (
               <pre className="text-red-500 bg-gray-100 p-2 rounded">{JSON.stringify(form.formState.errors, null, 2)}</pre>
             )} */}

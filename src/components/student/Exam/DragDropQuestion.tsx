@@ -3,7 +3,7 @@ import { GripVertical } from 'lucide-react';
 import { useState } from 'react';
 
 // Component cho câu hỏi Drag and Drop
-function DragDropQuestion({ question, answers, onAnswerChange }: { question: Question; answers: Record<string, string>; onAnswerChange: (answers: Record<string, string>) => void }) {
+function DragDropQuestion({ question, answers, onAnswerChange }: { question: Question; answers: Record<string, any>; onAnswerChange: (answers: Record<string, any>) => void }) {
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
   const handleDragStart = (e: React.DragEvent, itemId: string) => {
@@ -19,9 +19,10 @@ function DragDropQuestion({ question, answers, onAnswerChange }: { question: Que
   const handleDrop = (e: React.DragEvent, zoneId: string) => {
     e.preventDefault();
     if (draggedItem) {
+      const zone = question.answers.find((answer) => answer.id === zoneId);
       onAnswerChange({
         ...answers,
-        [draggedItem]: zoneId,
+        [draggedItem]: zone?.content.value,
       });
       setDraggedItem(null);
     }
@@ -51,7 +52,7 @@ function DragDropQuestion({ question, answers, onAnswerChange }: { question: Que
             <h5 className="font-medium mb-2">{zone.content.text || 'Không có nội dung'}</h5>
             <div className="space-y-2">
               {Object.entries(answers)
-                .filter(([_, zoneId]) => zoneId === zone.id)
+                .filter(([_, zoneId]) => zoneId === zone.content.value)
                 .map(([itemId]) => {
                   const item = question.answers.find((a) => a.id === itemId);
                   return item ? (

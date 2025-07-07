@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { VideoUpload } from '@/components/upload/VideoUpload';
 import { Slider } from '@/components/ui/slider';
+
 import { v4 as uuidv4 } from 'uuid';
 import type { UseFormReturn } from 'react-hook-form';
 import type { QuestionFormData } from '@/types/questionFormTypes';
@@ -144,9 +145,9 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
       prev.map((answer, i) =>
         i === globalIndex
           ? {
-            ...answer,
-            content: { text, value: DEFAULT_OPTIONS[optionIndex] },
-          }
+              ...answer,
+              content: { text, value: DEFAULT_OPTIONS[optionIndex] },
+            }
           : answer,
       ),
     );
@@ -157,9 +158,7 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
 
     setVideoConfig((prev) => ({
       ...prev,
-      popup_times: prev.popup_times.map((popup, i) =>
-        i === popupIndex ? { ...popup, question: text } : popup,
-      ),
+      popup_times: prev.popup_times.map((popup, i) => (i === popupIndex ? { ...popup, question: text } : popup)),
     }));
   }, []);
 
@@ -247,12 +246,7 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
       {videoConfig.url && (
         <div className="space-y-2 hidden">
           <Label>Video Preview</Label>
-          <video
-            src={videoConfig.url}
-            onLoadedMetadata={handleVideoLoad}
-            style={{ width: '100%', maxWidth: '400px' }}
-            controls
-          />
+          <video src={videoConfig.url} onLoadedMetadata={handleVideoLoad} style={{ width: '100%', maxWidth: '400px' }} controls />
           {isVideoLoaded && <p className="text-sm text-gray-500">Thời lượng video: {formatTime(videoDuration)}</p>}
         </div>
       )}
@@ -267,42 +261,23 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
 
         {videoConfig.popup_times.map((popup, index) => (
           <div key={popup.id} className="border rounded-lg p-4 space-y-4 relative">
-            <button
-              type="button"
-              onClick={() => handleRemovePopup(index)}
-              className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-            >
+            <button type="button" onClick={() => handleRemovePopup(index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">
               <Trash2 className="h-4 w-4" />
             </button>
 
             <div className="space-y-2">
               <Label htmlFor={`popup-time-${index}`}>Thời gian ({formatTime(popup.time)})</Label>
-              <Slider
-                value={[popup.time]}
-                min={0}
-                max={videoDuration}
-                step={0.1}
-                onValueChange={(value) => handleTimeChange(index, value)}
-              />
+              <Slider value={[popup.time]} min={0} max={videoDuration} step={0.1} onValueChange={(value) => handleTimeChange(index, value)} />
             </div>
 
             <div className="space-y-2">
               <Label>Câu hỏi</Label>
-              <Textarea
-                rows={2}
-                value={popup.question}
-                onChange={(e) => handleQuestionChange(index, e)}
-                placeholder="Nhập câu hỏi..."
-              />
+              <Textarea rows={2} value={popup.question} onChange={(e) => handleQuestionChange(index, e)} placeholder="Nhập câu hỏi..." />
             </div>
 
             <div className="space-y-2">
               <Label>Phương án</Label>
-              <RadioGroup
-                value={popup.correct}
-                onValueChange={(value) => handleToggleCorrect(index, value)}
-                className="space-y-2"
-              >
+              <RadioGroup value={popup.correct} onValueChange={(value) => handleToggleCorrect(index, value)} className="space-y-2">
                 {DEFAULT_OPTIONS.map((option, optionIndex) => {
                   const globalIndex = index * DEFAULT_OPTIONS.length + optionIndex;
                   const answer = answers[globalIndex];
@@ -312,11 +287,7 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
                     <div key={`popup-${index}-option-${optionIndex}`} className="flex items-center space-x-2">
                       <RadioGroupItem value={option} id={`option-${index}-${optionIndex}`} />
                       <div className="flex-1">
-                        <Input
-                          value={inputValue}
-                          onChange={(e) => handleInputChange(index, optionIndex, e)}
-                          placeholder={`Phương án ${option}`}
-                        />
+                        <Input value={inputValue} onChange={(e) => handleInputChange(index, optionIndex, e)} placeholder={`Phương án ${option}`} />
                       </div>
                     </div>
                   );
@@ -328,8 +299,7 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
       </div>
 
       <div className="flex justify-end">
-        <Button type="button" onClick={saveQuestions} disabled={!videoConfig.popup_times.length}
-          className="mt-4 bg-black hover:bg-black/80">
+        <Button type="button" onClick={saveQuestions} disabled={!videoConfig.popup_times.length} className="mt-4 bg-black hover:bg-black/80">
           Lưu câu hỏi
         </Button>
       </div>
@@ -337,4 +307,4 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
   );
 };
 
-export default VideoPopupForm;  
+export default VideoPopupForm;
