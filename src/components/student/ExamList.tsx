@@ -8,7 +8,8 @@ import { Search, Play, Clock, Users, BookOpen } from 'lucide-react';
 import { apiGetListExams } from '@/services/student/exam';
 import Loading from '@/components/common/Loading';
 import path from '@/utils/path';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import useAppStore from '@/stores/appStore';
 
 interface Exam {
   id: string;
@@ -48,17 +49,9 @@ const ExamList = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [metadata, setMetadata] = useState<PaginationMetadata>({ total: 0, page: 1, size: 10, total_pages: 1 });
+  const { setExamId, setStudyGroupId } = useAppStore();
 
-  const handleGetSubjects = async () => {
-    // try {
-    //   const response: any = await apiGetSubjects();
-    //   const subjectsData = response.data?.data || [];
-    //   setSubjects(subjectsData);
-    // } catch (err) {
-    //   console.error('Lỗi khi lấy danh sách môn học:', err);
-    //   toast.error('Không thể tải danh sách môn học.');
-    // }
-  };
+  const navigate = useNavigate();
 
   const handleGetListExams = async (currentPage: number = 1) => {
     try {
@@ -104,11 +97,12 @@ const ExamList = () => {
   };
 
   const handleJoinExamRoom = (examId: string, studyGroupId: string) => {
-    localStorage.setItem('currentExam', JSON.stringify({ examId, studyGroupId }));
+    setExamId(examId);
+    setStudyGroupId(studyGroupId);
+    navigate(path.STUDENT.EXAM_ROOM_STUDENT);
   };
 
   useEffect(() => {
-    handleGetSubjects();
     handleGetListExams();
   }, [searchTerm, subjectFilter, statusFilter]);
 
@@ -271,12 +265,15 @@ const ExamList = () => {
                       <Play className="h-4 w-4 ml-2" />
                     </Button>
                   ) : (
-                    <Link to={`${path.STUDENT.EXAM_ROOM_STUDENT}`} onClick={() => handleJoinExamRoom(exam.id, exam.study_group_id)}>
-                      <Button className="w-full" disabled={exam.is_taked || exam.opening_status !== 'opening'} variant={exam.is_taked ? 'secondary' : 'default'}>
-                        Bắt đầu thi
-                        <Play className="h-4 w-4 ml-2" />
-                      </Button>
-                    </Link>
+                    <Button
+                      onClick={() => handleJoinExamRoom(exam.id, exam.study_group_id)}
+                      className="w-full"
+                      disabled={exam.is_taked || exam.opening_status !== 'opening'}
+                      variant={exam.is_taked ? 'secondary' : 'default'}
+                    >
+                      Bắt đầu thi
+                      <Play className="h-4 w-4 ml-2" />
+                    </Button>
                   )}
                 </CardContent>
               </Card>

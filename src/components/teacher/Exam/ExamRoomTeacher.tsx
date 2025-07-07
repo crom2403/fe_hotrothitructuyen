@@ -14,6 +14,7 @@ import { FlipReveal, FlipRevealItem } from '@/components/ui/flip-reveal';
 import path from '@/utils/path';
 import { apiGetDetailExam } from '@/services/student/exam';
 import { toast } from 'sonner';
+import useAppStore from '@/stores/appStore';
 
 export interface Student {
   studentId: string;
@@ -36,7 +37,8 @@ interface ExamStats {
 }
 
 export default function ExamRoomTeacher() {
-  const { examId, studyGroupId } = { examId: '2aa18870-08bb-4373-b066-840c6027bda8', studyGroupId: 'bd7f2735-e9d5-4b61-b02a-bacda54e5a20' };
+  // const { examId, studyGroupId } = useAppStore();
+  const { examId, studyGroupId } = { examId: '6275f090-144c-4f97-b447-d0dc2d65cd16', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
 
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);

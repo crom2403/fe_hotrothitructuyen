@@ -30,6 +30,7 @@ import useAuthStore from '@/stores/authStore';
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import path from '@/utils/path';
+import useAppStore from '@/stores/appStore';
 
 interface Answer {
   id: string;
@@ -64,7 +65,8 @@ interface ExamData {
 export default function ExamTaking() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
-  const { examId, studyGroupId } = { examId: '2aa18870-08bb-4373-b066-840c6027bda8', studyGroupId: 'bd7f2735-e9d5-4b61-b02a-bacda54e5a20' };
+  const { examId, studyGroupId } = { examId: '6275f090-144c-4f97-b447-d0dc2d65cd16', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
+  // const { examId, studyGroupId } = useAppStore();
 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [exam, setExam] = useState<IExam | null>(null);

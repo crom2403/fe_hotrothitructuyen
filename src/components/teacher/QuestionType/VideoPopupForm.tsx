@@ -8,6 +8,11 @@ import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { VideoUpload } from '@/components/upload/VideoUpload';
 import { Slider } from '@/components/ui/slider';
+
+import { v4 as uuidv4 } from 'uuid';
+import type { UseFormReturn } from 'react-hook-form';
+import type { QuestionFormData } from '@/types/questionFormTypes';
+import type { AxiosError } from 'axios';
 import { apiCreateQuestion } from '@/services/teacher/question';
 
 interface VideoPopupConfig {
@@ -28,16 +33,19 @@ interface AnswerItem {
   order_index: number;
 }
 
+interface VideoPopupFormProps {
+  form: UseFormReturn<QuestionFormData>;
+  onSaveSuccess: () => void;
+}
+
 const DEFAULT_OPTIONS = ['A', 'B', 'C', 'D'];
 
-export const VideoPopupForm = () => {
+export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [isVideoLoaded, setIsVideoLoaded] = useState<boolean>(false);
-  const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-  const questionRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({});
   const [videoConfig, setVideoConfig] = useState<VideoPopupConfig>({
-    video_id: 'video-0',
+    video_id: uuidv4(),
     url: '',
     popup_times: [],
   });
@@ -120,16 +128,6 @@ export const VideoPopupForm = () => {
 
     setAnswers((prev) => prev.filter((_, i) => i < startIndex || i >= startIndex + count));
 
-    DEFAULT_OPTIONS.forEach((_, optionIndex) => {
-      const key = `${index}-${optionIndex}`;
-      if (inputRefs.current[key]) {
-        inputRefs.current[key] = null;
-      }
-      if (questionRefs.current[`question-${index}`]) {
-        questionRefs.current[`question-${index}`] = null;
-      }
-    });
-
     // Cập nhật lại order_index cho answers
     setAnswers((prev) =>
       prev.map((answer, i) => ({
@@ -139,17 +137,8 @@ export const VideoPopupForm = () => {
     );
   };
 
-  const handleInputChange = useCallback((popupIndex: number, optionIndex: number, text: string) => {
-    const key = `${popupIndex}-${optionIndex}`;
-    const input = inputRefs.current[key];
-    if (input) {
-      input.value = text;
-    }
-  }, []);
-
-  const handleInputBlur = useCallback((popupIndex: number, optionIndex: number) => {
-    const key = `${popupIndex}-${optionIndex}`;
-    const text = inputRefs.current[key]?.value || '';
+  const handleInputChange = useCallback((popupIndex: number, optionIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value;
     const globalIndex = popupIndex * DEFAULT_OPTIONS.length + optionIndex;
 
     setAnswers((prev) =>
@@ -164,17 +153,8 @@ export const VideoPopupForm = () => {
     );
   }, []);
 
-  const handleQuestionChange = useCallback((popupIndex: number, text: string) => {
-    const key = `question-${popupIndex}`;
-    const textarea = questionRefs.current[key];
-    if (textarea) {
-      textarea.value = text;
-    }
-  }, []);
-
-  const handleQuestionBlur = useCallback((popupIndex: number) => {
-    const key = `question-${popupIndex}`;
-    const text = questionRefs.current[key]?.value || '';
+  const handleQuestionChange = useCallback((popupIndex: number, e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
 
     setVideoConfig((prev) => ({
       ...prev,
@@ -197,42 +177,50 @@ export const VideoPopupForm = () => {
   };
 
   const saveQuestions = async () => {
-    console.log(
-      JSON.stringify({
-        video_id: videoConfig.video_id,
-        url: videoConfig.url,
-        popup_times: videoConfig.popup_times,
-        answers,
-      }),
-    );
+    if (!videoConfig.url) {
+      toast.error('Vui lòng tải lên video!');
+      return;
+    }
+    const totalOptions = videoConfig.popup_times.reduce((acc, p) => acc + p.options.length, 0);
+    if (answers.length !== totalOptions) {
+      toast.error(`Số lượng đáp án (${answers.length}) không khớp với tổng số phương án (${totalOptions})!`);
+      return;
+    }
+
     try {
-      const res = await apiCreateQuestion({
-        video_id: videoConfig.video_id,
-        url: videoConfig.url,
-        popup_times: videoConfig.popup_times,
-        answers,
-      });
-      // const response = await fetch('/api/video-popup-questions', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({}),
-      // });
-      console.log(res);
-
-      // if (!response.ok) {
-      //   throw new Error('Lưu câu hỏi thất bại');
-      // }
-
-      // const result = await response.json();
-      // if (result.success) {
-      //   toast.success('Lưu câu hỏi thành công!');
-      // } else {
-      //   toast.error('Lưu câu hỏi thất bại.');
-      // }
+      const apiData = {
+        subject_id: form.getValues('subject_id'),
+        type_id: form.getValues('type_id'),
+        difficulty_level_id: form.getValues('difficulty_level_id'),
+        content: form.getValues('content'),
+        is_public: form.getValues('is_public'),
+        explanation: form.getValues('explanation'),
+        answer_config: {
+          kind: 'video_popup',
+          video_id: videoConfig.video_id,
+          url: videoConfig.url,
+          popup_times: videoConfig.popup_times,
+        },
+        answers: answers.map((answer) => ({
+          content: {
+            text: answer.content.text,
+            value: answer.content.value,
+          },
+          order_index: answer.order_index,
+        })),
+      };
+      console.log('API Data:', apiData);
+      const response = await apiCreateQuestion(apiData);
+      if (response.status === 201) {
+        toast.success('Tạo câu hỏi video popup thành công');
+        onSaveSuccess();
+      } else {
+        toast.error(`Tạo câu hỏi thất bại: ${response.statusText}`);
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Đã có lỗi xảy ra.');
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
     }
   };
 
@@ -256,7 +244,7 @@ export const VideoPopupForm = () => {
       </div>
 
       {videoConfig.url && (
-        <div className="space-y-2">
+        <div className="space-y-2 hidden">
           <Label>Video Preview</Label>
           <video src={videoConfig.url} onLoadedMetadata={handleVideoLoad} style={{ width: '100%', maxWidth: '400px' }} controls />
           {isVideoLoaded && <p className="text-sm text-gray-500">Thời lượng video: {formatTime(videoDuration)}</p>}
@@ -272,7 +260,7 @@ export const VideoPopupForm = () => {
         </div>
 
         {videoConfig.popup_times.map((popup, index) => (
-          <div key={`popup-${index}`} className="border rounded-lg p-4 space-y-4 relative">
+          <div key={popup.id} className="border rounded-lg p-4 space-y-4 relative">
             <button type="button" onClick={() => handleRemovePopup(index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">
               <Trash2 className="h-4 w-4" />
             </button>
@@ -284,25 +272,13 @@ export const VideoPopupForm = () => {
 
             <div className="space-y-2">
               <Label>Câu hỏi</Label>
-              <Textarea
-                rows={2}
-                defaultValue={popup.question}
-                onChange={(e) => handleQuestionChange(index, e.target.value)}
-                onBlur={() => handleQuestionBlur(index)}
-                placeholder="Nhập câu hỏi..."
-                ref={(el) => {
-                  if (el) {
-                    questionRefs.current[`question-${index}`] = el;
-                  }
-                }}
-              />
+              <Textarea rows={2} value={popup.question} onChange={(e) => handleQuestionChange(index, e)} placeholder="Nhập câu hỏi..." />
             </div>
 
             <div className="space-y-2">
               <Label>Phương án</Label>
               <RadioGroup value={popup.correct} onValueChange={(value) => handleToggleCorrect(index, value)} className="space-y-2">
                 {DEFAULT_OPTIONS.map((option, optionIndex) => {
-                  const key = `${index}-${optionIndex}`;
                   const globalIndex = index * DEFAULT_OPTIONS.length + optionIndex;
                   const answer = answers[globalIndex];
                   const inputValue = answer?.content?.text || '';
@@ -311,17 +287,7 @@ export const VideoPopupForm = () => {
                     <div key={`popup-${index}-option-${optionIndex}`} className="flex items-center space-x-2">
                       <RadioGroupItem value={option} id={`option-${index}-${optionIndex}`} />
                       <div className="flex-1">
-                        <Input
-                          placeholder={`Phương án ${option}`}
-                          defaultValue={inputValue}
-                          onChange={(e) => handleInputChange(index, optionIndex, e.target.value)}
-                          onBlur={() => handleInputBlur(index, optionIndex)}
-                          ref={(el) => {
-                            if (el) {
-                              inputRefs.current[key] = el;
-                            }
-                          }}
-                        />
+                        <Input value={inputValue} onChange={(e) => handleInputChange(index, optionIndex, e)} placeholder={`Phương án ${option}`} />
                       </div>
                     </div>
                   );
@@ -332,9 +298,11 @@ export const VideoPopupForm = () => {
         ))}
       </div>
 
-      <Button type="button" onClick={saveQuestions} disabled={!videoConfig.popup_times.length} className="mt-4">
-        Lưu câu hỏi
-      </Button>
+      <div className="flex justify-end">
+        <Button type="button" onClick={saveQuestions} disabled={!videoConfig.popup_times.length} className="mt-4 bg-black hover:bg-black/80">
+          Lưu câu hỏi
+        </Button>
+      </div>
     </div>
   );
 };

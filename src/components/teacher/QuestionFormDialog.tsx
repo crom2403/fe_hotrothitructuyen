@@ -279,7 +279,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
 
     if (questionType === 'video_popup' && isVideoPopupConfig(form.getValues('answer_config'))) {
       const currentConfig = form.getValues('answer_config');
-      const newCorrect = (currentConfig as VideoPopupConfig).popup_times.map((c) => (c.id === newAnswers[index].id ? { ...c, value: text } : c));
+      const newCorrect = (currentConfig as VideoPopupConfig).popup_times.map((c: any) => (c.id === newAnswers[index].id ? { ...c, value: text } : c));
       form.setValue('answer_config.popup_times', newCorrect);
     }
   };
@@ -420,6 +420,12 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
     }
   };
 
+  const handleSaveSuccess = () => {
+    setIsDialogOpen(false);
+    refetchQuestionsPrivate?.();
+    form.reset();
+  };
+
   return (
     <Dialog
       open={isDialogOpen}
@@ -553,7 +559,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
             {questionType === 'matching' && <MatchingForm form={form} addOption={addOption} removeOption={removeOption} updateMatchContent={updateMatchContent} />}
             {questionType === 'ordering' && <OrderingForm form={form} addOption={addOption} removeOption={removeOption} />}
             {questionType === 'drag_drop' && <DragDropForm addOption={addOption} removeOption={removeOption} updateOption={updateOption} />}
-            {questionType === 'video_popup' && <VideoPopupForm form={form} updateOption={updateOption} />}
+            {questionType === 'video_popup' && <VideoPopupForm form={form} onSaveSuccess={handleSaveSuccess} />}
 
             <div className="space-y-2">
               <FormField
@@ -592,31 +598,38 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
             </div>
 
             <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  form.reset();
-                  setIsDialogOpen(false);
-                  setEditingQuestion?.(null);
-                }}
-              >
-                Hủy
-              </Button>
-              <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoadingSubmit}>
-                {isLoadingSubmit ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {editingQuestion ? 'Đang cập nhật...' : 'Đang tạo...'}
-                  </>
-                ) : editingQuestion ? (
-                  'Cập nhật'
-                ) : (
-                  'Tạo câu hỏi'
-                )}
-              </Button>
+              {questionType !== 'video_popup' && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      form.reset();
+                      setIsDialogOpen(false);
+                      setEditingQuestion?.(null);
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                  <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoadingSubmit}>
+                    {isLoadingSubmit ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {editingQuestion ? 'Đang cập nhật...' : 'Đang tạo...'}
+                      </>
+                    ) : editingQuestion ? (
+                      'Cập nhật'
+                    ) : (
+                      'Tạo câu hỏi'
+                    )}
+                  </Button>
+                </>
+              )}
             </div>
-            {Object.keys(form.formState.errors).length > 0 && <pre className="text-red-500 bg-gray-100 p-2 rounded">{JSON.stringify(form.formState.errors, null, 2)}</pre>}
+
+            {/* {Object.keys(form.formState.errors).length > 0 && (
+              <pre className="text-red-500 bg-gray-100 p-2 rounded">{JSON.stringify(form.formState.errors, null, 2)}</pre>
+            )} */}
           </form>
         </Form>
       </DialogContent>
