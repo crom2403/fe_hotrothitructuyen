@@ -65,8 +65,8 @@ interface ExamData {
 export default function ExamTaking() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
-  const { examId, studyGroupId } = { examId: '6275f090-144c-4f97-b447-d0dc2d65cd16', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
-  // const { examId, studyGroupId } = useAppStore();
+  // const { examId, studyGroupId } = { examId: '6275f090-144c-4f97-b447-d0dc2d65cd16', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
+  const { examId, studyGroupId } = useAppStore();
 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [exam, setExam] = useState<IExam | null>(null);

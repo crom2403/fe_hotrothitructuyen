@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { GripVertical, Plus, Trash2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { FormLabel, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { useFormContext, useWatch } from "react-hook-form";
-import type { QuestionFormData, AnswerItem } from "@/types/questionFormTypes";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import { GripVertical, Plus, Trash2, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { FormLabel, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { useFormContext, useWatch } from 'react-hook-form';
+import type { QuestionFormData, AnswerItem } from '@/types/questionFormTypes';
+import { toast } from 'sonner';
 
 const MAX_ZONES = 10;
 const MIN_ANSWERS = 2;
@@ -18,24 +18,27 @@ interface DragDropFormProps {
 }
 
 const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormProps) => {
-  const { control, setValue, formState: { errors } } = useFormContext<QuestionFormData>();
-  const answers = useWatch({ control, name: "answers" }) || [];
-  const zones = useWatch({ control, name: "answer_config.zones" }) || [];
-  const correctMap = useWatch({ control, name: "answer_config.correct" }) || [];
+  const {
+    control,
+    setValue,
+    formState: { errors },
+  } = useFormContext<QuestionFormData>();
+  const answers = useWatch({ control, name: 'answers' }) || [];
+  const zones = useWatch({ control, name: 'answer_config.zones' }) || [];
+  const correctMap = useWatch({ control, name: 'answer_config.correct' }) || [];
   const [draggedId, setDraggedId] = useState<string | null>(null);
-  const [newAnswerText, setNewAnswerText] = useState<string>("");
+  const [newAnswerText, setNewAnswerText] = useState<string>('');
 
   useEffect(() => {
     if (zones.length === 0) {
-      setValue("answer_config.zones", [{ text: "Vùng 1", value: "zone1" }]);
-      setValue("answer_config.correct", []);
+      setValue('answer_config.zones', [{ text: 'Vùng 1', value: 'zone1' }]);
+      setValue('answer_config.correct', []);
     }
-
   }, [zones.length, setValue]);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedId(id);
-    e.dataTransfer.setData("text/plain", id);
+    e.dataTransfer.setData('text/plain', id);
   };
 
   const handleDrop = (e: React.DragEvent, zoneIndex: number) => {
@@ -49,9 +52,9 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
     updatedCorrect.push({
       id: draggedId,
       zone: targetZone.value,
-      value: "value" in answer.content ? answer.content.value || answer.content.text : "text" in answer.content && answer.content.text ? answer.content.text : "",
+      value: 'value' in answer.content ? answer.content.value || answer.content.text : 'text' in answer.content && answer.content.text ? answer.content.text : '',
     });
-    setValue("answer_config.correct", updatedCorrect);
+    setValue('answer_config.correct', updatedCorrect);
     setDraggedId(null);
   };
 
@@ -62,38 +65,38 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
     }
     const newZone = { text: `Vùng ${zones.length + 1}`, value: `zone${zones.length + 1}` };
     const newZones = [...zones, newZone];
-    setValue("answer_config.zones", newZones);
+    setValue('answer_config.zones', newZones);
   };
 
   const handleRemoveZone = (index: number) => {
     if (zones.length <= 1) {
-      toast.error("Phải có ít nhất 1 vùng!");
+      toast.error('Phải có ít nhất 1 vùng!');
       return;
     }
     const zoneToRemove = zones[index];
     const newZones = zones.filter((_, i) => i !== index);
     const newCorrect = correctMap.filter((c) => c.zone !== zoneToRemove);
-    setValue("answer_config.zones", newZones);
-    setValue("answer_config.correct", newCorrect);
+    setValue('answer_config.zones', newZones);
+    setValue('answer_config.correct', newCorrect);
   };
 
   const handleZoneNameChange = (index: number, value: string) => {
     const newZones = [...zones];
     const oldName = newZones[index];
     newZones[index] = { text: value || `Vùng ${index + 1}`, value: `zone${index + 1}` };
-    setValue("answer_config.zones", newZones);
+    setValue('answer_config.zones', newZones);
     const newCorrect = correctMap.map((c) => (c.zone === oldName ? { ...c, zone: newZones[index] } : c));
-    setValue("answer_config.correct", newCorrect);
+    setValue('answer_config.correct', newCorrect);
   };
 
   const handleRemoveAnswerFromZone = (answerId: string, zone: string) => {
     const newCorrect = correctMap.filter((c) => c.id !== answerId);
-    setValue("answer_config.correct", newCorrect);
+    setValue('answer_config.correct', newCorrect);
   };
 
   const handleAddAnswer = () => {
     if (!newAnswerText.trim()) {
-      toast.error("Vui lòng nhập nội dung lựa chọn!");
+      toast.error('Vui lòng nhập nội dung lựa chọn!');
       return;
     }
     if (answers.length >= MAX_ANSWERS) {
@@ -102,7 +105,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
     }
     addOption();
     updateOption(answers.length, newAnswerText.trim());
-    setNewAnswerText("");
+    setNewAnswerText('');
   };
 
   const availableAnswers = answers.filter((a) => !correctMap.find((c) => c.id === a.id));
@@ -117,19 +120,8 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
           render={() => (
             <FormItem>
               <div className="flex items-center gap-2 mb-4">
-                <Input
-                  placeholder="Nhập nội dung lựa chọn"
-                  value={newAnswerText}
-                  onChange={(e) => setNewAnswerText(e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAddAnswer}
-                  disabled={!newAnswerText.trim() || answers.length >= MAX_ANSWERS}
-                >
+                <Input placeholder="Nhập nội dung lựa chọn" value={newAnswerText} onChange={(e) => setNewAnswerText(e.target.value)} className="flex-1" />
+                <Button type="button" size="sm" variant="outline" onClick={handleAddAnswer} disabled={!newAnswerText.trim() || answers.length >= MAX_ANSWERS}>
                   <Plus className="h-4 w-4 mr-2" /> Thêm lựa chọn
                 </Button>
               </div>
@@ -140,28 +132,19 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
                       key={a.id}
                       draggable={!correctMap.find((c) => c.id === a.id)}
                       onDragStart={(e) => !correctMap.find((c) => c.id === a.id) && handleDragStart(e, a.id)}
-                      className={`px-3 py-2 rounded border flex items-center gap-2 ${correctMap.find((c) => c.id === a.id)
-                          ? "bg-gray-200 border-gray-300 cursor-not-allowed"
-                          : "cursor-move bg-blue-100 border-blue-300 hover:bg-blue-200"
-                        }`}
+                      className={`px-3 py-2 rounded border flex items-center gap-2 ${
+                        correctMap.find((c) => c.id === a.id) ? 'bg-gray-200 border-gray-300 cursor-not-allowed' : 'cursor-move bg-blue-100 border-blue-300 hover:bg-blue-200'
+                      }`}
                     >
-                      <GripVertical
-                        className={`h-4 w-4 ${correctMap.find((c) => c.id === a.id) ? "text-gray-400" : "text-blue-500"
-                          }`}
-                      />
+                      <GripVertical className={`h-4 w-4 ${correctMap.find((c) => c.id === a.id) ? 'text-gray-400' : 'text-blue-500'}`} />
                       <Input
-                        value={"text" in a.content ? a.content.text : ""}
+                        value={'text' in a.content ? a.content.text : ''}
                         onChange={(e) => updateOption(index, e.target.value)}
                         placeholder={`Mục ${index + 1}`}
                         className="flex-1 border-none bg-transparent"
                         disabled={correctMap.find((c) => c.id === a.id)}
                       />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeOption(index)}
-                        disabled={answers.length <= MIN_ANSWERS}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => removeOption(index)} disabled={answers.length <= MIN_ANSWERS}>
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
@@ -190,25 +173,10 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
             <FormItem>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {zones.map((zone, index) => (
-                  <div
-                    key={index}
-                    className="p-4 border-2 border-dashed border-gray-400 rounded bg-gray-50 min-h-24"
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={(e) => handleDrop(e, index)}
-                  >
+                  <div key={index} className="p-4 border-2 border-dashed border-gray-400 rounded bg-gray-50 min-h-24" onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, index)}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Input
-                        placeholder={`Tên vùng ${index + 1}`}
-                        value={zone.text}
-                        onChange={(e) => handleZoneNameChange(index, e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveZone(index)}
-                        disabled={zones.length <= 1}
-                      >
+                      <Input placeholder={`Tên vùng ${index + 1}`} value={zone.text} onChange={(e) => handleZoneNameChange(index, e.target.value)} className="flex-1" />
+                      <Button variant="ghost" size="icon" onClick={() => handleRemoveZone(index)} disabled={zones.length <= 1}>
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
@@ -218,16 +186,9 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
                         .map((c) => {
                           const answer = answers.find((a) => a.id === c.id);
                           return (
-                            <div
-                              key={c.id}
-                              className="bg-green-100 border border-green-300 px-2 py-1 rounded text-sm flex items-center justify-between"
-                            >
-                              <span>{"text" in answer?.content ? answer.content.text : ""}</span>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleRemoveAnswerFromZone(c.id, zone.text)}
-                              >
+                            <div key={c.id} className="bg-green-100 border border-green-300 px-2 py-1 rounded text-sm flex items-center justify-between">
+                              <span>{'text' in answer?.content ? answer.content.text : ''}</span>
+                              <Button variant="ghost" size="icon" onClick={() => handleRemoveAnswerFromZone(c.id, zone.text)}>
                                 <X className="h-4 w-4 text-red-500" />
                               </Button>
                             </div>
@@ -244,7 +205,11 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
         <FormField
           control={control}
           name="answer_config.correct"
-          render={() => <FormItem><FormMessage /></FormItem>}
+          render={() => (
+            <FormItem>
+              <FormMessage />
+            </FormItem>
+          )}
         />
       </div>
     </div>

@@ -4,11 +4,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Play, Clock, Users, BookOpen } from 'lucide-react';
+import { Search, Play, Clock, Users, BookOpen, Check } from 'lucide-react';
 import { apiGetListExams } from '@/services/student/exam';
 import Loading from '@/components/common/Loading';
 import path from '@/utils/path';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import useAppStore from '@/stores/appStore';
 
 interface Exam {
@@ -17,14 +17,10 @@ interface Exam {
   description: string;
   start_time: string;
   end_time: string;
-  duration_minutes: number;
+  duration_minutes: string;
   test_type: string;
-  subject_id: string;
+  exam_question_count: string;
   subject_name: string;
-  question_count: number;
-  is_taked: boolean;
-  opening_status: string; // Thay opening_status bằng handle_exam_status
-  study_group_id: string;
 }
 
 interface Subject {
@@ -39,16 +35,24 @@ interface PaginationMetadata {
   total_pages: number;
 }
 
+interface DataReposne {
+  id: string;
+  name: string;
+  code: string;
+  semester: string;
+  academic_year: string;
+  exams: Exam[];
+}
+
 const ExamList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [subjectFilter, setSubjectFilter] = useState<string>('all');
-  const [exams, setExams] = useState<Exam[]>([]);
+  const [studyGroupExams, setStudyGroupExams] = useState<DataReposne[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [metadata, setMetadata] = useState<PaginationMetadata>({ total: 0, page: 1, size: 10, total_pages: 1 });
   const { setExamId, setStudyGroupId } = useAppStore();
 
   const navigate = useNavigate();
@@ -71,26 +75,21 @@ const ExamList = () => {
       }
 
       if (statusFilter !== 'all') {
-        params['handle_exam_status'] = statusFilter; // Đồng bộ với backend
+        params['handle_exam_status'] = statusFilter;
       }
 
-      const response: any = await apiGetListExams(params);
-      const { data, metadata } = response.data;
+      const response = await apiGetListExams(params);
 
-      console.log(data);
-
-      if (data?.length > 0) {
-        setExams(data);
-        setMetadata(metadata);
+      if (response.data?.length > 0) {
+        setStudyGroupExams(response.data);
       } else {
-        setExams([]);
-        setMetadata({ total: 0, page: currentPage, size: 10, total_pages: 1 });
+        setStudyGroupExams([]);
         setError('Không tìm thấy bài thi nào.');
       }
     } catch (err: any) {
       console.error('Lỗi khi lấy danh sách kỳ thi:', err);
       setError(err.response?.data?.message || 'Đã xảy ra lỗi khi tải danh sách kỳ thi.');
-      setExams([]);
+      setStudyGroupExams([]);
     } finally {
       setIsLoading(false);
     }
@@ -150,6 +149,43 @@ const ExamList = () => {
     }
   };
 
+  const handleGetStatus = (start_time: Date, end_time: Date) => {
+    const now = new Date();
+    if (now < start_time) {
+      return 'pending';
+    } else if (now > start_time && now < end_time) {
+      return 'opening';
+    } else {
+      return 'closed';
+    }
+  };
+
+  const handleGetButton = (status: string, examId: string, groupId: string) => {
+    switch (status) {
+      case 'opening':
+        return (
+          <Button onClick={() => handleJoinExamRoom(examId, groupId)} className="w-full bg-green-500 hover:bg-green-600 cursor-pointer" variant="default">
+            Đang mở
+            <Play className="h-4 w-4 ml-2" />
+          </Button>
+        );
+      case 'closed':
+        return (
+          <Button className="w-full" variant="default">
+            Đã thi
+            <Check className="h-4 w-4 ml-2" />
+          </Button>
+        );
+      case 'pending':
+        return (
+          <Button className="w-full bg-orange-500 hover:bg-orange-600" variant="default">
+            Chưa mở
+            <Clock className="h-4 w-4 ml-2" />
+          </Button>
+        );
+    }
+  };
+
   const getTestTypeLabel = (test_type: string) => {
     switch (test_type) {
       case 'exercise':
@@ -163,19 +199,15 @@ const ExamList = () => {
     }
   };
 
-  if (error && !exams.length) {
+  if (error && !studyGroupExams.length) {
     return <div className="text-center p-4 text-red-600">{error}</div>;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
-        <CardHeader>
-          <CardTitle>Danh sách bài thi</CardTitle>
-          <CardDescription>Tìm kiếm và lọc các bài thi có sẵn</CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input placeholder="Tìm kiếm bài thi..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
@@ -214,75 +246,65 @@ const ExamList = () => {
         <Loading />
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {exams.map((exam) => (
-              <Card key={exam.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg">{exam.name}</CardTitle>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <BookOpen className="h-4 w-4" />
-                        <span>{exam.subject_name}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Badge className={getStatusColor(exam.opening_status)}>{getStatusLabel(exam.opening_status)}</Badge>
-                      <Badge className={getTestTypeColor(exam.test_type)}>{getTestTypeLabel(exam.test_type)}</Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600">{exam.description}</p>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      <span>{exam.duration_minutes} phút</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-gray-400" />
-                      <span>{exam.question_count} câu</span>
-                    </div>
-                  </div>
-
-                  <div className="text-sm">
-                    <span className="text-gray-600">Thời gian bắt đầu: </span>
-                    <span className="font-medium">
-                      {new Date(exam.start_time).toLocaleDateString('vi-VN')} {new Date(exam.start_time).toLocaleTimeString('vi-VN').slice(0, 5)}
-                    </span>
-                  </div>
-                  <div className="text-sm">
-                    <span className="text-gray-600">Thời gian kết thúc: </span>
-                    <span className="font-medium">
-                      {new Date(exam.end_time).toLocaleDateString('vi-VN')} {new Date(exam.end_time).toLocaleTimeString('vi-VN').slice(0, 5)}
-                    </span>
-                  </div>
-                  {exam.is_taked ? (
-                    <Button className="w-full" disabled={exam.is_taked || exam.opening_status !== 'opening'} variant={exam.is_taked ? 'secondary' : 'default'}>
-                      Đã làm
-                      <Play className="h-4 w-4 ml-2" />
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => handleJoinExamRoom(exam.id, exam.study_group_id)}
-                      className="w-full"
-                      disabled={exam.is_taked || exam.opening_status !== 'opening'}
-                      variant={exam.is_taked ? 'secondary' : 'default'}
-                    >
-                      Bắt đầu thi
-                      <Play className="h-4 w-4 ml-2" />
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+          <div className="flex flex-col gap-4">
+            {studyGroupExams.map((group: DataReposne) => (
+              <div key={group.id} className="flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-semibold">{group.name}</h3>
+                  <span className="text-sm text-gray-600">
+                    ({group.code} - {group.semester} - {group.academic_year})
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {group.exams.map((exam: Exam) => (
+                    <Card key={exam.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="">
+                            <CardTitle className="text-lg">{exam.name}</CardTitle>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <BookOpen className="h-4 w-4" />
+                              <span>{exam.subject_name}</span>
+                            </div>
+                            <Badge className={getTestTypeColor(exam.test_type)}>{getTestTypeLabel(exam.test_type)}</Badge>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            <span>{exam.duration_minutes} phút</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            <span>{exam.exam_question_count} câu</span>
+                          </div>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-gray-600">Thời gian bắt đầu: </span>
+                          <span className="font-medium">
+                            {new Date(exam.start_time).toLocaleDateString('vi-VN')} {new Date(exam.start_time).toLocaleTimeString('vi-VN').slice(0, 5)}
+                          </span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-gray-600">Thời gian kết thúc: </span>
+                          <span className="font-medium">
+                            {new Date(exam.end_time).toLocaleDateString('vi-VN')} {new Date(exam.end_time).toLocaleTimeString('vi-VN').slice(0, 5)}
+                          </span>
+                        </div>
+                        <div className="mt-6">{handleGetButton(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)), exam.id, group.id)}</div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </>
       )}
 
-      {exams.length === 0 && !isLoading && (
+      {studyGroupExams.length === 0 && !isLoading && (
         <Card>
           <CardContent className="text-center py-12">
             <Search className="h-12 w-12 mx-auto mb-4 text-gray-400" />
@@ -290,20 +312,6 @@ const ExamList = () => {
             <p className="text-gray-600">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc</p>
           </CardContent>
         </Card>
-      )}
-
-      {exams.length > 0 && metadata.total_pages > 1 && (
-        <div className="flex justify-center gap-2 mt-6">
-          <Button disabled={page === 1} onClick={() => handlePageChange(page - 1)} variant="outline">
-            Trang trước
-          </Button>
-          <span className="self-center">
-            Trang {page} / {metadata.total_pages}
-          </span>
-          <Button disabled={page === metadata.total_pages} onClick={() => handlePageChange(page + 1)} variant="outline">
-            Trang sau
-          </Button>
-        </div>
       )}
     </div>
   );
