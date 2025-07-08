@@ -31,26 +31,27 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
 
   useEffect(() => {
     if (zones.length === 0) {
-      setValue('answer_config.zones', ['Vùng 1']);
+      setValue('answer_config.zones', [{ text: 'Vùng 1', value: 'zone1' }]);
       setValue('answer_config.correct', []);
     }
-  }, [zones, answers, correctMap, setValue]);
+  }, [zones.length, setValue]);
 
   const handleDragStart = (e: React.DragEvent, id: string) => {
     setDraggedId(id);
     e.dataTransfer.setData('text/plain', id);
   };
 
-  const handleDrop = (e: React.DragEvent, zone: string) => {
+  const handleDrop = (e: React.DragEvent, zoneIndex: number) => {
     e.preventDefault();
     if (!draggedId) return;
     const answer = answers.find((a: AnswerItem) => a.id === draggedId);
     if (!answer) return;
 
+    const targetZone = zones[zoneIndex];
     const updatedCorrect = correctMap.filter((c) => c.id !== draggedId);
     updatedCorrect.push({
       id: draggedId,
-      zone,
+      zone: targetZone.value,
       value: 'value' in answer.content ? answer.content.value || answer.content.text : 'text' in answer.content && answer.content.text ? answer.content.text : '',
     });
     setValue('answer_config.correct', updatedCorrect);
@@ -62,7 +63,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
       toast.error(`Tối đa ${MAX_ZONES} vùng!`);
       return;
     }
-    const newZone = `Vùng ${zones.length + 1}`;
+    const newZone = { text: `Vùng ${zones.length + 1}`, value: `zone${zones.length + 1}` };
     const newZones = [...zones, newZone];
     setValue('answer_config.zones', newZones);
   };
@@ -82,7 +83,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
   const handleZoneNameChange = (index: number, value: string) => {
     const newZones = [...zones];
     const oldName = newZones[index];
-    newZones[index] = value || `Vùng ${index + 1}`;
+    newZones[index] = { text: value || `Vùng ${index + 1}`, value: `zone${index + 1}` };
     setValue('answer_config.zones', newZones);
     const newCorrect = correctMap.map((c) => (c.zone === oldName ? { ...c, zone: newZones[index] } : c));
     setValue('answer_config.correct', newCorrect);
@@ -172,22 +173,22 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
             <FormItem>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {zones.map((zone, index) => (
-                  <div key={index} className="p-4 border-2 border-dashed border-gray-400 rounded bg-gray-50 min-h-24" onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, zone)}>
+                  <div key={index} className="p-4 border-2 border-dashed border-gray-400 rounded bg-gray-50 min-h-24" onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, index)}>
                     <div className="flex items-center gap-2 mb-2">
-                      <Input placeholder={`Tên vùng ${index + 1}`} value={zone} onChange={(e) => handleZoneNameChange(index, e.target.value)} className="flex-1" />
+                      <Input placeholder={`Tên vùng ${index + 1}`} value={zone.text} onChange={(e) => handleZoneNameChange(index, e.target.value)} className="flex-1" />
                       <Button variant="ghost" size="icon" onClick={() => handleRemoveZone(index)} disabled={zones.length <= 1}>
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
                     <div className="space-y-2">
                       {correctMap
-                        .filter((c: any) => c.zone === zone)
-                        .map((c: any) => {
-                          const answer = answers.find((a: any) => a.id === c.id);
+                        .filter((c) => c.zone === zone.value)
+                        .map((c) => {
+                          const answer = answers.find((a) => a.id === c.id);
                           return (
                             <div key={c.id} className="bg-green-100 border border-green-300 px-2 py-1 rounded text-sm flex items-center justify-between">
                               <span>{'text' in answer?.content ? answer.content.text : ''}</span>
-                              <Button variant="ghost" size="icon" onClick={() => handleRemoveAnswerFromZone(c.id, zone)}>
+                              <Button variant="ghost" size="icon" onClick={() => handleRemoveAnswerFromZone(c.id, zone.text)}>
                                 <X className="h-4 w-4 text-red-500" />
                               </Button>
                             </div>
