@@ -1,10 +1,10 @@
-import type { Year, YearForm } from "@/types/year_semesterType";
-import { type UseFormReturn } from "react-hook-form";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "../../ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../ui/select";
-import { Button } from "../../ui/button";
-import { Loader2, PlusIcon } from "lucide-react";
+import type { YearForm } from '@/types/year_semesterType';
+import { type UseFormReturn } from 'react-hook-form';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../../ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
+import { Button } from '../../ui/button';
+import { Loader2, PlusIcon } from 'lucide-react';
 
 interface YearFormDialogProps {
   form: UseFormReturn<YearForm>;
@@ -18,14 +18,14 @@ const currentYear = new Date().getFullYear();
 
 const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i); // 5 năm trước và 5 năm sau
 
-
 const YearFormDialog = ({ form, isDialogOpen, setIsDialogOpen, onSubmit, isLoading }: YearFormDialogProps) => {
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger>
-        <Button className="bg-black hover:bg-black/80"
+        <Button
+          className="bg-black hover:bg-black/80"
           onClick={() => {
-            form.reset()
+            form.reset();
           }}
         >
           <PlusIcon className="mr-2 h-4 w-4" />
@@ -54,7 +54,9 @@ const YearFormDialog = ({ form, isDialogOpen, setIsDialogOpen, onSubmit, isLoadi
                           </SelectTrigger>
                           <SelectContent>
                             {years.map((year) => (
-                              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -78,7 +80,9 @@ const YearFormDialog = ({ form, isDialogOpen, setIsDialogOpen, onSubmit, isLoadi
                           </SelectTrigger>
                           <SelectContent>
                             {years.map((year) => (
-                              <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -94,14 +98,14 @@ const YearFormDialog = ({ form, isDialogOpen, setIsDialogOpen, onSubmit, isLoadi
                 Hủy
               </Button>
               <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoading}>
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Lưu"}
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Lưu'}
               </Button>
             </div>
           </form>
         </Form>
       </DialogContent>
-    </Dialog >
-  )
-}
+    </Dialog>
+  );
+};
 
-export default YearFormDialog
+export default YearFormDialog;

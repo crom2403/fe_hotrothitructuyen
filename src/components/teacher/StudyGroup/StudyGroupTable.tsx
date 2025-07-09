@@ -1,114 +1,126 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { StudyGroupDetail, StudyGroupInfo } from "@/types/studyGroupType"
-import AddStudentDialog from "./AddStudentDialog"
-import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from "@/components/ui/table"
-import { Copy, Eye, FileText, Loader2, MoreHorizontal, Search, Users } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectValue, SelectTrigger, SelectItem } from "@/components/ui/select"
-import type { SubjectResponse } from "@/types/subjectType"
-import type { Year } from "@/types/year_semesterType"
-import Paginate from "@/components/common/Pagination"
-import { useEffect, useState } from "react"
-import { apiGetSubjects } from "@/services/admin/subject"
-import { AxiosError } from "axios"
-import { toast } from "sonner"
-import { apiGetAcademicYears } from "@/services/admin/yearSemester"
-import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { apiGetStudyGroupDetail, apiRemoveStudentFromStudyGroup } from "@/services/teacher/studyGroup"
-import StudyGroupDetailDialog from "./StudyGroupDetailDialog"
-import useAppStore from "@/stores/appStore"
-import ExamListDialog from "./ExamStudyGroupDialog"
-import type { ExamForStudyGroup } from "@/types/examType"
-import { apiExamForStudyGroup } from "@/services/teacher/createExam"
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import type { StudyGroupDetail, StudyGroupInfo } from '@/types/studyGroupType';
+import AddStudentDialog from './AddStudentDialog';
+import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from '@/components/ui/table';
+import { Copy, Eye, FileText, Loader2, MoreHorizontal, Search, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectValue, SelectTrigger, SelectItem } from '@/components/ui/select';
+import Paginate from '@/components/common/Pagination';
+import { AxiosError } from 'axios';
+import { toast } from 'sonner';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { apiGetStudyGroupDetail, apiRemoveStudentFromStudyGroup } from '@/services/teacher/studyGroup';
+import StudyGroupDetailDialog from './StudyGroupDetailDialog';
+import useAppStore from '@/stores/appStore';
+import ExamListDialog from './ExamStudyGroupDialog';
+import type { ExamForStudyGroup } from '@/types/examType';
+import { apiExamForStudyGroup } from '@/services/teacher/createExam';
+import { useState } from 'react';
 
 interface StudyGroupTableProps {
-  studyGroups: StudyGroupInfo[]
-  open: boolean
-  setOpen: (open: boolean) => void
-  isLoading: boolean
-  searchTerm: string
-  setSearchTerm: (searchTerm: string) => void
-  subjectFilter: string
-  setSubjectFilter: (subjectFilter: string) => void
-  yearFilter: string
-  setYearFilter: (yearFilter: string) => void
-  page: number
-  totalPages: number
-  handlePageClick: (page: number) => void
-  copyInviteCode: (inviteCode: string) => void
-  handleGetStudyGroup: () => void
+  studyGroups: StudyGroupInfo[];
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  isLoading: boolean;
+  searchTerm: string;
+  setSearchTerm: (searchTerm: string) => void;
+  subjectFilter: string;
+  setSubjectFilter: (subjectFilter: string) => void;
+  yearFilter: string;
+  setYearFilter: (yearFilter: string) => void;
+  page: number;
+  totalPages: number;
+  handlePageClick: (page: number) => void;
+  copyInviteCode: (inviteCode: string) => void;
+  handleGetStudyGroup: () => void;
 }
 
-const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, yearFilter, setYearFilter, page, totalPages, handlePageClick, copyInviteCode, handleGetStudyGroup }: StudyGroupTableProps) => {
+const StudyGroupTable = ({
+  studyGroups,
+  open,
+  setOpen,
+  isLoading,
+  searchTerm,
+  setSearchTerm,
+  subjectFilter,
+  setSubjectFilter,
+  yearFilter,
+  setYearFilter,
+  page,
+  totalPages,
+  handlePageClick,
+  copyInviteCode,
+  handleGetStudyGroup,
+}: StudyGroupTableProps) => {
   const { subjects, academicYears } = useAppStore();
-  const [openDetail, setOpenDetail] = useState(false)
-  const [studyGroupDetail, setStudyGroupDetail] = useState<StudyGroupDetail | null>(null)
-  const [isLoadingDetail, setIsLoadingDetail] = useState(false)
-  const [openExam, setOpenExam] = useState(false)
-  const [exams, setExams] = useState<ExamForStudyGroup | null>(null)
-  const [isLoadingExams, setIsLoadingExams] = useState(false)
-  const [pageExams, setPageExams] = useState(1)
+  const [openDetail, setOpenDetail] = useState(false);
+  const [studyGroupDetail, setStudyGroupDetail] = useState<StudyGroupDetail | null>(null);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [openExam, setOpenExam] = useState(false);
+  const [exams, setExams] = useState<ExamForStudyGroup | null>(null);
+  const [isLoadingExams, setIsLoadingExams] = useState(false);
+  const [pageExams, setPageExams] = useState(1);
 
   const handleGetExams = async (studyGroupId: string) => {
-    setIsLoadingExams(true)
+    setIsLoadingExams(true);
     try {
-      const response = await apiExamForStudyGroup(studyGroupId)
+      const response = await apiExamForStudyGroup(studyGroupId);
       if (response.status === 200) {
-        setExams(response.data)
+        setExams(response.data);
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra'
-      toast.error(errorMessage)
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
     } finally {
-      setIsLoadingExams(false)
+      setIsLoadingExams(false);
     }
-  }
+  };
 
   const handleViewDetail = async (studyGroupId: string) => {
-    setIsLoadingDetail(true)
-    setOpenDetail(true)
+    setIsLoadingDetail(true);
+    setOpenDetail(true);
     try {
-      const response = await apiGetStudyGroupDetail(studyGroupId)
+      const response = await apiGetStudyGroupDetail(studyGroupId);
       if (response.status === 200) {
-        setStudyGroupDetail(response.data)
+        setStudyGroupDetail(response.data);
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra'
-      toast.error(errorMessage)
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
     } finally {
-      setIsLoadingDetail(false)
+      setIsLoadingDetail(false);
     }
-  }
+  };
 
   const handleRemoveStudent = async (studentCodes: string[]) => {
     try {
-      const response = await apiRemoveStudentFromStudyGroup(studyGroupDetail?.id || "", studentCodes)
+      const response = await apiRemoveStudentFromStudyGroup(studyGroupDetail?.id || '', studentCodes);
       if (response.status === 200) {
-        toast.success("Xóa sinh viên thành công")
-        handleGetStudyGroup()
-        setOpenDetail(false)
+        toast.success('Xóa sinh viên thành công');
+        handleGetStudyGroup();
+        setOpenDetail(false);
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra'
-      toast.error(errorMessage)
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
     } finally {
-      setIsLoadingDetail(false)
+      setIsLoadingDetail(false);
     }
-  }
+  };
 
   const handleViewExam = async (studyGroupId: string) => {
     setIsLoadingExams(true);
     setOpenExam(true);
     await handleGetExams(studyGroupId);
-  }
+  };
 
   const handlePageChange = (page: number) => {
-    setPageExams(page)
-  }
+    setPageExams(page);
+  };
 
   return (
     <Card>
@@ -119,11 +131,7 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
             <CardDescription>Tổng cộng {studyGroups.length} lớp học phần</CardDescription>
           </div>
           <div>
-            <AddStudentDialog
-              open={open}
-              onOpenChange={setOpen}
-              handleGetStudyGroup={handleGetStudyGroup}
-            />
+            <AddStudentDialog open={open} onOpenChange={setOpen} handleGetStudyGroup={handleGetStudyGroup} />
           </div>
         </div>
       </CardHeader>
@@ -131,13 +139,7 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
         <div className="flex items-center space-x-4 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Tìm kiếm theo tên, mã lớp hoặc giáo viên..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+            <Input type="text" placeholder="Tìm kiếm theo tên, mã lớp hoặc giáo viên..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
           <Select onValueChange={(value) => setSubjectFilter(value)}>
             <SelectTrigger>
@@ -146,7 +148,9 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
             <SelectContent>
               <SelectItem value="all">Tất cả môn học</SelectItem>
               {subjects.map((subject) => (
-                <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
+                <SelectItem key={subject.id} value={subject.id}>
+                  {subject.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -157,7 +161,9 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
             <SelectContent>
               <SelectItem value="all">Tất cả năm học</SelectItem>
               {academicYears.map((year) => (
-                <SelectItem key={year.id} value={year.id}>{year.code}</SelectItem>
+                <SelectItem key={year.id} value={year.id}>
+                  {year.code}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -235,19 +241,11 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
             )}
           </TableBody>
         </Table>
-        {studyGroups.length === 0 && !isLoading && (
-          <div className="text-center py-8 text-gray-500">Không tìm thấy lớp học phần nào</div>
-        )}
+        {studyGroups.length === 0 && !isLoading && <div className="text-center py-8 text-gray-500">Không tìm thấy lớp học phần nào</div>}
         <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
 
-        <StudyGroupDetailDialog
-          studyGroup={studyGroupDetail}
-          open={openDetail}
-          setOpen={setOpenDetail}
-          onRemoveStudent={handleRemoveStudent}
-          isLoading={isLoadingDetail}
-        />
-        
+        <StudyGroupDetailDialog studyGroup={studyGroupDetail} open={openDetail} setOpen={setOpenDetail} onRemoveStudent={handleRemoveStudent} isLoading={isLoadingDetail} />
+
         <ExamListDialog
           open={openExam}
           setOpen={setOpenExam}
@@ -259,7 +257,7 @@ const StudyGroupTable = ({ studyGroups, open, setOpen, isLoading, searchTerm, se
         />
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default StudyGroupTable
+export default StudyGroupTable;

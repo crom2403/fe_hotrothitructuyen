@@ -39,7 +39,7 @@ export interface MatchingConfig {
 export interface OrderingConfig {
   kind: 'ordering';
   items_count: number;
-  correct: { id: string; order: number }[];
+  correct: { id: string; value: string; order: number }[];
 }
 
 // Video Popup Types
@@ -48,6 +48,7 @@ export interface VideoPopupConfig {
   video_id: string;
   url: string;
   popup_times: {
+    id: string;
     time: number;
     question: string;
     options: string[];

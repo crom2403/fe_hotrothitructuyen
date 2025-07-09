@@ -1,27 +1,19 @@
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Info } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Info } from 'lucide-react';
 
 interface InfoPopupProps {
   text: string;
-  open: boolean;
-  setOpen: (open: boolean) => void;
+  _open?: boolean; // Optional and prefixed with _ to indicate unused
+  _setOpen?: (open: boolean) => void; // Optional and prefixed with _
 }
 
-const InfoPopup = ({ text, open, setOpen }: InfoPopupProps) => {
+export default function InfoPopup({ text }: InfoPopupProps) {
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover>
       <PopoverTrigger>
-        <Info className="h-4 w-4 cursor-pointer" />
+        <Info className="h-4 w-4 text-gray-500" />
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        side="top"
-        className="text-sm max-w-xs p-3 bg-white rounded-md shadow-xl border z-50"
-      >
-        <p className="text-gray-700">{text}</p>
-      </PopoverContent>
+      <PopoverContent>{text}</PopoverContent>
     </Popover>
-  )
+  );
 }
-
-export default InfoPopup

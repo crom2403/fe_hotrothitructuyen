@@ -6,16 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
-import useAuthStore from '@/stores/authStore';
+// import useAuthStore from '@/stores/authStore';
 
 interface StudentInfo {
   studentId: string;
   name: string;
   avatar: string;
 }
-import { listAvatar } from '@/components/profile/ChooseAvatarDialog';
 import path from '@/utils/path';
-import { useParams } from 'react-router-dom';
+// import { useParams } from 'react-router-dom';
+import { listAvatar } from '@/utils/avatar';
 
 export default function ExamRoomStudent() {
   // const { examId, studyGroupId } = useParams();
@@ -29,7 +29,7 @@ export default function ExamRoomStudent() {
     name: '',
     avatar: listAvatar[Math.floor(Math.random() * listAvatar.length)].image,
   });
-  const { currentUser } = useAuthStore();
+  // const { currentUser } = useAuthStore();
 
   useEffect(() => {
     // Kết nối tới WebSocket server
@@ -56,7 +56,7 @@ export default function ExamRoomStudent() {
         socketInstance.disconnect();
       }
     };
-  }, [examId, studyGroupId, studentInfo.studentId, toast]);
+  }, [examId, studyGroupId, studentInfo.studentId]);
 
   const handleJoinExam = () => {
     if (!studentInfo.studentId || !studentInfo.name) {
@@ -93,7 +93,7 @@ export default function ExamRoomStudent() {
     });
 
     // Lắng nghe phản hồi từ server
-    socket.on('joinExam', (data) => {
+    socket.on('joinExam', () => {
       setIsLoading(false);
       toast.success(`Đã tham gia phòng thi ${examId} - Nhóm ${studyGroupId}`);
     });

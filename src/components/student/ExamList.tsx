@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,13 +28,6 @@ interface Subject {
   name: string;
 }
 
-interface PaginationMetadata {
-  total: number;
-  page: number;
-  size: number;
-  total_pages: number;
-}
-
 interface DataReposne {
   id: string;
   name: string;
@@ -49,10 +42,10 @@ const ExamList = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [subjectFilter, setSubjectFilter] = useState<string>('all');
   const [studyGroupExams, setStudyGroupExams] = useState<DataReposne[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [subjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
+  // const [page, setPage] = useState(1);
   const { setExamId, setStudyGroupId } = useAppStore();
 
   const navigate = useNavigate();
@@ -104,37 +97,6 @@ const ExamList = () => {
   useEffect(() => {
     handleGetListExams();
   }, [searchTerm, subjectFilter, statusFilter]);
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-    handleGetListExams(newPage);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'opening':
-        return 'bg-green-100 text-green-800';
-      case 'closed':
-        return 'bg-orange-100 text-orange-800';
-      case 'pending':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'opening':
-        return 'Đang mở';
-      case 'closed':
-        return 'Đã đóng';
-      case 'pending':
-        return 'Chưa mở';
-      default:
-        return 'Không xác định';
-    }
-  };
 
   const getTestTypeColor = (test_type: string) => {
     switch (test_type) {

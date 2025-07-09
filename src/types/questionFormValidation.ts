@@ -1,6 +1,16 @@
 import { z } from 'zod';
 import type { QuestionTypeResponse } from './questionType';
-import { isSingleChoiceConfig, isMultipleSelectConfig, isDragDropConfig, isMatchingConfig, isOrderingConfig, isVideoPopupConfig } from './questionFormTypes';
+import {
+  isMatchingConfig,
+  isOrderingConfig,
+  isVideoPopupConfig,
+  type SingleChoiceConfig,
+  type MultipleSelectConfig,
+  type DragDropConfig,
+  type MatchingConfig,
+  type OrderingConfig,
+  type VideoPopupConfig,
+} from './questionFormTypes';
 
 // Schema for AnswerContent (union type for different question types)
 export const answerContentSchema = z.union([
@@ -82,6 +92,7 @@ export const orderingConfigSchema = z.object({
     .array(
       z.object({
         id: z.string(),
+        value: z.string(),
         order: z.number().int().min(1, 'Thứ tự phải bắt đầu từ 1'),
       }),
     )
@@ -95,6 +106,7 @@ export const videoPopupConfigSchema = z.object({
   popup_times: z
     .array(
       z.object({
+        id: z.string(),
         time: z.number().min(0, 'Thời gian phải lớn hơn hoặc bằng 0'),
         question: z.string().min(1, 'Câu hỏi không được để trống'),
         options: z.array(z.string()).min(2, 'Phải có ít nhất 2 phương án'),
@@ -152,8 +164,10 @@ export const createQuestionSchema = (questionTypes: QuestionTypeResponse | undef
       });
 
       // Validate specific question types
-      if (questionTypeCode === 'single_choice' && isSingleChoiceConfig(data.answer_config)) {
-        if (data.answers.length !== data.answer_config.options_count) {
+      const answerConfig = data.answer_config as { kind: string };
+      if (questionTypeCode === 'single_choice') {
+        const config = data.answer_config as SingleChoiceConfig;
+        if (data.answers.length !== config.options_count) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answers'],
@@ -161,15 +175,16 @@ export const createQuestionSchema = (questionTypes: QuestionTypeResponse | undef
           });
         }
         const validValues = data.answers.map((a) => ('value' in a.content && a.content.value ? a.content.value : 'text' in a.content && a.content.text ? a.content.text : ''));
-        if (!validValues.includes(data.answer_config.correct)) {
+        if (!validValues.includes(config.correct)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answer_config.correct'],
             message: 'Đáp án đúng phải nằm trong danh sách đáp án',
           });
         }
-      } else if (questionTypeCode === 'multiple_select' && isMultipleSelectConfig(data.answer_config)) {
-        if (data.answers.length !== data.answer_config.options_count) {
+      } else if (questionTypeCode === 'multiple_select') {
+        const config = data.answer_config as MultipleSelectConfig;
+        if (data.answers.length !== config.options_count) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answers'],
@@ -177,37 +192,39 @@ export const createQuestionSchema = (questionTypes: QuestionTypeResponse | undef
           });
         }
         const validValues = data.answers.map((a) => ('value' in a.content && a.content.value ? a.content.value : 'text' in a.content && a.content.text ? a.content.text : ''));
-        if (!data.answer_config.correct.every((c) => validValues.includes(c))) {
+        if (!config.correct.every((c) => validValues.includes(c))) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answer_config.correct'],
             message: 'Tất cả đáp án đúng phải nằm trong danh sách đáp án',
           });
         }
-      } else if (questionTypeCode === 'drag_drop' && isDragDropConfig(data.answer_config)) {
-        if (data.answer_config.correct.length !== data.answers.length) {
+      } else if (questionTypeCode === 'drag_drop' && answerConfig.kind === 'drag_drop') {
+        const config = data.answer_config as DragDropConfig;
+        if (config.correct.length !== data.answers.length) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answers'],
             message: 'Số lượng đáp án phải khớp với số lượng mục đúng',
           });
         }
-        if (!data.answer_config.correct.every((c) => data.answers.some((a) => a.id === c.id))) {
+        if (!config.correct.every((c) => data.answers.some((a) => a.id === c.id))) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answer_config.correct'],
             message: 'Tất cả ID trong correct phải khớp với ID trong answers',
           });
         }
-      } else if (questionTypeCode === 'matching' && isMatchingConfig(data.answer_config)) {
-        if (data.answer_config.pairs.length !== data.answers.length) {
+      } else if (questionTypeCode === 'matching' && isMatchingConfig(data.answer_config as MatchingConfig)) {
+        const config = data.answer_config as MatchingConfig;
+        if (config.pairs.length !== data.answers.length) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answers'],
             message: 'Số lượng đáp án phải khớp với số lượng cặp',
           });
         }
-        data.answer_config.pairs.forEach((pair, index) => {
+        config.pairs.forEach((pair, index) => {
           if (!data.answers.some((a) => 'left' in a.content && a.content.left === pair.left && a.content.right === pair.right)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
@@ -216,8 +233,8 @@ export const createQuestionSchema = (questionTypes: QuestionTypeResponse | undef
             });
           }
         });
-        data.answer_config.correct?.forEach((correct, index) => {
-          if (!data.answer_config?.pairs?.some((p: any) => p.left === correct.left && p.right === correct.right)) {
+        config.correct?.forEach((correct, index) => {
+          if (!config.pairs.some((p) => p.left === correct.left && p.right === correct.right)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               path: [`answer_config.correct.${index}`],
@@ -225,30 +242,32 @@ export const createQuestionSchema = (questionTypes: QuestionTypeResponse | undef
             });
           }
         });
-      } else if (questionTypeCode === 'ordering' && isOrderingConfig(data.answer_config)) {
-        if (data.answers.length !== data.answer_config.items_count) {
+      } else if (questionTypeCode === 'ordering' && isOrderingConfig(data.answer_config as OrderingConfig)) {
+        const config = data.answer_config as OrderingConfig;
+        if (data.answers.length !== config.items_count) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answers'],
             message: 'Số lượng đáp án phải khớp với items_count',
           });
         }
-        if (data.answer_config.correct.length !== data.answers.length) {
+        if (config.correct.length !== data.answers.length) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answer_config.correct'],
             message: 'Số lượng mục đúng phải khớp với số lượng đáp án',
           });
         }
-        if (!data.answer_config.correct.every((c) => data.answers.some((a) => a.id === c.id && a.order_index === c.order))) {
+        if (!config.correct.every((c) => data.answers.some((a) => a.id === c.id && a.order_index === c.order))) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['answer_config.correct'],
             message: 'Thứ tự và ID trong correct phải khớp với answers',
           });
         }
-      } else if (questionTypeCode === 'video_popup' && isVideoPopupConfig(data.answer_config)) {
-        const totalOptions = data.answer_config.popup_times.flatMap((p) => p.options).length;
+      } else if (questionTypeCode === 'video_popup' && isVideoPopupConfig(data.answer_config as VideoPopupConfig)) {
+        const config = data.answer_config as VideoPopupConfig;
+        const totalOptions = config.popup_times.flatMap((p) => p.options).length;
         if (data.answers.length !== totalOptions) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
@@ -256,7 +275,7 @@ export const createQuestionSchema = (questionTypes: QuestionTypeResponse | undef
             message: 'Số lượng đáp án phải khớp với tổng số phương án trong popup_times',
           });
         }
-        data.answer_config.popup_times.forEach((popup, index) => {
+        config.popup_times.forEach((popup, index) => {
           if (!popup.options.includes(popup.correct)) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,

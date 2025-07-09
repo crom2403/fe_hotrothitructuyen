@@ -1,51 +1,67 @@
-import { Button } from "@/components/ui/button"
-import { Check, ChevronsUpDown, Loader2, Plus, Save, Search } from "lucide-react"
-import type { StudyGroupFormData, StudyGroupInfo } from "@/types/studyGroupType"
-import type { UseFormReturn } from "react-hook-form"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { useEffect, useRef, useState } from "react"
-import type { AssignedSubjectByTeacher, Subject } from "@/types/subjectType"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
-import type { UserInfo } from "@/types/userType"
-import type { Semester, Year } from "@/types/year_semesterType"
-import { Select, SelectItem, SelectContent, SelectValue, SelectTrigger } from "@/components/ui/select"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { apiGetAssignedSubjectByTeacher } from "@/services/admin/subject"
-import type { AxiosError } from "axios"
-import { toast } from "sonner"
+import { Button } from '@/components/ui/button';
+import { Check, ChevronsUpDown, Loader2, Plus, Save, Search } from 'lucide-react';
+import type { StudyGroupFormData, StudyGroupInfo } from '@/types/studyGroupType';
+import type { UseFormReturn } from 'react-hook-form';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useEffect, useRef, useState } from 'react';
+import type { AssignedSubjectByTeacher } from '@/types/subjectType';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import type { UserInfo } from '@/types/userType';
+import type { Semester, Year } from '@/types/year_semesterType';
+import { Select, SelectItem, SelectContent, SelectValue, SelectTrigger } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { apiGetAssignedSubjectByTeacher } from '@/services/admin/subject';
+import type { AxiosError } from 'axios';
+import { toast } from 'sonner';
 
 interface StudyGroupFormDialogProps {
-  form: UseFormReturn<StudyGroupFormData>
-  teachers: UserInfo[]
-  academicYears: Year[]
-  semestersPerYear: Semester[]
-  teacherSearchTerm: string
-  setTeacherSearchTerm: (searchTerm: string) => void
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
-  onSubmit: (data: StudyGroupFormData) => void
-  isLoading: boolean
-  isLoadingTeachers: boolean
-  isLoadingAcademicYears: boolean
-  isLoadingSemesters: boolean
-  editingStudyGroup: StudyGroupInfo | null
-  setEditingStudyGroup: (studyGroup: StudyGroupInfo | null) => void
-  onYearChange: (academic_year_id: string) => void
+  form: UseFormReturn<StudyGroupFormData>;
+  teachers: UserInfo[];
+  academicYears: Year[];
+  semestersPerYear: Semester[];
+  teacherSearchTerm: string;
+  setTeacherSearchTerm: (searchTerm: string) => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSubmit: (data: StudyGroupFormData) => void;
+  isLoading: boolean;
+  isLoadingTeachers: boolean;
+  isLoadingAcademicYears: boolean;
+  isLoadingSemesters: boolean;
+  editingStudyGroup: StudyGroupInfo | null;
+  setEditingStudyGroup: (studyGroup: StudyGroupInfo | null) => void;
+  onYearChange: (academic_year_id: string) => void;
 }
 
-const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear, isOpen, onOpenChange, onSubmit, isLoading, isLoadingTeachers, isLoadingAcademicYears, isLoadingSemesters, editingStudyGroup, setEditingStudyGroup, onYearChange, teacherSearchTerm, setTeacherSearchTerm }: StudyGroupFormDialogProps) => {
-  const [openTeacher, setOpenTeacher] = useState(false)
+const StudyGroupFormDialog = ({
+  form,
+  teachers,
+  academicYears,
+  semestersPerYear,
+  isOpen,
+  onOpenChange,
+  onSubmit,
+  isLoading,
+  isLoadingTeachers,
+  isLoadingAcademicYears,
+  isLoadingSemesters,
+  editingStudyGroup,
+  setEditingStudyGroup,
+  onYearChange,
+  teacherSearchTerm,
+  setTeacherSearchTerm,
+}: StudyGroupFormDialogProps) => {
+  const [openTeacher, setOpenTeacher] = useState(false);
   const [assignedSubjects, setAssignedSubjects] = useState<AssignedSubjectByTeacher[]>([]);
   const [isLoadingAssignedSubjects, setIsLoadingAssignedSubjects] = useState(false);
-  const prevYearRef = useRef<string>("");
+  const prevYearRef = useRef<string>('');
 
-
-  const selectedYear = form.watch("academic_year");
-  const selectedTeacher = form.watch("teacher_id");
+  const selectedYear = form.watch('academic_year');
+  const selectedTeacher = form.watch('teacher_id');
 
   const handleGetAssignedSubjects = async () => {
     if (!selectedTeacher) return;
@@ -55,12 +71,12 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
       setAssignedSubjects(response.data);
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
       setIsLoadingAssignedSubjects(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (selectedTeacher) {
@@ -78,10 +94,11 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger>
-        <Button className="bg-black hover:bg-black/80"
+        <Button
+          className="bg-black hover:bg-black/80"
           onClick={() => {
-            setEditingStudyGroup(null)
-            form.reset()
+            setEditingStudyGroup(null);
+            form.reset();
           }}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -90,10 +107,8 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
       </DialogTrigger>
       <DialogContent className="min-w-4xl">
         <DialogHeader>
-          <DialogTitle>{editingStudyGroup ? "Chỉnh sửa lớp học phần" : "Thêm lớp học phần mới"}</DialogTitle>
-          <DialogDescription>
-            {editingStudyGroup ? "Cập nhật thông tin lớp học phần" : "Tạo lớp học phần mới vào hệ thống"}
-          </DialogDescription>
+          <DialogTitle>{editingStudyGroup ? 'Chỉnh sửa lớp học phần' : 'Thêm lớp học phần mới'}</DialogTitle>
+          <DialogDescription>{editingStudyGroup ? 'Cập nhật thông tin lớp học phần' : 'Tạo lớp học phần mới vào hệ thống'}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -121,9 +136,7 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                     <FormItem>
                       <FormLabel>Số lượng sinh viên tối đa</FormLabel>
                       <FormControl>
-                        <Input {...field} type="number"
-                          onChange={(e) => field.onChange(Number(e.target.value))}
-                        />
+                        <Input {...field} type="number" onChange={(e) => field.onChange(Number(e.target.value))} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -158,14 +171,7 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                       <Popover open={openTeacher} onOpenChange={setOpenTeacher}>
                         <PopoverTrigger>
                           <FormControl>
-                            <Button
-                              variant="outline"
-                              role="combobox"
-                              className={cn(
-                                "w-full justify-between",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
+                            <Button variant="outline" role="combobox" className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}>
                               {isLoadingTeachers ? (
                                 <>
                                   <span>Đang tải...</span>
@@ -173,9 +179,7 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                                 </>
                               ) : (
                                 <>
-                                  {field.value
-                                    ? teachers.find((teacher) => teacher.id === field.value)?.code + " - " + teachers.find((teacher) => teacher.id === field.value)?.name
-                                    : "Chọn giáo viên"}
+                                  {field.value ? teachers.find((teacher) => teacher.id === field.value)?.code + ' - ' + teachers.find((teacher) => teacher.id === field.value)?.name : 'Chọn giáo viên'}
                                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </>
                               )}
@@ -185,13 +189,7 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                         <PopoverContent className="w-[400px] max-h-[300px] overflow-y-auto">
                           <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                            <Input
-                              type="text"
-                              placeholder="Tìm kiếm theo tên, mã giảng viên..."
-                              value={teacherSearchTerm}
-                              onChange={(e) => setTeacherSearchTerm(e.target.value)}
-                              className="pl-10"
-                            />
+                            <Input type="text" placeholder="Tìm kiếm theo tên, mã giảng viên..." value={teacherSearchTerm} onChange={(e) => setTeacherSearchTerm(e.target.value)} className="pl-10" />
                           </div>
                           <div className="max-h-[300px] overflow-y-auto">
                             {isLoadingTeachers ? (
@@ -201,18 +199,15 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                             ) : (
                               <ScrollArea className="h-40 w-full">
                                 {teachers.map((teacher) => (
-                                  <div key={teacher.id} className="p-2 hover:bg-gray-100 cursor-pointer rounded-md flex items-center"
+                                  <div
+                                    key={teacher.id}
+                                    className="p-2 hover:bg-gray-100 cursor-pointer rounded-md flex items-center"
                                     onClick={() => {
-                                      form.setValue("teacher_id", teacher.id);
+                                      form.setValue('teacher_id', teacher.id);
                                       setOpenTeacher(false);
                                     }}
                                   >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        field.value === teacher.id ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
+                                    <Check className={cn('mr-2 h-4 w-4', field.value === teacher.id ? 'opacity-100' : 'opacity-0')} />
                                     {teacher.code} - {teacher.name}
                                   </div>
                                 ))}
@@ -234,13 +229,9 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Môn học</FormLabel>
-                      <Select
-                        onValueChange={(value) => form.setValue("subject_id", value)}
-                        value={field.value}
-                        disabled={!selectedTeacher}
-                      >
+                      <Select onValueChange={(value) => form.setValue('subject_id', value)} value={field.value} disabled={!selectedTeacher}>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder={isLoadingAssignedSubjects ? "Đang tải môn học..." : "Chọn môn học"} />
+                          <SelectValue placeholder={isLoadingAssignedSubjects ? 'Đang tải môn học...' : 'Chọn môn học'} />
                         </SelectTrigger>
                         <SelectContent>
                           {assignedSubjects.length > 0 ? (
@@ -248,12 +239,12 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                               <SelectItem key={subject.id} value={subject.subject.id}>
                                 {subject.subject.code} - {subject.subject.name}
                               </SelectItem>
-                            ))) : (
+                            ))
+                          ) : (
                             <div className="flex items-center justify-center h-full">
                               <p className="text-gray-500">Không có môn học</p>
                             </div>
-                          )
-                          }
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -261,7 +252,6 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                   )}
                 />
               </div>
-
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -274,13 +264,13 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                       <FormControl>
                         <Select
                           onValueChange={(value) => {
-                            form.setValue("academic_year", value);
-                            form.setValue("semester_id", "");
+                            form.setValue('academic_year', value);
+                            form.setValue('semester_id', '');
                           }}
                           value={field.value}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder={isLoadingAcademicYears ? "Đang tải năm học..." : "Chọn năm học"} />
+                            <SelectValue placeholder={isLoadingAcademicYears ? 'Đang tải năm học...' : 'Chọn năm học'} />
                           </SelectTrigger>
                           <SelectContent>
                             {academicYears.map((year) => (
@@ -300,17 +290,13 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
                 <FormField
                   control={form.control}
                   name="semester_id"
-                  render={({ field }) => (
+                  render={() => (
                     <FormItem>
                       <FormLabel>Học kỳ</FormLabel>
                       <FormControl>
-                        <Select
-                          onValueChange={(value) => form.setValue("semester_id", value)}
-                          value={form.watch("semester_id")}
-                          disabled={!form.watch("academic_year")}
-                        >
+                        <Select onValueChange={(value) => form.setValue('semester_id', value)} value={form.watch('semester_id')} disabled={!form.watch('academic_year')}>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder={form.watch("academic_year") ? (isLoadingSemesters ? "Đang tải học kỳ..." : "Chọn học kỳ") : "Chọn năm học trước"} />
+                            <SelectValue placeholder={form.watch('academic_year') ? (isLoadingSemesters ? 'Đang tải học kỳ...' : 'Chọn học kỳ') : 'Chọn năm học trước'} />
                           </SelectTrigger>
                           <SelectContent>
                             {semestersPerYear.map((semester) => (
@@ -328,17 +314,19 @@ const StudyGroupFormDialog = ({ form, teachers, academicYears, semestersPerYear,
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Hủy
+              </Button>
               <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoading}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                {editingStudyGroup ? "Cập nhật" : "Thêm"}
+                {editingStudyGroup ? 'Cập nhật' : 'Thêm'}
               </Button>
             </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default StudyGroupFormDialog
+export default StudyGroupFormDialog;

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, BookOpen, Calendar, Clock, UserPlus, MessageCircle, Plus } from 'lucide-react';
+import { Users, BookOpen, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { IStudentGroup, IStudentGroupDetail } from '@/types/studentGroupType';
 import { apiGetStudentGroups, apiGetStudentGroupById, apiJoinGroup } from '@/services/student/student-group';

@@ -1,7 +1,7 @@
 import PermissionTable from '@/components/permissions/PermissionTable';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { apiAssignPermissionRole, apiGetPermissionByRole, apiUpdatePermission } from '@/services/admin/permission';
+import { apiAssignPermissionRole, apiGetPermissionByRole } from '@/services/admin/permission';
 import { apiGetRoles } from '@/services/admin/role';
 import type { IPermission } from '@/types/permissionType';
 import { useEffect, useState } from 'react';

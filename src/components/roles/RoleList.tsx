@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { Role } from '@/types';
-import { getRoles, deleteRole } from '@/api/roleApi';
+import type { Role } from '@/types/roleType';
+import { apiGetRoles, apiDeleteRole } from '@/services/admin/role';
 import RoleForm from './RoleForm';
-import AssignPermission from './AssignPermission';
+
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 
 const RoleList: React.FC = () => {
@@ -20,8 +20,10 @@ const RoleList: React.FC = () => {
 
   const fetchRoles = async () => {
     try {
-      const data = await getRoles();
-      setRoles(data);
+      const response: any = await apiGetRoles();
+      if (response.data) {
+        setRoles(response.data.data);
+      }
     } catch (error) {
       toast.error('Không thể tải danh sách vai trò');
     }
@@ -29,7 +31,7 @@ const RoleList: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteRole(id);
+      await apiDeleteRole(id);
       toast.success('Xóa vai trò thành công');
       fetchRoles();
     } catch (error) {
@@ -77,7 +79,7 @@ const RoleList: React.FC = () => {
                     <DialogTrigger asChild>
                       <Button variant="outline">Gán quyền</Button>
                     </DialogTrigger>
-                    <AssignPermission roleId={role.id} onSuccess={fetchRoles} setOpen={() => setIsAssignOpen(null)} />
+                    {/* <AssignPermission roleId={role.id} onSuccess={fetchRoles} setOpen={() => setIsAssignOpen(null)} /> */}
                   </Dialog>
                   <Button variant="destructive" onClick={() => handleDelete(role.id)}>
                     Xóa

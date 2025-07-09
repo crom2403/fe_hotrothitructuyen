@@ -72,10 +72,10 @@ const Login = () => {
   const onSubmit = async (data: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     try {
-      const response = await apiLogin(data);
+      const response = await apiLogin(data as any);
       if (response.status === 200) {
         const { access_token, refresh_token } = response.data.data;
-        login(access_token, refresh_token, rememberMe, data);
+        login(access_token, refresh_token, rememberMe, data as any);
         const res = await apiGetCurrentUser();
         if (res.status === 200) {
           const userData = res.data;

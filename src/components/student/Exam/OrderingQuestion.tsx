@@ -38,15 +38,16 @@ function OrderingQuestion({ question, answers, onAnswerChange }: { question: Que
     }),
   );
 
-  const [orderingItems, setOrderingItems] = useState<Array<{ id: string; content: string }>>(
+  const [orderingItems, setOrderingItems] = useState<Array<{ id: string; content: string; value: string }>>(
     question.answers
       .map((answer) => ({
         id: answer.id,
         content: answer.content.text || 'Không có nội dung',
-        order: answers[answer.id] || answer.order_index,
+        value: answer.content.value || answer.id,
+        order: answers[answer.content.value || answer.id] || answer.order_index,
       }))
       .sort((a, b) => a.order - b.order)
-      .map(({ id, content }) => ({ id, content })),
+      .map(({ id, content, value }) => ({ id, content, value })),
   );
 
   useEffect(() => {
@@ -55,13 +56,14 @@ function OrderingQuestion({ question, answers, onAnswerChange }: { question: Que
       .map((answer) => ({
         id: answer.id,
         content: answer.content.text || 'Không có nội dung',
-        order: answers[answer.id] || answer.order_index,
+        value: answer.content.value || answer.id,
+        order: answers[answer.content.value || answer.id] || answer.order_index,
       }))
       .sort((a, b) => a.order - b.order)
-      .map(({ id, content }) => ({ id, content }));
+      .map(({ id, content, value }) => ({ id, content, value }));
 
     setOrderingItems(sortedItems);
-  }, [question.id, answers]); // Thêm question.id vào dependencies
+  }, [question.id, answers]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -71,12 +73,13 @@ function OrderingQuestion({ question, answers, onAnswerChange }: { question: Que
         const newIndex = items.findIndex((item) => item.id === over?.id);
         const newItems = arrayMove(items, oldIndex, newIndex);
 
-        // Cập nhật answers với thứ tự mới
+        // Cập nhật answers với thứ tự mới, sử dụng answer.content.value làm key
         const orderMap = newItems.reduce((acc, item, index) => {
-          acc[item.id] = index + 1;
+          acc[item.value] = index + 1;
           return acc;
         }, {} as Record<string, number>);
 
+        console.log('Updated ordering answers:', orderMap);
         onAnswerChange(orderMap);
         return newItems;
       });

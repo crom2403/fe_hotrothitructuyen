@@ -12,7 +12,7 @@ export interface MultipleChoiceConfig {
 
 // Kéo thả
 export interface DragDropConfig {
-  zones: string[];
+  zones?: { text: string; value: string }[];
   correct: { id: string; zone: string }[];
 }
 
@@ -30,8 +30,8 @@ export interface OrderingConfig {
 
 // Câu hỏi video popup
 export interface VideoPopupConfig {
-  video_id: string;
   url: string;
+  video_id: string;
   popup_times: Array<{
     time: number;
     question: string;
@@ -69,6 +69,7 @@ export interface Question {
   id: string;
   content: string;
   answers: Answer[];
+  answer_config: AnswerConfig;
   question_type: QuestionType;
 }
 
