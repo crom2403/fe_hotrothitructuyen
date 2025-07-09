@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,14 @@ import { DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { apiCreateRole } from '@/services/admin/role';
-import type { CreateRoleRequest } from '@/types/roleType';
+// import type { CreateRoleRequest } from '@/types/roleType';
+import type { Role } from '@/types/roleType';
 
 const roleSchema = z.object({
   name: z.string().min(1, 'Tên vai trò là bắt buộc'),
   code: z.string().min(1, 'Mã vai trò là bắt buộc'),
   description: z.string().optional(),
-  is_system: z.boolean().default(false),
+  is_system: z.boolean(),
 });
 
 type RoleFormData = z.infer<typeof roleSchema>;
@@ -23,9 +24,10 @@ type RoleFormData = z.infer<typeof roleSchema>;
 interface RoleFormProps {
   onSuccess: () => void;
   setOpen?: (open: boolean) => void;
+  role?: Role;
 }
 
-const RoleForm: React.FC<RoleFormProps> = ({ onSuccess, setOpen }) => {
+const RoleForm: React.FC<RoleFormProps> = ({ onSuccess, setOpen, role }) => {
   const {
     register,
     handleSubmit,
@@ -33,16 +35,16 @@ const RoleForm: React.FC<RoleFormProps> = ({ onSuccess, setOpen }) => {
   } = useForm<RoleFormData>({
     resolver: zodResolver(roleSchema),
     defaultValues: {
-      name: '',
-      code: '',
-      description: '',
-      is_system: false,
+      name: role?.name || '',
+      code: role?.code || '',
+      description: role?.description || '',
+      is_system: role?.is_system || false,
     },
   });
 
-  const onSubmit = async (formData: RoleFormData) => {
+  const onSubmit: SubmitHandler<RoleFormData> = async (formData) => {
     try {
-      const roleData: CreateRoleRequest = {
+      const roleData: any = {
         ...formData,
       };
       await apiCreateRole(roleData);

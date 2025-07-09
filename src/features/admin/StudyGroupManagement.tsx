@@ -1,28 +1,28 @@
-import StudyGroupFormDialog from "@/components/admin/study_group/StudyGroupFormDialog";
-import StudyGroupTable from "@/components/admin/study_group/StudyGroupTable";
-import type { StudyGroupFormData, StudyGroupInfo, StudyGroupResponse } from "@/types/studyGroupType";
-import type { Semester, Year } from "@/types/year_semesterType";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import type { SubjectResponse } from "@/types/subjectType";
-import { apiGetSubjects } from "@/services/admin/subject";
-import { apiGetAcademicYears, apiGetSemestersByYear } from "@/services/admin/yearSemester";
-import type { AxiosError } from "axios";
-import { toast } from "sonner";
-import { apiGetUsers } from "@/services/admin/user";
-import type { UserResponse } from "@/types/userType";
-import { apiCreateStudyGroup, apiDeleteStudyGroup, apiGetAllStudyGroup } from "@/services/admin/studyGroup";
-import { useDebounce } from "@/utils/functions";
+import StudyGroupFormDialog from '@/components/admin/study_group/StudyGroupFormDialog';
+import StudyGroupTable from '@/components/admin/study_group/StudyGroupTable';
+import type { StudyGroupFormData, StudyGroupInfo, StudyGroupResponse } from '@/types/studyGroupType';
+import type { Semester, Year } from '@/types/year_semesterType';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useCallback, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import type { SubjectResponse } from '@/types/subjectType';
+import { apiGetSubjects } from '@/services/admin/subject';
+import { apiGetAcademicYears, apiGetSemestersByYear } from '@/services/admin/yearSemester';
+import type { AxiosError } from 'axios';
+import { toast } from 'sonner';
+import { apiGetUsers } from '@/services/admin/user';
+import type { UserResponse } from '@/types/userType';
+import { apiCreateStudyGroup, apiDeleteStudyGroup, apiGetAllStudyGroup } from '@/services/admin/studyGroup';
+import { useDebounce } from '@/utils/functions';
 
 const studyGroupSchema = z.object({
-  name: z.string().min(1, "Tên lớp không được để trống"),
-  subject_id: z.string().min(1, "Vui lòng chọn môn học"),
-  academic_year: z.string().min(1, "Vui lòng chọn năm học"),
-  semester_id: z.string().min(1, "Vui lòng chọn học kỳ"),
-  teacher_id: z.string().min(1, "Vui lòng chọn giáo viên"),
-  max_students: z.number().min(1, "Số sinh viên tối đa phải lớn hơn 0"),
+  name: z.string().min(1, 'Tên lớp không được để trống'),
+  subject_id: z.string().min(1, 'Vui lòng chọn môn học'),
+  academic_year: z.string().min(1, 'Vui lòng chọn năm học'),
+  semester_id: z.string().min(1, 'Vui lòng chọn học kỳ'),
+  teacher_id: z.string().min(1, 'Vui lòng chọn giáo viên'),
+  max_students: z.number().min(1, 'Số sinh viên tối đa phải lớn hơn 0'),
   description: z.string().optional(),
 });
 
@@ -35,10 +35,10 @@ const StudyGroupManagement = () => {
   const [isLoadingAcademicYears, setIsLoadingAcademicYears] = useState(false);
   const [isLoadingSemesters, setIsLoadingSemesters] = useState(false);
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [teacherSearchTerm, setTeacherSearchTerm] = useState("");
-  const [subjectFilter, setSubjectFilter] = useState("all");
-  const [yearFilter, setYearFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [teacherSearchTerm, setTeacherSearchTerm] = useState('');
+  const [subjectFilter, setSubjectFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [subjectResponse, setSubjectResponse] = useState<SubjectResponse | null>(null);
   const [semestersPerYear, setSemestersPerYear] = useState<Semester[]>([]);
@@ -51,13 +51,13 @@ const StudyGroupManagement = () => {
   const form = useForm<z.infer<typeof studyGroupSchema>>({
     resolver: zodResolver(studyGroupSchema),
     defaultValues: {
-      name: "",
-      subject_id: "",
-      academic_year: "",
-      semester_id: "",
-      teacher_id: "",
+      name: '',
+      subject_id: '',
+      academic_year: '',
+      semester_id: '',
+      teacher_id: '',
       max_students: 0,
-      description: "",
+      description: '',
     },
   });
 
@@ -85,7 +85,7 @@ const StudyGroupManagement = () => {
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -101,7 +101,7 @@ const StudyGroupManagement = () => {
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
       setIsLoadingSubjects(false);
@@ -123,14 +123,14 @@ const StudyGroupManagement = () => {
         }
       } catch (error) {
         const axiosError = error as AxiosError<{ message: string; error: string }>;
-        const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+        const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
         toast.error(errorMessage);
         setSemestersPerYear([]);
       } finally {
         setIsLoadingSemesters(false);
       }
     },
-    [academicYears]
+    [academicYears],
   );
 
   const handleGetAcademicYears = async () => {
@@ -142,7 +142,7 @@ const StudyGroupManagement = () => {
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
       setIsLoadingAcademicYears(false);
@@ -152,13 +152,13 @@ const StudyGroupManagement = () => {
   const handleGetTeachers = async () => {
     setIsLoadingTeachers(true);
     try {
-      const response = await apiGetUsers(1, "teacher", teacherSearchTerm, 100);
+      const response = await apiGetUsers(1, 'teacher', teacherSearchTerm, 100);
       if (response.status === 200) {
         setTeachers(response.data);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
       setIsLoadingTeachers(false);
@@ -171,22 +171,22 @@ const StudyGroupManagement = () => {
       const { academic_year, ...payload } = data;
       const response = await apiCreateStudyGroup(payload);
       if (response.status === 201) {
-        toast.success("Lớp học phần đã được tạo thành công");
+        toast.success('Lớp học phần đã được tạo thành công');
         handleGetStudyGroups();
         setIsOpen(false);
         form.reset({
-          name: "",
-          subject_id: "",
-          academic_year: "",
-          semester_id: "",
-          teacher_id: "",
+          name: '',
+          subject_id: '',
+          academic_year: '',
+          semester_id: '',
+          teacher_id: '',
           max_students: 0,
-          description: "",
+          description: '',
         });
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
       setIsLoadingSubmit(false);
@@ -197,12 +197,12 @@ const StudyGroupManagement = () => {
     setEditingStudyGroup(studyGroup);
     form.reset({
       name: studyGroup.study_group_name,
-      subject_id: subjectResponse?.data.find((s) => s.name === studyGroup.subject_name)?.id || "",
+      subject_id: subjectResponse?.data.find((s) => s.name === studyGroup.subject_name)?.id || '',
       academic_year: studyGroup.academic_year_code,
-      semester_id: semestersPerYear.find((s) => s.name === studyGroup.semester_name)?.id || "",
-      teacher_id: teachers?.data.find((t) => t.name === studyGroup.teacher_full_name)?.id || "",
+      semester_id: semestersPerYear.find((s) => s.name === studyGroup.semester_name)?.id || '',
+      teacher_id: teachers?.data.find((t) => t.name === studyGroup.teacher_full_name)?.id || '',
       max_students: studyGroup.study_group_max_students,
-      description: studyGroup.study_group_description || "",
+      description: studyGroup.study_group_description || '',
     });
     setIsOpen(true);
   };
@@ -212,12 +212,12 @@ const StudyGroupManagement = () => {
     try {
       const response = await apiDeleteStudyGroup(studyGroupId);
       if (response.status === 200) {
-        toast.success("Lớp học phần đã được xóa thành công");
+        toast.success('Lớp học phần đã được xóa thành công');
         handleGetStudyGroups();
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -244,7 +244,7 @@ const StudyGroupManagement = () => {
           <p className="text-gray-500">Tạo và quản lý các lớp học phần trong hệ thống</p>
         </div>
         <StudyGroupFormDialog
-          form={form}
+          form={form as any}
           teachers={teachers?.data || []}
           academicYears={academicYears}
           semestersPerYear={semestersPerYear}
@@ -274,7 +274,7 @@ const StudyGroupManagement = () => {
           setSubjectFilter={setSubjectFilter}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
-          isLoadingSubjects={isLoadingSubjects} 
+          isLoadingSubjects={isLoadingSubjects}
           isLoadingAcademicYears={isLoadingAcademicYears}
           page={page}
           totalPages={studyGroups?.metadata.last_page || 1}

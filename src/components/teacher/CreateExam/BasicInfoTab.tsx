@@ -20,12 +20,6 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useAuthStore from '@/stores/authStore';
 
-enum TestType {
-  EXERCISE = 'exercise',
-  MIDTERM = 'midterm',
-  FINAL = 'final',
-}
-
 const BasicInfoTab = () => {
   const {
     tab1Data,
@@ -368,7 +362,7 @@ const BasicInfoTab = () => {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <Label htmlFor="type">Loại đề</Label>
-                <InfoPopup text="Đề thi cuối kỳ và giữa kỳ sẽ do giảng viên mở để. Sinh viên cần phải vào đúng giờ để làm đề thi." open={open} setOpen={setOpen} />
+                <InfoPopup text="Đề thi cuối kỳ và giữa kỳ sẽ do giảng viên mở để. Sinh viên cần phải vào đúng giờ để làm đề thi." _open={open} _setOpen={setOpen} />
               </div>
               <Select value={tab1Data.type} onValueChange={(value) => setTab1Type(value as 'exercise' | 'midterm' | 'final')}>
                 <SelectTrigger className="w-full">
@@ -389,8 +383,8 @@ const BasicInfoTab = () => {
                 <Label htmlFor="max_tab_switch">Số lần chuyển tab</Label>
                 <InfoPopup
                   text="Số lần chuyển tab là số lần sinh viên có thể chuyển tab để làm đề thi. Nếu sinh viên chuyển tab quá số lần cho phép, đề thi sẽ tự động kết thúc."
-                  open={openMaxTabSwitch}
-                  setOpen={setOpenMaxTabSwitch}
+                  _open={openMaxTabSwitch}
+                  _setOpen={setOpenMaxTabSwitch}
                 />
               </div>
               <Input id="max_tab_switch" type="number" value={tab1Data.max_tab_switch} defaultValue={3} onChange={(e) => handleMaxTabSwitchChange(e)} />

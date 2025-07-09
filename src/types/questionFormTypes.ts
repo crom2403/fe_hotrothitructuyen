@@ -48,6 +48,7 @@ export interface VideoPopupConfig {
   video_id: string;
   url: string;
   popup_times: {
+    id: string;
     time: number;
     question: string;
     options: string[];

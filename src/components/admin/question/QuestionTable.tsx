@@ -1,73 +1,76 @@
-import type { QuestionItem, QuestionListResponse } from "@/types/questionType"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Check, Eye, Loader2, MoreHorizontal, X } from "lucide-react"
-import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import Paginate from "@/components/common/Pagination"
-import { formatDate } from "date-fns"
-import { useState } from "react"
-import { Dialog } from "@radix-ui/react-dialog"
-import QuestionDetail from "./QuestionDetail"
+import type { QuestionItem } from '@/types/questionType';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Check, Eye, Loader2, MoreHorizontal, X } from 'lucide-react';
+import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import Paginate from '@/components/common/Pagination';
+import { formatDate } from 'date-fns';
+import { useState } from 'react';
+import { Dialog } from '@radix-ui/react-dialog';
+import QuestionDetail from './QuestionDetail';
 
 interface QuestionTableProps {
-  questions: QuestionItem[],
-  statusFilter: string,
-  isLoading: boolean,
-  setStatusFilter: (status: string) => void,
-  page: number,
-  totalPages: number,
-  handleApprove: (questionId: string) => void,
-  handleReject: (questionId: string) => void,
-  handlePageClick: (page: number) => void,
+  questions: QuestionItem[];
+  statusFilter: string;
+  isLoading: boolean;
+  setStatusFilter: (status: string) => void;
+  page: number;
+  totalPages: number;
+  handleApprove: (questionId: string) => void;
+  handleReject: (questionId: string) => void;
+  handlePageClick: (page: number) => void;
 }
 
 const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, page, totalPages, handleApprove, handleReject, handlePageClick }: QuestionTableProps) => {
-  const [openDetail, setOpenDetail] = useState(false)
-  const [questionDetail, setQuestionDetail] = useState<QuestionItem | null>(null)
-
-  const getDifficultyText = (difficulty: string) => {
-    switch (difficulty) {
-      case "easy": return "Dễ";
-      case "medium": return "Trung bình";
-      case "hard": return "Khó";
-      default: return difficulty;
-    }
-  };
+  const [openDetail, setOpenDetail] = useState(false);
+  const [questionDetail, setQuestionDetail] = useState<QuestionItem | null>(null);
 
   const getDifficultyColor = (difficultyName: string) => {
     switch (difficultyName) {
-      case "Dễ": return "bg-green-100 text-green-800";
-      case "Trung bình": return "bg-yellow-100 text-yellow-800";
-      case "Khó": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case 'Dễ':
+        return 'bg-green-100 text-green-800';
+      case 'Trung bình':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Khó':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "pending": return "Chờ duyệt";
-      case "approved": return "Đã duyệt";
-      case "rejected": return "Từ chối";
-      default: return status;
+      case 'pending':
+        return 'Chờ duyệt';
+      case 'approved':
+        return 'Đã duyệt';
+      case 'rejected':
+        return 'Từ chối';
+      default:
+        return status;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "pending": return "text-yellow-500";
-      case "approved": return "text-green-500";
-      case "rejected": return " text-red-500";
-      default: return " text-gray-500";
+      case 'pending':
+        return 'text-yellow-500';
+      case 'approved':
+        return 'text-green-500';
+      case 'rejected':
+        return ' text-red-500';
+      default:
+        return ' text-gray-500';
     }
   };
 
   const handleOpenDetail = (question: QuestionItem) => {
-    setQuestionDetail(question)
-    setOpenDetail(true)
-  }
+    setQuestionDetail(question);
+    setOpenDetail(true);
+  };
 
   return (
     <Card>
@@ -121,13 +124,11 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
                   </TableCell>
                   <TableCell>{question.subject.name}</TableCell>
                   <TableCell>{question.question_type.name}</TableCell>
-                  <TableCell >
-                    <Badge className={getDifficultyColor(question.difficulty_level.name)}>
-                      {question.difficulty_level.name}
-                    </Badge>
+                  <TableCell>
+                    <Badge className={getDifficultyColor(question.difficulty_level.name)}>{question.difficulty_level.name}</Badge>
                   </TableCell>
                   <TableCell>{question.created_by.full_name}</TableCell>
-                  <TableCell>{formatDate(question.created_at, "HH:mm dd/MM/yyyy")}</TableCell>
+                  <TableCell>{formatDate(question.created_at, 'HH:mm dd/MM/yyyy')}</TableCell>
                   <TableCell className={getStatusColor(question.review_status)}>{getStatusText(question.review_status)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -141,7 +142,7 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
                           <Eye className="mr-2 h-4 w-4 text-primary" />
                           Xem chi tiết
                         </DropdownMenuItem>
-                        {question.review_status === "pending" && (
+                        {question.review_status === 'pending' && (
                           <>
                             <DropdownMenuItem onClick={() => handleApprove(question.id)}>
                               <Check className="mr-2 h-4 w-4 text-primary" />
@@ -163,7 +164,9 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
           {questions.length === 0 && isLoading === false && (
             <TableBody>
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-gray-500">Không tìm thấy câu hỏi nào</TableCell>
+                <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  Không tìm thấy câu hỏi nào
+                </TableCell>
               </TableRow>
             </TableBody>
           )}
@@ -175,7 +178,7 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
         <QuestionDetail question={questionDetail} />
       </Dialog>
     </Card>
-  )
-}
+  );
+};
 
-export default QuestionTable
+export default QuestionTable;

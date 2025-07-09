@@ -1,64 +1,73 @@
-import type { Semester, Year } from "@/types/year_semesterType"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../ui/card"
-import { Input } from "../../ui/input"
-import { Edit, Loader2, MoreHorizontal, Search, Star, Trash2 } from "lucide-react"
-import { Select, SelectContent, SelectValue, SelectTrigger, SelectItem } from "../../ui/select"
-import { Button } from "../../ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/table"
-import { Badge } from "../../ui/badge"
-import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "../../ui/dropdown-menu"
-import { useState } from "react"
-import { AlertDialog } from "../../ui/alert-dialog"
-import DeleteDialog from "../../common/DeleteDialog"
-import Paginate from "../../common/Pagination"
+import type { Semester, Year } from '@/types/year_semesterType';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
+import { Loader2, MoreHorizontal, Star, Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectValue, SelectTrigger, SelectItem } from '../../ui/select';
+import { Button } from '../../ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
+import { Badge } from '../../ui/badge';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from '../../ui/dropdown-menu';
+import { useState } from 'react';
+import { AlertDialog } from '../../ui/alert-dialog';
+import DeleteDialog from '../../common/DeleteDialog';
+import Paginate from '../../common/Pagination';
 
 interface YearSemesterTableProps {
-  semesters: Semester[],
-  academicYears: Year[],
-  isLoading: boolean,
-  searchTerm: string,
-  setSearchTerm: (searchTerm: string) => void,
-  yearFilter: string,
-  setYearFilter: (yearFilter: string) => void,
-  statusFilter: string,
-  setStatusFilter: (statusFilter: string) => void,
-  page: number,
-  totalPages: number,
-  handleEdit: (semester: Semester) => void,
-  handleDelete: (semesterId: string) => void,
-  handlePageClick: (page: number) => void,
-  handleSetCurrent: (semesterId: string) => void,
+  semesters: Semester[];
+  academicYears: Year[];
+  isLoading: boolean;
+  searchTerm: string;
+  setSearchTerm: (searchTerm: string) => void;
+  yearFilter: string;
+  setYearFilter: (yearFilter: string) => void;
+  statusFilter: string;
+  setStatusFilter: (statusFilter: string) => void;
+  page: number;
+  totalPages: number;
+  handleEdit: (semester: Semester) => void;
+  handleDelete: (semesterId: string) => void;
+  handlePageClick: (page: number) => void;
+  handleSetCurrent: (semesterId: string) => void;
 }
 
-const YearSemesterTable = ({ semesters, academicYears, isLoading, searchTerm, setSearchTerm, yearFilter, setYearFilter, statusFilter, setStatusFilter, page, totalPages, handleEdit, handleDelete, handlePageClick, handleSetCurrent }: YearSemesterTableProps) => {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedSemester, setSelectedSemester] = useState<Semester | null>(null)
+const YearSemesterTable = ({
+  semesters,
+  academicYears,
+  isLoading,
+  searchTerm,
+  yearFilter,
+  setYearFilter,
+  statusFilter,
+  setStatusFilter,
+  page,
+  totalPages,
+  handleDelete,
+  handlePageClick,
+  handleSetCurrent,
+}: YearSemesterTableProps) => {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedSemester, setSelectedSemester] = useState<Semester | null>(null);
 
   const filteredSemesters = semesters.filter((semester) => {
-    const matchesSearch =
-      semester.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      semester.code.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesYear = yearFilter === "all" || semester.academic_year_code.toLowerCase().includes(yearFilter.toLowerCase())
-    const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? semester.is_current : !semester.is_current)
-    return matchesSearch && matchesYear && matchesStatus
-  })
+    const matchesSearch = semester.name.toLowerCase().includes(searchTerm.toLowerCase()) || semester.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesYear = yearFilter === 'all' || semester.academic_year_code.toLowerCase().includes(yearFilter.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || (statusFilter === 'active' ? semester.is_current : !semester.is_current);
+    return matchesSearch && matchesYear && matchesStatus;
+  });
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("vi-VN")
-  }
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  };
 
   const openDeleteDialog = (semester: Semester) => {
-    setSelectedSemester(semester)
-    setIsDeleteDialogOpen(true)
-  }
+    setSelectedSemester(semester);
+    setIsDeleteDialogOpen(true);
+  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Danh sách học kỳ</CardTitle>
-        <CardDescription>
-          Tổng cộng {semesters.length} học kỳ
-        </CardDescription>
+        <CardDescription>Tổng cộng {semesters.length} học kỳ</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-4 mb-4 justify-end">
@@ -108,14 +117,16 @@ const YearSemesterTable = ({ semesters, academicYears, isLoading, searchTerm, se
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? <TableRow>
-              <TableCell colSpan={5} className="text-center py-8">
-                <div className="flex justify-center items-center h-32">
-                  <Loader2 className="w-10 h-10 animate-spin" />
-                </div>
-              </TableCell>
-            </TableRow> : (
-              filteredSemesters.length > 0 ? filteredSemesters.map((semester) => (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  <div className="flex justify-center items-center h-32">
+                    <Loader2 className="w-10 h-10 animate-spin" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : filteredSemesters.length > 0 ? (
+              filteredSemesters.map((semester) => (
                 <TableRow key={semester.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
@@ -156,11 +167,7 @@ const YearSemesterTable = ({ semesters, academicYears, isLoading, searchTerm, se
                             Đặt làm hiện tại
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem
-                          onClick={() => openDeleteDialog(semester)}
-                          className="text-red-600"
-                          disabled={semester.is_current === 1}
-                        >
+                        <DropdownMenuItem onClick={() => openDeleteDialog(semester)} className="text-red-600" disabled={semester.is_current === 1}>
                           <Trash2 className="mr-2 h-4 w-4" />
                           Xóa
                         </DropdownMenuItem>
@@ -168,22 +175,24 @@ const YearSemesterTable = ({ semesters, academicYears, isLoading, searchTerm, se
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              )) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-gray-500 text-md">Không có dữ liệu</TableCell>
-                </TableRow>
-              ))}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-gray-500 text-md">
+                  Không có dữ liệu
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
         <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
       </CardContent>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DeleteDialog itemName="học kỳ" id={selectedSemester?.id || ""} onDelete={handleDelete} />
+        <DeleteDialog itemName="học kỳ" id={selectedSemester?.id || ''} onDelete={handleDelete} />
       </AlertDialog>
-
     </Card>
-  )
-}
+  );
+};
 
-export default YearSemesterTable
+export default YearSemesterTable;

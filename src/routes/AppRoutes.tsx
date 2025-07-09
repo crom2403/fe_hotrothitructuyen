@@ -33,9 +33,7 @@ const ExamCalendar = lazy(() => import('@/components/student/ExamCalendar'));
 const StudentGroup = lazy(() => import('@/components/student/StudentGroup'));
 const Notifications = lazy(() => import('@/components/student/Notifications'));
 const ExamTaking = lazy(() => import('@/components/student/ExamTaking'));
-const GSAPLandingPage = lazy(() => import('@/components/landing/GSAPLandingPage'));
 const IEduLandingPage = lazy(() => import('@/components/landing/IEduLandingPage'));
-const LovableBackdrop = lazy(() => import('@/components/landing/LovableBackdrop'));
 const ExamRoomStudent = lazy(() => import('@/components/student/ExamRoomStudent'));
 const ExamRoomTeacher = lazy(() => import('@/components/teacher/Exam/ExamRoomTeacher'));
 
@@ -59,7 +57,7 @@ const AppRoutes = () => {
         <Route path={path.STUDENT.EXAM_ROOM_STUDENT} element={<ExamTaking />} />
         <Route path={path.STUDENT.EXAM_TAKING} element={<ExamRoomStudent />} />
         <Route path={path.TEACHER.EXAM_ROOM_TEACHER} element={<ExamRoomTeacher />} />
-        
+
         <Route
           path={path.STUDENT.EXAM_ROOM_STUDENT}
           element={

@@ -54,7 +54,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
   const [contentGenerateQuestion, setContentGenerateQuestion] = useState<string>('');
 
   const form = useForm<QuestionFormData>({
-    resolver: zodResolver(createQuestionSchema(questionTypes as unknown as QuestionTypeResponse)),
+    resolver: zodResolver(createQuestionSchema(questionTypes as unknown as QuestionTypeResponse)) as any,
     defaultValues: {
       content: '',
       type_id: '',
@@ -152,6 +152,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           url: '',
           popup_times: [
             {
+              id: `popup-${uuidv4()}`,
               time: 0,
               question: '',
               options: DEFAULT_OPTIONS,
@@ -199,7 +200,14 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
     } else if (questionType === 'ordering' && isOrderingConfig(currentConfig)) {
       form.setValue('answer_config.items_count', currentAnswers.length + 1);
       console.log('newAnswer', newAnswer);
-      const newCorrect = [...currentConfig.correct, { id: newAnswer.id, value: newAnswer.content.value || '', order: currentAnswers.length + 1 }];
+      const newCorrect = [
+        ...currentConfig.correct,
+        {
+          id: newAnswer.id,
+          value: 'text' in newAnswer.content && 'value' in newAnswer.content ? newAnswer.content.value || '' : '',
+          order: currentAnswers.length + 1,
+        },
+      ];
       form.setValue('answer_config.correct', newCorrect);
     } else if (questionType === 'matching' && isMatchingConfig(currentConfig)) {
       form.setValue('answer_config.pairs', [...currentConfig.pairs, { left: '', right: '' }]);
@@ -245,7 +253,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
       form.setValue('answer_config.items_count', newAnswers.length);
       form.setValue(
         'answer_config.correct',
-        newAnswers.map((a, i) => ({ id: a.id, value: a.content.value || '', order: i + 1 })),
+        newAnswers.map((a, i) => ({ id: a.id, value: 'text' in a.content && 'value' in a.content ? a.content.value || '' : '', order: i + 1 })),
       );
     } else if (questionType === 'matching' && isMatchingConfig(currentConfig)) {
       const newPairs = currentConfig.pairs.filter((_, i) => i !== index);
@@ -286,7 +294,14 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
 
     if (questionType === 'ordering' && isOrderingConfig(form.getValues('answer_config'))) {
       const currentConfig = form.getValues('answer_config');
-      const newCorrect = (currentConfig as OrderingConfig).correct.map((c) => (c.id === newAnswers[index].id ? { ...c, value: newAnswers[index].content.value || '' } : c));
+      const newCorrect = (currentConfig as OrderingConfig).correct.map((c) =>
+        c.id === newAnswers[index].id
+          ? {
+              ...c,
+              value: 'text' in newAnswers[index].content && 'value' in newAnswers[index].content ? newAnswers[index].content.value || '' : '',
+            }
+          : c,
+      );
       form.setValue('answer_config.correct', newCorrect);
     }
   };
@@ -350,7 +365,11 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
       }
 
       if (questionType === 'ordering' && isOrderingConfig(data.answer_config)) {
-        const newCorrect = data.answers.map((answer) => ({ id: answer.id, value: answer.content.value || '', order: answer.order_index }));
+        const newCorrect = data.answers.map((answer) => ({
+          id: answer.id,
+          value: 'text' in answer.content && 'value' in answer.content ? answer.content.value || '' : '',
+          order: answer.order_index,
+        }));
         data.answer_config.correct = newCorrect;
       }
 
@@ -561,7 +580,11 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
               />
             </div>
             <div className="space-y-2">
-              <FormField control={form.control} name="content" render={({ field }) => <QuillEditor form={form} name="content" label="Nội dung câu hỏi" placeholder="Nhập nội dung câu hỏi..." />} />
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => <QuillEditor form={form as any} name="content" label="Nội dung câu hỏi" placeholder="Nhập nội dung câu hỏi..." />}
+              />
             </div>
 
             {questionType === 'single_choice' && (
@@ -601,7 +624,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                       <div className="flex items-center gap-2 justify-between">
                         <div className="flex items-center gap-2">
                           <FormLabel className="text-md font-medium">Lưu vào ngân hàng câu hỏi?</FormLabel>
-                          <InfoPopup text="Khi lưu vào ngân hàng câu hỏi cần phải qua sự kiểm duyệt của quản trị viên" open={open} setOpen={setOpen} />
+                          <InfoPopup text="Khi lưu vào ngân hàng câu hỏi cần phải qua sự kiểm duyệt của quản trị viên" _open={open} _setOpen={setOpen} />
                         </div>
                         <Switch checked={field.value} onCheckedChange={field.onChange} className="data-[state=unchecked]:bg-gray-300 cursor-pointer" />
                       </div>

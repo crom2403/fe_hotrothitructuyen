@@ -22,7 +22,7 @@ import MultipleSelectQuestion from './Exam/MultipleSelectQuestion';
 import DragDropQuestion from './Exam/DragDropQuestion';
 import MatchingQuestion from './Exam/MatchingQuestion';
 import OrderingQuestion from './Exam/OrderingQuestion';
-import VideoPopupQuestion, { type VideoPopupAnswerType } from './Exam/VideoPopupQuestion';
+import VideoPopupQuestion, { type VideoPopupAnswerType, type VideoPopupQuestionType } from './Exam/VideoPopupQuestion';
 import Loading from '@/components/common/Loading';
 import { Drawer, DrawerContent, DrawerFooter, DrawerClose } from '@/components/ui/drawer';
 import { useNavigate } from 'react-router-dom';
@@ -242,11 +242,12 @@ export default function ExamTaking() {
 
         if (question?.question.question_type.code === 'video_popup') {
           // Format answer as { "popup-0": "A", "popup-1": "B", ... }
-          const formattedAnswer = Object.entries(answer).reduce((acc, [timeIndex, ans]: [string, VideoPopupAnswerType]) => {
-            const popupId = question.question.answer_config.popup_times[parseInt(timeIndex)].id;
+          const config = question.question.answer_config as unknown as VideoPopupQuestionType;
+          const formattedAnswer = Object.entries(answer as Record<string, VideoPopupAnswerType>).reduce<Record<string, string>>((acc, [timeIndex, ans]) => {
+            const popupId = config.popup_times[parseInt(timeIndex)].id;
             acc[popupId] = ans.content.value;
             return acc;
-          }, {} as Record<string, string>);
+          }, {});
 
           return {
             question_id: questionId,
@@ -413,7 +414,18 @@ export default function ExamTaking() {
             )}
 
             {currentQ.question_type.code === 'drag_drop' && (
-              <DragDropQuestion question={currentQ} answers={answers[currentQ.id] || {}} onAnswerChange={(value) => handleAnswerChange(currentQ.id, value)} />
+              <DragDropQuestion
+                question={{
+                  ...currentQ,
+                  answer_config: currentQ.answer_config as unknown as { zones: { text: string; value: string }[]; correct?: { id: string; zone: string; value: string }[] },
+                  answers: currentQ.answers.map((a) => ({
+                    content: { text: a.content.text || '', value: a.content.value || '' },
+                    order_index: a.order_index,
+                  })) as unknown as VideoPopupAnswerType[],
+                }}
+                answers={answers[currentQ.id] || {}}
+                onAnswerChange={(value) => handleAnswerChange(currentQ.id, value)}
+              />
             )}
 
             {currentQ.question_type.code === 'matching' && (
@@ -447,7 +459,12 @@ export default function ExamTaking() {
 
             {currentQ.question_type.code === 'video_popup' && (
               <VideoPopupQuestion
-                question={currentQ}
+                question={{
+                  id: currentQ.id,
+                  content: currentQ.content,
+                  answer_config: currentQ.answer_config as unknown as VideoPopupQuestionType,
+                  answers: currentQ.answers as unknown as VideoPopupAnswerType[],
+                }}
                 answers={answers[currentQ.id] || {}}
                 onAnswerChange={(timeIndex, answer) => {
                   const currentAnswers = answers[currentQ.id] || {};

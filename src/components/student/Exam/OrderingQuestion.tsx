@@ -43,8 +43,8 @@ function OrderingQuestion({ question, answers, onAnswerChange }: { question: Que
       .map((answer) => ({
         id: answer.id,
         content: answer.content.text || 'Không có nội dung',
-        value: answer.content.value,
-        order: answers[answer.content.value] || answer.order_index,
+        value: answer.content.value || answer.id,
+        order: answers[answer.content.value || answer.id] || answer.order_index,
       }))
       .sort((a, b) => a.order - b.order)
       .map(({ id, content, value }) => ({ id, content, value })),
@@ -56,8 +56,8 @@ function OrderingQuestion({ question, answers, onAnswerChange }: { question: Que
       .map((answer) => ({
         id: answer.id,
         content: answer.content.text || 'Không có nội dung',
-        value: answer.content.value,
-        order: answers[answer.content.value] || answer.order_index,
+        value: answer.content.value || answer.id,
+        order: answers[answer.content.value || answer.id] || answer.order_index,
       }))
       .sort((a, b) => a.order - b.order)
       .map(({ id, content, value }) => ({ id, content, value }));

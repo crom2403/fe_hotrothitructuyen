@@ -25,7 +25,11 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
   } = useFormContext<QuestionFormData>();
   const answers = useWatch({ control, name: 'answers' }) || [];
   const zones = useWatch({ control, name: 'answer_config.zones' }) || [];
-  const correctMap = useWatch({ control, name: 'answer_config.correct' }) || [];
+  const correctMap = (useWatch({ control, name: 'answer_config.correct' }) || []) as Array<{
+    id: string;
+    zone: string;
+    value: string;
+  }>;
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [newAnswerText, setNewAnswerText] = useState<string>('');
 
@@ -48,7 +52,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
     if (!answer) return;
 
     const targetZone = zones[zoneIndex];
-    const updatedCorrect = correctMap.filter((c) => c.id !== draggedId);
+    const updatedCorrect = correctMap.filter((c: any) => c.id !== draggedId);
     updatedCorrect.push({
       id: draggedId,
       zone: targetZone.value,
@@ -73,7 +77,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
       toast.error('Phải có ít nhất 1 vùng!');
       return;
     }
-    const zoneToRemove = zones[index];
+    const zoneToRemove = zones[index].value;
     const newZones = zones.filter((_, i) => i !== index);
     const newCorrect = correctMap.filter((c) => c.zone !== zoneToRemove);
     setValue('answer_config.zones', newZones);
@@ -82,10 +86,10 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
 
   const handleZoneNameChange = (index: number, value: string) => {
     const newZones = [...zones];
-    const oldName = newZones[index];
+    const oldZoneValue = newZones[index].value;
     newZones[index] = { text: value || `Vùng ${index + 1}`, value: `zone${index + 1}` };
     setValue('answer_config.zones', newZones);
-    const newCorrect = correctMap.map((c) => (c.zone === oldName ? { ...c, zone: newZones[index] } : c));
+    const newCorrect = correctMap.map((c) => (c.zone === oldZoneValue ? { ...c, zone: newZones[index].value } : c));
     setValue('answer_config.correct', newCorrect);
   };
 
@@ -109,6 +113,7 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
   };
 
   const availableAnswers = answers.filter((a) => !correctMap.find((c) => c.id === a.id));
+  const isAnswerInZone = (answerId: string) => correctMap.some((c) => c.id === answerId);
 
   return (
     <div className="space-y-6">
@@ -130,19 +135,19 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
                   answers.map((a: AnswerItem, index: number) => (
                     <div
                       key={a.id}
-                      draggable={!correctMap.find((c) => c.id === a.id)}
-                      onDragStart={(e) => !correctMap.find((c) => c.id === a.id) && handleDragStart(e, a.id)}
+                      draggable={!isAnswerInZone(a.id)}
+                      onDragStart={(e) => !isAnswerInZone(a.id) && handleDragStart(e, a.id)}
                       className={`px-3 py-2 rounded border flex items-center gap-2 ${
-                        correctMap.find((c) => c.id === a.id) ? 'bg-gray-200 border-gray-300 cursor-not-allowed' : 'cursor-move bg-blue-100 border-blue-300 hover:bg-blue-200'
+                        isAnswerInZone(a.id) ? 'bg-gray-200 border-gray-300 cursor-not-allowed' : 'cursor-move bg-blue-100 border-blue-300 hover:bg-blue-200'
                       }`}
                     >
-                      <GripVertical className={`h-4 w-4 ${correctMap.find((c) => c.id === a.id) ? 'text-gray-400' : 'text-blue-500'}`} />
+                      <GripVertical className={`h-4 w-4 ${isAnswerInZone(a.id) ? 'text-gray-400' : 'text-blue-500'}`} />
                       <Input
                         value={'text' in a.content ? a.content.text : ''}
                         onChange={(e) => updateOption(index, e.target.value)}
                         placeholder={`Mục ${index + 1}`}
                         className="flex-1 border-none bg-transparent"
-                        disabled={correctMap.find((c) => c.id === a.id)}
+                        disabled={isAnswerInZone(a.id)}
                       />
                       <Button variant="ghost" size="icon" onClick={() => removeOption(index)} disabled={answers.length <= MIN_ANSWERS}>
                         <Trash2 className="h-4 w-4 text-red-500" />
@@ -182,12 +187,12 @@ const DragDropForm = ({ addOption, removeOption, updateOption }: DragDropFormPro
                     </div>
                     <div className="space-y-2">
                       {correctMap
-                        .filter((c) => c.zone === zone.value)
-                        .map((c) => {
+                        .filter((c: any) => c.zone === zone.value)
+                        .map((c: any) => {
                           const answer = answers.find((a) => a.id === c.id);
                           return (
                             <div key={c.id} className="bg-green-100 border border-green-300 px-2 py-1 rounded text-sm flex items-center justify-between">
-                              <span>{'text' in answer?.content ? answer.content.text : ''}</span>
+                              <span>{answer?.content && 'text' in answer.content ? answer.content.text : ''}</span>
                               <Button variant="ghost" size="icon" onClick={() => handleRemoveAnswerFromZone(c.id, zone.text)}>
                                 <X className="h-4 w-4 text-red-500" />
                               </Button>

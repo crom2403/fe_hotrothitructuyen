@@ -1,48 +1,44 @@
-import QuestionTable from "@/components/teacher/QuestionTable";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsTrigger, TabsList, TabsContent } from "@/components/ui/tabs";
-import { apiGetQuestionBank, apiGetQuestionPrivate } from "@/services/teacher/question";
-import type { QuestionListResponse, QuestionItem } from "@/types/questionType";
-import { Upload } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { useApiCall } from "@/hooks/useApiCall";
-import QuestionFormDialog from "@/components/teacher/QuestionFormDialog";
+import QuestionTable from '@/components/teacher/QuestionTable';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsTrigger, TabsList, TabsContent } from '@/components/ui/tabs';
+import { apiGetQuestionBank, apiGetQuestionPrivate } from '@/services/teacher/question';
+import type { QuestionListResponse, QuestionItem } from '@/types/questionType';
+import { Upload } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { useApiCall } from '@/hooks/useApiCall';
+import QuestionFormDialog from '@/components/teacher/QuestionFormDialog';
 
 const QuestionBank = () => {
-  const [activeTab, setActiveTab] = useState("private_question");
-  const [searchTermBank, setSearchTermBank] = useState("");
-  const [searchTermPrivate, setSearchTermPrivate] = useState("");
-  const [subjectFilterBank, setSubjectFilterBank] = useState<string>("all");
-  const [subjectFilterPrivate, setSubjectFilterPrivate] = useState<string>("all");
-  const [difficultyFilterBank, setDifficultyFilterBank] = useState<string>("all");
-  const [difficultyFilterPrivate, setDifficultyFilterPrivate] = useState<string>("all");
-  const [typeFilterBank, setTypeFilterBank] = useState<string>("all");
-  const [typeFilterPrivate, setTypeFilterPrivate] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState('private_question');
+  const [searchTermBank, setSearchTermBank] = useState('');
+  const [searchTermPrivate, setSearchTermPrivate] = useState('');
+  const [subjectFilterBank, setSubjectFilterBank] = useState<string>('all');
+  const [subjectFilterPrivate, setSubjectFilterPrivate] = useState<string>('all');
+  const [difficultyFilterBank, setDifficultyFilterBank] = useState<string>('all');
+  const [difficultyFilterPrivate, setDifficultyFilterPrivate] = useState<string>('all');
+  const [typeFilterBank, setTypeFilterBank] = useState<string>('all');
+  const [typeFilterPrivate, setTypeFilterPrivate] = useState<string>('all');
   const [pageBank, setPageBank] = useState(1);
   const [pagePrivate, setPagePrivate] = useState(1);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<QuestionItem | null>(null);
-  const getQuestionsBank = useCallback(() => apiGetQuestionBank(pageBank, searchTermBank, subjectFilterBank, typeFilterBank, difficultyFilterBank), [
-    pageBank,
-    subjectFilterBank,
-    typeFilterBank,
-    difficultyFilterBank,
-  ]);
+  const getQuestionsBank = useCallback(
+    () => apiGetQuestionBank(pageBank, searchTermBank, subjectFilterBank, typeFilterBank, difficultyFilterBank),
+    [searchTermBank, pageBank, subjectFilterBank, typeFilterBank, difficultyFilterBank],
+  );
 
-  const getQuestionsPrivate = useCallback(() => apiGetQuestionPrivate(pagePrivate, searchTermPrivate, subjectFilterPrivate, typeFilterPrivate, difficultyFilterPrivate), [
-    pagePrivate,
-    subjectFilterPrivate,
-    typeFilterPrivate,
-    difficultyFilterPrivate,
-  ]);
+  const getQuestionsPrivate = useCallback(
+    () => apiGetQuestionPrivate(pagePrivate, searchTermPrivate, subjectFilterPrivate, typeFilterPrivate, difficultyFilterPrivate),
+    [pagePrivate, subjectFilterPrivate, typeFilterPrivate, difficultyFilterPrivate, searchTermPrivate],
+  );
 
-  const { data: questionsBank, isLoading: isLoadingBank, refetch: refetchQuestionsBank, error: bankError } = useApiCall<QuestionListResponse>(getQuestionsBank);
-  const { data: questionsPrivate, isLoading: isLoadingPrivate, refetch: refetchQuestionsPrivate, error: privateError } = useApiCall<QuestionListResponse>(getQuestionsPrivate);
+  const { data: questionsBank, isLoading: isLoadingBank, refetch: refetchQuestionsBank } = useApiCall<QuestionListResponse>(getQuestionsBank);
+  const { data: questionsPrivate, isLoading: isLoadingPrivate, refetch: refetchQuestionsPrivate } = useApiCall<QuestionListResponse>(getQuestionsPrivate);
 
   useEffect(() => {
-    if (activeTab === "private_question") {
+    if (activeTab === 'private_question') {
       refetchQuestionsPrivate();
-    } else if (activeTab === "question_bank") {
+    } else if (activeTab === 'question_bank') {
       refetchQuestionsBank();
     }
   }, [activeTab, refetchQuestionsPrivate, refetchQuestionsBank]);
@@ -52,9 +48,9 @@ const QuestionBank = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (questionId: string) => {
-    // TODO: Implement delete logic
-  };
+  // const handleDelete = (questionId: string) => {
+  //   // TODO: Implement delete logic
+  // };
 
   const handlePageClickBank = (page: number) => setPageBank(page);
   const handlePageClickPrivate = (page: number) => setPagePrivate(page);
@@ -101,7 +97,7 @@ const QuestionBank = () => {
             page={pagePrivate}
             totalPages={questionsPrivate?.metadata.last_page || 1}
             handleEdit={handleEdit}
-            handleDelete={handleDelete}
+            // handleDelete={handleDelete}
             handlePageClick={handlePageClickPrivate}
             isLoading={isLoadingPrivate}
           />
@@ -121,7 +117,7 @@ const QuestionBank = () => {
             page={pageBank}
             totalPages={questionsBank?.metadata.last_page || 1}
             handleEdit={handleEdit}
-            handleDelete={handleDelete}
+            // handleDelete={handleDelete}
             handlePageClick={handlePageClickBank}
             isLoading={isLoadingBank}
           />

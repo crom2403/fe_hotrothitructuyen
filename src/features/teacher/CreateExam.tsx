@@ -33,8 +33,8 @@ const CreateExam = () => {
       return false;
     }
 
-    const startDateOnly = startDate.toISOString().split('T')[0];
-    const endDateOnly = endDate.toISOString().split('T')[0];
+    // const startDateOnly = startDate.toISOString().split('T')[0];
+    // const endDateOnly = endDate.toISOString().split('T')[0];
 
     // if (startDateOnly !== endDateOnly) {
     //   toast.error("Ngày bắt đầu và kết thúc phải cùng ngày!");

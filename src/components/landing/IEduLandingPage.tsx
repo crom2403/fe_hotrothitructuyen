@@ -10,7 +10,6 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   Calendar,
-  FileText,
   BarChart3,
   PenTool,
   Play,
@@ -24,11 +23,7 @@ import {
   ArrowRight,
   Github,
   ExternalLink,
-  Clock,
-  BookOpen,
   Video,
-  Puzzle,
-  MousePointer,
   GraduationCap,
   Award,
   Target,
@@ -260,53 +255,13 @@ const features = [
   },
 ];
 
-const stats = [
-  { number: '8+', label: 'Loại câu hỏi', icon: PenTool },
-  { number: '99.9%', label: 'Độ tin cậy', icon: Shield },
-  { number: '24/7', label: 'Hỗ trợ', icon: Clock },
-  { number: '100%', label: 'Responsive', icon: Smartphone },
-];
-
 const techStack = [
-  { name: 'Next.js 15', icon: Code, description: 'React framework hiện đại' },
+  { name: 'React 18', icon: Code, description: 'React framework hiện đại' },
   { name: 'TypeScript', icon: Code, description: 'Phát triển an toàn kiểu dữ liệu' },
   { name: 'Tailwind CSS', icon: Palette, description: 'Framework CSS tiện ích' },
   { name: 'shadcn/ui', icon: Palette, description: 'Thư viện UI components' },
-  { name: 'Supabase', icon: Database, description: 'Backend as a Service' },
+  { name: 'Nestjs', icon: Database, description: 'Backend as a Service' },
   { name: 'Vercel', icon: Globe, description: 'Nền tảng triển khai' },
-];
-
-const questionTypes = [
-  {
-    type: 'Trắc nghiệm',
-    description: 'Câu hỏi một lựa chọn hoặc nhiều lựa chọn',
-    icon: CheckCircle,
-  },
-  {
-    type: 'Video tương tác',
-    description: 'Câu hỏi xuất hiện trong quá trình xem video',
-    icon: Video,
-  },
-  {
-    type: 'Kéo thả',
-    description: 'Sắp xếp hoặc phân loại bằng cách kéo thả',
-    icon: MousePointer,
-  },
-  {
-    type: 'Nối dây',
-    description: 'Kết nối các cặp thông tin tương ứng',
-    icon: Puzzle,
-  },
-  {
-    type: 'Điền khuyết',
-    description: 'Hoàn thành câu hoặc đoạn văn',
-    icon: FileText,
-  },
-  {
-    type: 'Tự luận',
-    description: 'Câu hỏi mở với câu trả lời dài',
-    icon: BookOpen,
-  },
 ];
 
 const useHeaderAnimation = () => {
@@ -405,7 +360,6 @@ export const Page = () => {
           </div>
         </div>
       </section>
-
 
       <HeroSection />
 

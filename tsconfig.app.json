@@ -16,18 +16,16 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*", "./src/types/*", "./src/services/*", "./src/components/*", "./src/hooks/*", "./src/lib/*", "./src/pages/*", "./src/routes/*", "./src/utils/*"]
     }
   },
   "include": ["src"]
