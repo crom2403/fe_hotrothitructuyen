@@ -1,0 +1,121 @@
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Plus, Trash2 } from "lucide-react";
+import type { UseFormReturn } from "react-hook-form";
+import { type QuestionFormData, type AnswerItem, isMultipleSelectConfig, type MultipleSelectConfig } from "@/types/questionFormTypes";
+import { useWatch } from "react-hook-form";
+import { toast } from "sonner";
+
+interface MultipleChoiceFormProps {
+  form: UseFormReturn<QuestionFormData>;
+  addOption: () => void;
+  removeOption: (index: number) => void;
+  updateOption: (index: number, text: string, value?: string) => void;
+  toggleCorrectAnswer: (index: number) => void;
+}
+
+const MultipleChoiceForm = ({
+  form,
+  addOption,
+  removeOption,
+  updateOption,
+  toggleCorrectAnswer,
+}: MultipleChoiceFormProps) => {
+  const answers = useWatch({
+    control: form.control,
+    name: "answers",
+    defaultValue: [],
+  });
+
+  const answerConfig = useWatch({
+    control: form.control,
+    name: "answer_config",
+    defaultValue: { kind: "multiple_select", options_count: 0, correct: [] } as MultipleSelectConfig,
+  });
+
+  const isMultipleSelect = isMultipleSelectConfig(answerConfig);
+  const correctAnswers = isMultipleSelect ? answerConfig.correct : [];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <FormLabel>Phương án trả lời</FormLabel>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (answers.length >= 7) {
+              toast.error("Tối đa 7 phương án!");
+              return;
+            }
+            addOption();
+          }}
+          disabled={answers.length >= 7}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Thêm phương án
+        </Button>
+      </div>
+
+      <FormField
+        control={form.control}
+        name="answers"
+        render={({ field }) => (
+          <FormItem>
+            <div className="space-y-3">
+              {field.value.map((answer: AnswerItem, index: number) => (
+                <div key={answer.id} className="flex items-center gap-3">
+                  <FormControl>
+                    <Checkbox
+                      checked={isMultipleSelect && correctAnswers.includes(("value" in answer.content && answer.content.value) || String.fromCharCode(65 + index))}
+                      onCheckedChange={() => {
+                        toggleCorrectAnswer(index);
+                      }}
+                      className="border-gray-700"
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <Input
+                      value={("text" in answer.content && answer.content.text) || ""}
+                      onChange={(e) => updateOption(index, e.target.value, String.fromCharCode(65 + index))}
+                      placeholder={`Phương án ${index + 1}`}
+                      className="flex-1"
+                    />
+                  </FormControl>
+                  {field.value.length > 2 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        removeOption(index);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="answer_config.correct"
+        render={() => (
+          <FormItem>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+};
+
+export default MultipleChoiceForm;
