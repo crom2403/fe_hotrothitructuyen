@@ -1,3 +1,4 @@
+// export default VideoPopupForm;
 import React, { useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,7 @@ interface VideoPopupConfig {
     id: string;
     time: number;
     question: string;
-    options: string[];
+    options: Array<{ text: string; value: string }>;
     correct: string;
   }>;
 }
@@ -38,7 +39,12 @@ interface VideoPopupFormProps {
   onSaveSuccess: () => void;
 }
 
-const DEFAULT_OPTIONS = ['A', 'B', 'C', 'D'];
+const DEFAULT_OPTIONS = [
+  { text: '', value: 'A' },
+  { text: '', value: 'B' },
+  { text: '', value: 'C' },
+  { text: '', value: 'D' },
+];
 
 export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -109,7 +115,7 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
       ...prev,
       ...DEFAULT_OPTIONS.map((opt, optionIndex) => ({
         id: `answer-${newPopupIndex}-${optionIndex}`,
-        content: { text: '', value: opt },
+        content: { text: opt.text, value: opt.value },
         order_index: prev.length + optionIndex + 1,
       })),
     ]);
@@ -128,7 +134,6 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
 
     setAnswers((prev) => prev.filter((_, i) => i < startIndex || i >= startIndex + count));
 
-    // Cập nhật lại order_index cho answers
     setAnswers((prev) =>
       prev.map((answer, i) => ({
         ...answer,
@@ -146,11 +151,23 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
         i === globalIndex
           ? {
               ...answer,
-              content: { text, value: DEFAULT_OPTIONS[optionIndex] },
+              content: { text, value: DEFAULT_OPTIONS[optionIndex].value },
             }
           : answer,
       ),
     );
+
+    setVideoConfig((prev) => ({
+      ...prev,
+      popup_times: prev.popup_times.map((popup, i) =>
+        i === popupIndex
+          ? {
+              ...popup,
+              options: popup.options.map((opt, j) => (j === optionIndex ? { ...opt, text } : opt)),
+            }
+          : popup,
+      ),
+    }));
   }, []);
 
   const handleQuestionChange = useCallback((popupIndex: number, e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -278,20 +295,14 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
             <div className="space-y-2">
               <Label>Phương án</Label>
               <RadioGroup value={popup.correct} onValueChange={(value) => handleToggleCorrect(index, value)} className="space-y-2">
-                {DEFAULT_OPTIONS.map((option, optionIndex) => {
-                  const globalIndex = index * DEFAULT_OPTIONS.length + optionIndex;
-                  const answer = answers[globalIndex];
-                  const inputValue = answer?.content?.text || '';
-
-                  return (
-                    <div key={`popup-${index}-option-${optionIndex}`} className="flex items-center space-x-2">
-                      <RadioGroupItem value={option} id={`option-${index}-${optionIndex}`} />
-                      <div className="flex-1">
-                        <Input value={inputValue} onChange={(e) => handleInputChange(index, optionIndex, e)} placeholder={`Phương án ${option}`} />
-                      </div>
+                {popup.options.map((option, optionIndex) => (
+                  <div key={`popup-${index}-option-${optionIndex}`} className="flex items-center space-x-2">
+                    <RadioGroupItem value={option.value} id={`option-${index}-${optionIndex}`} />
+                    <div className="flex-1">
+                      <Input value={option.text} onChange={(e) => handleInputChange(index, optionIndex, e)} placeholder={`Phương án ${option.value}`} />
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </RadioGroup>
             </div>
           </div>

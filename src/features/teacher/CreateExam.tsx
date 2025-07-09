@@ -1,27 +1,27 @@
-import BasicInfoTab from "@/components/teacher/CreateExam/BasicInfoTab";
-import QuestionsTab from "@/components/teacher/CreateExam/QuestionsTab";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save } from "lucide-react";
-import { useState } from "react";
-import useExamStore from "@/stores/examStore";
-import { SettingsTab } from "@/components/teacher/CreateExam/SettingTab";
-import { PreviewTab } from "@/components/teacher/CreateExam/PreviewTab";
-import ExamPreview from "@/components/teacher/CreateExam/ExamPreview";
-import { toast } from "sonner";
-import type { AxiosError } from "axios";
-import { apiCreateExam } from "@/services/teacher/createExam";
+import BasicInfoTab from '@/components/teacher/CreateExam/BasicInfoTab';
+import QuestionsTab from '@/components/teacher/CreateExam/QuestionsTab';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Save } from 'lucide-react';
+import { useState } from 'react';
+import useExamStore from '@/stores/examStore';
+import { SettingsTab } from '@/components/teacher/CreateExam/SettingTab';
+import { PreviewTab } from '@/components/teacher/CreateExam/PreviewTab';
+import ExamPreview from '@/components/teacher/CreateExam/ExamPreview';
+import { toast } from 'sonner';
+import type { AxiosError } from 'axios';
+import { apiCreateExam } from '@/services/teacher/createExam';
 
 const CreateExam = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("basic");
+  const [activeTab, setActiveTab] = useState('basic');
   const { tab1Data, tab2Data, tab3Data, resetExamData, commonProps } = useExamStore();
 
   const isSubjectSelected = !!tab1Data.subject;
 
   const validateTime = (start: string, end: string): boolean => {
     if (!start || !end) {
-      toast.error("Vui lòng nhập cả thời gian bắt đầu và kết thúc!");
+      toast.error('Vui lòng nhập cả thời gian bắt đầu và kết thúc!');
       return false;
     }
 
@@ -29,33 +29,33 @@ const CreateExam = () => {
     const endDate = new Date(end);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      toast.error("Thời gian không hợp lệ!");
+      toast.error('Thời gian không hợp lệ!');
       return false;
     }
 
-    const startDateOnly = startDate.toISOString().split("T")[0];
-    const endDateOnly = endDate.toISOString().split("T")[0];
+    const startDateOnly = startDate.toISOString().split('T')[0];
+    const endDateOnly = endDate.toISOString().split('T')[0];
 
-    if (startDateOnly !== endDateOnly) {
-      toast.error("Ngày bắt đầu và kết thúc phải cùng ngày!");
-      return false;
-    }
+    // if (startDateOnly !== endDateOnly) {
+    //   toast.error("Ngày bắt đầu và kết thúc phải cùng ngày!");
+    //   return false;
+    // }
 
     if (endDate <= startDate) {
-      toast.error("Giờ kết thúc phải sau giờ bắt đầu!");
+      toast.error('Giờ kết thúc phải sau giờ bắt đầu!');
       return false;
     }
 
     return true;
   };
 
-  const handleSaveExam = async() => {
+  const handleSaveExam = async () => {
     setIsLoading(true);
     if (!validateTime(tab1Data.start_time, tab1Data.end_time)) {
       setIsLoading(false);
       return;
     }
-    try{
+    try {
       const examData = {
         name: tab1Data.name,
         subject_id: tab1Data.subject,
@@ -77,16 +77,16 @@ const CreateExam = () => {
         questions: tab2Data.list_questions,
         difficulty: tab2Data.difficulty,
         study_groups: tab1Data.study_groups,
-      }
+      };
 
       console.log(examData);
       const response = await apiCreateExam(examData);
       if (response.status === 201) {
-        toast.success("Tạo đề thi thành công");
+        toast.success('Tạo đề thi thành công');
         resetExamData();
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string, error: string }>;
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
@@ -103,11 +103,7 @@ const CreateExam = () => {
         </div>
         <div className="space-x-2">
           <ExamPreview selectedQuestions={commonProps.list_questions} />
-          <Button
-            onClick={handleSaveExam}
-            className="bg-black hover:bg-black/80"
-            disabled={isLoading}
-          >
+          <Button onClick={handleSaveExam} className="bg-black hover:bg-black/80" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

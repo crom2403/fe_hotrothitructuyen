@@ -9,20 +9,20 @@ import {
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogTrigger,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Clock, ChevronLeft, ChevronRight, Flag, Send, AlertTriangle } from 'lucide-react';
-import type { IExam, Question } from '@/services/student/interfaces/exam.interface';
+import type { IExam } from '@/services/student/interfaces/exam.interface';
 import { apiGetDetailExam } from '@/services/student/exam';
 import SingleChoiceQuestion from './Exam/SingleChoiceQuestion';
 import MultipleSelectQuestion from './Exam/MultipleSelectQuestion';
 import DragDropQuestion from './Exam/DragDropQuestion';
 import MatchingQuestion from './Exam/MatchingQuestion';
 import OrderingQuestion from './Exam/OrderingQuestion';
-import VideoPopupQuestion from './Exam/VideoPopupQuestion';
+import VideoPopupQuestion, { type VideoPopupAnswerType } from './Exam/VideoPopupQuestion';
 import Loading from '@/components/common/Loading';
 import { Drawer, DrawerContent, DrawerFooter, DrawerClose } from '@/components/ui/drawer';
 import { useNavigate } from 'react-router-dom';
@@ -32,40 +32,9 @@ import { toast } from 'sonner';
 import path from '@/utils/path';
 import useAppStore from '@/stores/appStore';
 
-interface Answer {
-  id: string;
-  content: {
-    text?: string;
-    value?: string;
-    left?: string;
-    right?: string;
-  };
-  order_index: number;
-}
-
-interface ExamData {
-  id: string;
-  name: string;
-  subject: {
-    name: string;
-  };
-  duration_minutes: number;
-  exam_questions: Array<{
-    id: string;
-    question: Question;
-  }>;
-  settings: {
-    shuffleQuestions: boolean;
-    shuffleAnswers: boolean;
-    allowReview: boolean;
-    maxTabSwitch: number;
-  };
-}
-
 export default function ExamTaking() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
-  // const { examId, studyGroupId } = { examId: '6275f090-144c-4f97-b447-d0dc2d65cd16', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
   const { examId, studyGroupId } = useAppStore();
 
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -124,12 +93,6 @@ export default function ExamTaking() {
     });
 
     socketInstance.on('submitExam', (data: { studentId: string }) => {
-      // if (data.studentId === currentUser?.id) {
-      //   setIsSubmitted(true);
-      //   toast.success('Bài thi đã được nộp thành công!');
-      //   navigate('/student/exam_list');
-      // }
-
       console.log(data);
     });
 
@@ -237,6 +200,7 @@ export default function ExamTaking() {
   };
 
   const handleAnswerChange = (questionId: string, answer: any) => {
+    console.log('answer', answer);
     setAnswers((prev) => ({
       ...prev,
       [questionId]: answer,
@@ -262,13 +226,27 @@ export default function ExamTaking() {
       exam_id: exam.id,
       answers: Object.entries(answers).map(([questionId, answer], index) => {
         const question = exam.exam_questions.find((q) => q.question.id === questionId);
-        console.log('question', question);
         if (question?.question.question_type.code === 'matching') {
-          console.log(' Object.entries(answer)', Object.entries(answer));
           const formattedAnswer = Object.entries(answer).map(([leftId, rightId]) => ({
             left: question?.question.answers.find((a) => a.id === leftId)?.content.left,
             right: question?.question.answers.find((a) => a.id === rightId)?.content.right,
           }));
+
+          return {
+            question_id: questionId,
+            question_type: question?.question.question_type.code,
+            order_index: index + 1,
+            answer_content: formattedAnswer,
+          };
+        }
+
+        if (question?.question.question_type.code === 'video_popup') {
+          // Format answer as { "popup-0": "A", "popup-1": "B", ... }
+          const formattedAnswer = Object.entries(answer).reduce((acc, [timeIndex, ans]: [string, VideoPopupAnswerType]) => {
+            const popupId = question.question.answer_config.popup_times[parseInt(timeIndex)].id;
+            acc[popupId] = ans.content.value;
+            return acc;
+          }, {} as Record<string, string>);
 
           return {
             question_id: questionId,
@@ -289,7 +267,6 @@ export default function ExamTaking() {
       tab_switches: tabSwitchCount,
     };
 
-    // In dữ liệu submissionData ra console
     console.log('Dữ liệu exam:', JSON.stringify(exam, null, 2));
     console.log('Dữ liệu bài làm của sinh viên:', JSON.stringify(submissionData, null, 2));
 
@@ -316,7 +293,7 @@ export default function ExamTaking() {
   };
 
   if (!isValidSession) {
-    return null; // Đã điều hướng trong useEffect
+    return null;
   }
 
   if (isLoading) {
