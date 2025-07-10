@@ -2,7 +2,7 @@ import type { UserFormData, UserInfo } from '@/types/userType';
 import type { UseFormReturn } from 'react-hook-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { Button } from '../../ui/button';
-import { CalendarIcon, Eye, EyeOff, Loader2, Plus } from 'lucide-react';
+import { CalendarIcon, Eye, EyeOff, FileUp, Loader2, Plus, Sheet } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../../ui/form';
 import { Input } from '../../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { Calendar } from '../../ui/calendar';
 import { useEffect, useState } from 'react';
 import { apiGetRoles } from '@/services/admin/role';
+import { apiExportUser } from '@/services/admin/user';
 
 interface UserFormDialogProps {
   form: UseFormReturn<UserFormData>;
@@ -45,20 +46,68 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
     }
   };
 
+  interface ExportParams {
+    q?: string; // Từ khóa tìm kiếm
+    role_code?: string; // Mã vai trò (ADMIN, TEACHER, STUDENT,...)
+  }
+
+  const handleExportExcel = async () => {
+    try {
+      // Gọi API với responseType: 'arraybuffer'
+      const response = await apiExportUser();
+
+      // Tạo Blob từ ArrayBuffer
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      // Debug: Kiểm tra dữ liệu
+      console.log('ArrayBuffer size:', response.data.byteLength);
+      console.log('Blob size:', blob.size);
+
+      // Tạo URL và download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'users-export.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Lỗi khi xuất file Excel:', error);
+      let errorMessage = 'Đã xảy ra lỗi khi tải file Excel';
+      if (error.response) {
+        if (error.response.status === 403) {
+          errorMessage = 'Bạn không có quyền truy cập';
+        } else if (error.response.status === 404) {
+          errorMessage = 'Không tìm thấy dữ liệu để xuất';
+        }
+      }
+      alert(errorMessage);
+    }
+  };
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <Button
-          className="bg-black hover:bg-black/80"
-          onClick={() => {
-            setEditingUser(null);
-            form.reset();
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Thêm người dùng
+      <div className="flex gap-2">
+        <Button className="bg-green-700 hover:bg-green-700/80 cursor-pointer" onClick={handleExportExcel}>
+          <FileUp className="h-4 w-4" />
+          Export
         </Button>
-      </DialogTrigger>
+        <DialogTrigger asChild>
+          <Button
+            className="bg-blue-700 hover:bg-blue-700/80 cursor-pointer"
+            onClick={() => {
+              setEditingUser(null);
+              form.reset();
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            Thêm người dùng
+          </Button>
+        </DialogTrigger>
+      </div>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{editingUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng mới'}</DialogTitle>

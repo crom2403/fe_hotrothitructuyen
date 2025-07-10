@@ -4,12 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Play, Clock, Users, BookOpen, Check } from 'lucide-react';
-import { apiGetListExams } from '@/services/student/exam';
+import { Search, Play, Clock, Users, BookOpen, Check, Loader2 } from 'lucide-react';
+import { apiCreateExamAttempt, apiGetListExams } from '@/services/student/exam';
 import Loading from '@/components/common/Loading';
 import path from '@/utils/path';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '@/stores/appStore';
+import Empty from '../../../public/images/png/empty.png';
 
 interface Exam {
   id: string;
@@ -21,6 +22,7 @@ interface Exam {
   test_type: string;
   exam_question_count: string;
   subject_name: string;
+  exam_attempts: string[];
 }
 
 interface Subject {
@@ -45,6 +47,7 @@ const ExamList = () => {
   const [subjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLoadingCreateExamAttempt, setIsCreateExamAttempt] = useState<boolean>(false);
   // const [page, setPage] = useState(1);
   const { setExamId, setStudyGroupId } = useAppStore();
 
@@ -88,7 +91,18 @@ const ExamList = () => {
     }
   };
 
-  const handleJoinExamRoom = (examId: string, studyGroupId: string) => {
+  const handleCreateExamAttempt = async (exam_id: string): Promise<void> => {
+    try {
+      setIsCreateExamAttempt(true);
+      await apiCreateExamAttempt(exam_id);
+    } catch (error) {
+      console.error('Error creating exam attempt:', error);
+    }
+    setIsCreateExamAttempt(false);
+  };
+
+  const handleJoinExamRoom = async (examId: string, studyGroupId: string) => {
+    await handleCreateExamAttempt(examId);
     setExamId(examId);
     setStudyGroupId(studyGroupId);
     navigate(path.STUDENT.EXAM_ROOM_STUDENT);
@@ -122,27 +136,32 @@ const ExamList = () => {
     }
   };
 
-  const handleGetButton = (status: string, examId: string, groupId: string) => {
+  const handleGetButton = (status: string, examId: string, groupId: string, is_taking: boolean) => {
+    if (is_taking) {
+      return (
+        <Button className="w-full" variant="default">
+          Đã nộp bài
+        </Button>
+      );
+    }
     switch (status) {
       case 'opening':
         return (
           <Button onClick={() => handleJoinExamRoom(examId, groupId)} className="w-full bg-green-500 hover:bg-green-600 cursor-pointer" variant="default">
             Đang mở
-            <Play className="h-4 w-4 ml-2" />
           </Button>
         );
       case 'closed':
         return (
-          <Button className="w-full" variant="default">
-            Đã thi
-            <Check className="h-4 w-4 ml-2" />
+          <Button className="w-full bg-orange-500 hover:bg-orange-500" variant="default">
+            Đã quá hạn
           </Button>
         );
       case 'pending':
         return (
-          <Button className="w-full bg-orange-500 hover:bg-orange-600" variant="default">
-            Chưa mở
+          <Button className="w-full bg-yellow-500 hover:bg-yellow-500" variant="default">
             <Clock className="h-4 w-4 ml-2" />
+            Chưa mở
           </Button>
         );
     }
@@ -218,6 +237,12 @@ const ExamList = () => {
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {group.exams.length === 0 && (
+                    <div className="flex flex-col items-center text-center p-4 text-gray-600">
+                      <img src={Empty} alt="" className="object-contain w-20 h-20" />
+                      <p>Chưa có bài thi nào</p>
+                    </div>
+                  )}
                   {group.exams.map((exam: Exam) => (
                     <Card key={exam.id} className="hover:shadow-lg transition-shadow">
                       <CardHeader>
@@ -255,7 +280,16 @@ const ExamList = () => {
                             {new Date(exam.end_time).toLocaleDateString('vi-VN')} {new Date(exam.end_time).toLocaleTimeString('vi-VN').slice(0, 5)}
                           </span>
                         </div>
-                        <div className="mt-6">{handleGetButton(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)), exam.id, group.id)}</div>
+                        <div className="mt-6">
+                          {isLoadingCreateExamAttempt ? (
+                            <Button disabled className="w-full">
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Loading...
+                            </Button>
+                          ) : (
+                            handleGetButton(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)), exam.id, group.id, exam.exam_attempts.length > 0 ? true : false)
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
