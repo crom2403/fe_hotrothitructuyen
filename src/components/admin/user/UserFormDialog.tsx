@@ -46,10 +46,10 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
     }
   };
 
-  interface ExportParams {
-    q?: string; // Từ khóa tìm kiếm
-    role_code?: string; // Mã vai trò (ADMIN, TEACHER, STUDENT,...)
-  }
+  // interface ExportParams {
+  //   q?: string; // Từ khóa tìm kiếm
+  //   role_code?: string; // Mã vai trò (ADMIN, TEACHER, STUDENT,...)
+  // }
 
   const handleExportExcel = async () => {
     try {
