@@ -1,90 +1,90 @@
-import { Card, CardTitle, CardDescription, CardHeader, CardContent } from "@/components/ui/card"
-import { useEffect, useState } from "react"
-import AssignSubjectDialog from "./AssignSubjectDialog"
-import { Loader2, MoreHorizontal, Search, Trash } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import type { AssignedSubjectResponse, SubjectResponse } from "@/types/subjectType"
-import { apiDeleteAssignedSubject, apiGetAssignedSubjects, apiGetSubjects } from "@/services/admin/subject"
-import type { AxiosError } from "axios"
-import { toast } from "sonner"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { format } from "date-fns"
-import Paginate from "@/components/common/Pagination"
-import { useDebounce } from "@/utils/functions"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button" 
+import { Card, CardTitle, CardDescription, CardHeader, CardContent } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
+import AssignSubjectDialog from './AssignSubjectDialog';
+import { Loader2, MoreHorizontal, Search, Trash } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import type { AssignedSubjectResponse, SubjectResponse } from '@/types/subjectType';
+import { apiDeleteAssignedSubject, apiGetAssignedSubjects, apiGetSubjects } from '@/services/admin/subject';
+import type { AxiosError } from 'axios';
+import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
+import Paginate from '@/components/common/Pagination';
+import { useDebounce } from '@/utils/functions';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import Loading from '@/components/common/Loading';
 
 const AssignSubjectTable = () => {
-  const [open, setOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [subjectFilter, setSubjectFilter] = useState("")
-  const [isLoadingSubject, setIsLoadingSubject] = useState(false)
-  const [subjects, setSubjects] = useState<SubjectResponse | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [page, setPage] = useState(1)
-  const [assignedSubjects, setAssignedSubjects] = useState<AssignedSubjectResponse | null>(null)
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [subjectFilter, setSubjectFilter] = useState('');
+  const [isLoadingSubject, setIsLoadingSubject] = useState(false);
+  const [subjects, setSubjects] = useState<SubjectResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [assignedSubjects, setAssignedSubjects] = useState<AssignedSubjectResponse | null>(null);
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 800)
+  const debouncedSearchTerm = useDebounce(searchTerm, 800);
 
   const handleGetSubjects = async () => {
-    setIsLoadingSubject(true)
+    setIsLoadingSubject(true);
     try {
-      const response = await apiGetSubjects(1, "active", "", 100)
+      const response = await apiGetSubjects(1, 'active', '', 100);
       if (response.status === 200) {
-        setSubjects(response.data)
+        setSubjects(response.data);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
-      setIsLoadingSubject(false)
+      setIsLoadingSubject(false);
     }
-  }
+  };
 
   const handleGetAssignedSubjects = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await apiGetAssignedSubjects(page, debouncedSearchTerm, subjectFilter)
+      const response = await apiGetAssignedSubjects(page, debouncedSearchTerm, subjectFilter);
       if (response.status === 200) {
-        setAssignedSubjects(response.data)
+        setAssignedSubjects(response.data);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handlePageClick = (page: number) => {
-    setPage(page)
-  }
+    setPage(page);
+  };
 
   const handleDeleteAssignedSubject = async (id: string) => {
     try {
-      const response = await apiDeleteAssignedSubject(id)
+      const response = await apiDeleteAssignedSubject(id);
       if (response.status === 200) {
-        toast.success("Xóa phân công thành công")
-        handleGetAssignedSubjects()
+        toast.success('Xóa phân công thành công');
+        handleGetAssignedSubjects();
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string; error: string }>; 
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || "Đã có lỗi xảy ra";
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     }
-  }
+  };
 
   useEffect(() => {
-    handleGetSubjects()
-  }, [])
+    handleGetSubjects();
+  }, []);
 
   useEffect(() => {
-    handleGetAssignedSubjects()
-  }, [page, debouncedSearchTerm, subjectFilter])
-
+    handleGetAssignedSubjects();
+  }, [page, debouncedSearchTerm, subjectFilter]);
 
   return (
     <Card>
@@ -95,12 +95,7 @@ const AssignSubjectTable = () => {
             <CardDescription>Xem các môn học đã được phân công cho giảng viên</CardDescription>
           </div>
           <div>
-            <AssignSubjectDialog
-              open={open}
-              onOpenChange={setOpen}
-              getAssignSubject={handleGetAssignedSubjects}
-              assignedSubjects={assignedSubjects}
-            />
+            <AssignSubjectDialog open={open} onOpenChange={setOpen} getAssignSubject={handleGetAssignedSubjects} assignedSubjects={assignedSubjects} />
           </div>
         </div>
       </CardHeader>
@@ -108,13 +103,7 @@ const AssignSubjectTable = () => {
         <div className="flex items-center space-x-4 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Tìm kiếm theo tên, mã giáo viên..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+            <Input type="text" placeholder="Tìm kiếm theo tên, mã giáo viên..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
           <Select onValueChange={(value) => setSubjectFilter(value)} disabled={isLoadingSubject}>
             <SelectTrigger>
@@ -123,7 +112,9 @@ const AssignSubjectTable = () => {
             <SelectContent>
               <SelectItem value="all">Tất cả môn học</SelectItem>
               {subjects?.data.map((subject) => (
-                <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
+                <SelectItem key={subject.id} value={subject.id}>
+                  {subject.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -145,7 +136,7 @@ const AssignSubjectTable = () => {
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-8">
                     <div className="flex justify-center items-center h-32">
-                      <Loader2 className="w-10 h-10 animate-spin" />
+                      <Loading />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -155,7 +146,7 @@ const AssignSubjectTable = () => {
                     <TableCell>{subject.teacher.code}</TableCell>
                     <TableCell>{subject.teacher.full_name}</TableCell>
                     <TableCell>{subject.subject.name}</TableCell>
-                    <TableCell>{format(new Date(subject.assigned_at), "dd/MM/yyyy")}</TableCell>
+                    <TableCell>{format(new Date(subject.assigned_at), 'dd/MM/yyyy')}</TableCell>
                     <TableCell>{subject.assigned_by.full_name}</TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -182,7 +173,7 @@ const AssignSubjectTable = () => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default AssignSubjectTable
+export default AssignSubjectTable;

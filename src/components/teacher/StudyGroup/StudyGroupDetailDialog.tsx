@@ -1,13 +1,15 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogTitle, DialogContent, DialogHeader, DialogDescription } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import useAuthStore from "@/stores/authStore";
-import type { StudyGroupDetail } from "@/types/studyGroupType";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import Loading from '@/components/common/Loading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogTitle, DialogContent, DialogHeader, DialogDescription } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { apiExportStudentOfStudyGroup } from '@/services/teacher/studyGroup';
+import useAuthStore from '@/stores/authStore';
+import type { StudyGroupDetail } from '@/types/studyGroupType';
+import { FileUp, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface StudyGroupDetailDialogProps {
   studyGroup: StudyGroupDetail | null;
@@ -20,7 +22,7 @@ interface StudyGroupDetailDialogProps {
 const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, isLoading }: StudyGroupDetailDialogProps) => {
   const { currentUser } = useAuthStore();
 
-  const formatDate = (iso: string): string => new Date(iso).toLocaleDateString("vi-VN");
+  const formatDate = (iso: string): string => new Date(iso).toLocaleDateString('vi-VN');
 
   const [selectedStudentCodes, setSelectedStudentCodes] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
@@ -38,20 +40,14 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
     if (selectAll) {
       setSelectedStudentCodes([]);
     } else {
-      setSelectedStudentCodes(studyGroup?.students.map(student => student.student.code) || []);
+      setSelectedStudentCodes(studyGroup?.students.map((student) => student.student.code) || []);
     }
     setSelectAll(!selectAll);
   };
 
   const handleToggleStudent = (studentCode: string) => {
-    setSelectedStudentCodes(prev =>
-      prev.includes(studentCode)
-        ? prev.filter(code => code !== studentCode)
-        : [...prev, studentCode]
-    );
-    setSelectAll(
-      studyGroup?.students.length === selectedStudentCodes.length + 1 && !selectedStudentCodes.includes(studentCode)
-    );
+    setSelectedStudentCodes((prev) => (prev.includes(studentCode) ? prev.filter((code) => code !== studentCode) : [...prev, studentCode]));
+    setSelectAll(studyGroup?.students.length === selectedStudentCodes.length + 1 && !selectedStudentCodes.includes(studentCode));
   };
 
   const handleRemoveSelected = () => {
@@ -62,6 +58,43 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
     }
   };
 
+  const handleExportExcel = async () => {
+    try {
+      // Gọi API với responseType: 'arraybuffer'
+      const response = await apiExportStudentOfStudyGroup(studyGroup.id ?? '');
+
+      // Tạo Blob từ ArrayBuffer
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      // Debug: Kiểm tra dữ liệu
+      console.log('ArrayBuffer size:', response.data.byteLength);
+      console.log('Blob size:', blob.size);
+
+      // Tạo URL và download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'users-export.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Lỗi khi xuất file Excel:', error);
+      let errorMessage = 'Đã xảy ra lỗi khi tải file Excel';
+      if (error.response) {
+        if (error.response.status === 403) {
+          errorMessage = 'Bạn không có quyền truy cập';
+        } else if (error.response.status === 404) {
+          errorMessage = 'Không tìm thấy dữ liệu để xuất';
+        }
+      }
+      alert(errorMessage);
+    }
+  };
+
   if (!studyGroup) return null;
 
   return (
@@ -69,14 +102,12 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
       <DialogContent className="min-w-5xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Chi tiết lớp học phần</DialogTitle>
-          <DialogDescription>
-            Xem thông tin lớp học phần và danh sách sinh viên
-          </DialogDescription>
+          <DialogDescription>Xem thông tin lớp học phần và danh sách sinh viên</DialogDescription>
         </DialogHeader>
 
         {isLoading && (
           <div className="flex justify-center items-center h-full">
-            <Loader2 className="w-10 h-10 animate-spin" />
+            <Loading />
           </div>
         )}
         {!isLoading && (
@@ -89,15 +120,21 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Mã lớp / Mã mời</p>
-                  <p className="font-medium">{studyGroup.code} / {studyGroup.invite_code}</p>
+                  <p className="font-medium">
+                    {studyGroup.code} / {studyGroup.invite_code}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Môn học</p>
-                  <p className="font-medium">{studyGroup.subject.name} ({studyGroup.subject.code})</p>
+                  <p className="font-medium">
+                    {studyGroup.subject.name} ({studyGroup.subject.code})
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Học kỳ - Năm học</p>
-                  <p className="font-medium">{studyGroup.semester.name} - {studyGroup.semester.academic_year.code}</p>
+                  <p className="font-medium">
+                    {studyGroup.semester.name} - {studyGroup.semester.academic_year.code}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Thời gian</p>
@@ -116,7 +153,7 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Mô tả</p>
-                  <p className="font-medium">{studyGroup.description || "Không có"}</p>
+                  <p className="font-medium">{studyGroup.description || 'Không có'}</p>
                 </div>
               </div>
             </div>
@@ -126,14 +163,21 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
             <div>
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-lg font-semibold">Danh sách sinh viên ({studyGroup.students.length})</h3>
-                {currentUser?.role_code === "teacher" && (
-                  <Button
-                    variant="destructive"
-                    onClick={handleRemoveSelected}
-                    disabled={selectedStudentCodes.length === 0 || isLoading}
-                  >
-                    Xóa sinh viên
-                  </Button>
+                {currentUser?.role_code === 'teacher' && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleExportExcel}
+                      className="text-white hover:text-white
+                    bg-green-700 hover:bg-green-700/80 cursor-pointer"
+                    >
+                      <FileUp className="w-4 h-4" />
+                      Export
+                    </Button>
+                    <Button variant="destructive" onClick={handleRemoveSelected} disabled={selectedStudentCodes.length === 0 || isLoading}>
+                      Xóa sinh viên
+                    </Button>
+                  </div>
                 )}
               </div>
               <ScrollArea className="h-fit rounded-md border">
@@ -141,11 +185,7 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
                   <TableHeader>
                     <TableRow>
                       <TableHead>
-                        <input
-                          type="checkbox"
-                          checked={selectAll}
-                          onChange={handleToggleSelectAll}
-                        />
+                        <input type="checkbox" checked={selectAll} onChange={handleToggleSelectAll} />
                       </TableHead>
                       <TableHead>STT</TableHead>
                       <TableHead>Mã SV</TableHead>
@@ -158,18 +198,14 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
                     {studyGroup.students.map((item, index) => (
                       <TableRow key={item.id}>
                         <TableCell>
-                          <input
-                            type="checkbox"
-                            checked={selectedStudentCodes.includes(item.student.code)}
-                            onChange={() => handleToggleStudent(item.student.code)}
-                          />
+                          <input type="checkbox" checked={selectedStudentCodes.includes(item.student.code)} onChange={() => handleToggleStudent(item.student.code)} />
                         </TableCell>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{item.student.code}</Badge>
                         </TableCell>
                         <TableCell>{item.student.full_name}</TableCell>
-                        <TableCell>{item.student.email || "—"}</TableCell>
+                        <TableCell>{item.student.email || '—'}</TableCell>
                         <TableCell>{formatDate(item.joined_at)}</TableCell>
                       </TableRow>
                     ))}

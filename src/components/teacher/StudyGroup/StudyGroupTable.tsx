@@ -17,6 +17,7 @@ import ExamListDialog from './ExamStudyGroupDialog';
 import type { ExamForStudyGroup } from '@/types/examType';
 import { apiExamForStudyGroup } from '@/services/teacher/createExam';
 import { useState } from 'react';
+import Loading from '@/components/common/Loading';
 
 interface StudyGroupTableProps {
   studyGroups: StudyGroupInfo[];
@@ -185,7 +186,7 @@ const StudyGroupTable = ({
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <div className="flex justify-center items-center h-32">
-                    <Loader2 className="w-10 h-10 animate-spin" />
+                    <Loading />
                   </div>
                 </TableCell>
               </TableRow>

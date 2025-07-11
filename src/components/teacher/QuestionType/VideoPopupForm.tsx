@@ -310,7 +310,7 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
       </div>
 
       <div className="flex justify-end">
-        <Button type="button" onClick={saveQuestions} disabled={!videoConfig.popup_times.length} className="mt-4 bg-black hover:bg-black/80">
+        <Button type="button" onClick={saveQuestions} disabled={!videoConfig.popup_times.length} className="mt-4 bg-primary hover:bg-primary/90 cursor-pointer">
           Lưu câu hỏi
         </Button>
       </div>

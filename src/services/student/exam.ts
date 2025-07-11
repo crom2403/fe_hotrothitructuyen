@@ -8,5 +8,13 @@ export const apiGetListExams = async (params?: { page?: number; size?: number; q
 };
 
 export const apiGetDetailExam = async (exam_id: string) => {
-  return await instance.get<IExam>(BASE_URL + '/' + exam_id);
+  return await instance.get<IExam>(BASE_URL + '/student/detail/' + exam_id);
+};
+
+export const apiSubmitExam = async (data: any) => {
+  return await instance.post(BASE_URL + '/student/submit', data);
+};
+
+export const apiCreateExamAttempt = async (exam_id: string) => {
+  return await instance.post(BASE_URL + '/student/create-exam-attempt/' + exam_id);
 };

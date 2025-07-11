@@ -23,7 +23,7 @@ const YearFormDialog = ({ form, isDialogOpen, setIsDialogOpen, onSubmit, isLoadi
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger>
         <Button
-          className="bg-black hover:bg-black/80"
+          className="bg-primary hover:bg-primary/90 cursor-pointer"
           onClick={() => {
             form.reset();
           }}
@@ -97,7 +97,7 @@ const YearFormDialog = ({ form, isDialogOpen, setIsDialogOpen, onSubmit, isLoadi
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Hủy
               </Button>
-              <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoading}>
+              <Button type="submit" className="bg-primary hover:bg-primary/90 cursor-pointer" disabled={isLoading}>
                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Lưu'}
               </Button>
             </div>

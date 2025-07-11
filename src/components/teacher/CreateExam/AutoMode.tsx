@@ -40,7 +40,7 @@ const AutoMode = ({ examMode }: AutoModeProps) => {
             <Input type="number" value={difficulty.hard} onChange={(e) => handleDifficultyChange('hard', e.target.value)} />
           </div>
         </div>
-        {/* <Button onClick={generateAutoExam} disabled={isLoading} className="w-full bg-black hover:bg-black/80">
+        {/* <Button onClick={generateAutoExam} disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 cursor-pointer">
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

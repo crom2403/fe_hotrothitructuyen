@@ -1,4 +1,4 @@
-import { BarChart3, Bell, BookOpen, Calendar, CalendarDays, ClipboardList, Database, GraduationCap, Home, PenTool, Shield, ShieldUser, Trophy, Users } from 'lucide-react';
+import { BarChart3, BookOpen, Calendar, ClipboardList, Database, GraduationCap, Home, PenTool, Shield, ShieldUser, Trophy, Users } from 'lucide-react';
 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import Logo from '../../../public/images/svg/logo.svg';
@@ -25,7 +25,6 @@ const AppSidebar = () => {
           { id: 'semesters', label: 'Năm học & Học kỳ', icon: Calendar, path: path.ADMIN.YEAR_SEMESTER },
           { id: 'classes', label: 'Lớp học phần', icon: GraduationCap, path: path.ADMIN.STUDY_GROUP },
           { id: 'questions', label: 'Quản lý câu hỏi', icon: Database, path: path.ADMIN.QUESTION },
-          // { id: "settings", label: "Cài đặt hệ thống", icon: Settings },
           { id: 'permission_role', label: 'Phân quyền vai trò', icon: Shield, path: path.ADMIN.PERMISSTION_ROLE },
           { id: 'permission_user', label: 'Phân quyền người dùng', icon: ShieldUser, path: path.ADMIN.PERMISSTION_USER },
         ];
@@ -34,20 +33,15 @@ const AppSidebar = () => {
           { id: 'dashboard', label: 'Tổng quan', icon: Home, path: path.TEACHER.OVERVIEW },
           { id: 'questions', label: 'Câu hỏi', icon: Database, path: path.TEACHER.QUESTION_BANK },
           { id: 'create-exam', label: 'Tạo đề thi', icon: PenTool, path: path.TEACHER.EXAM },
-          { id: 'exams', label: 'Quản lý đề thi', icon: ClipboardList },
           { id: 'classes', label: 'Lớp học phần', icon: GraduationCap, path: path.TEACHER.STUDY_GROUP },
-          // { id: "exam-rooms", label: "Phòng thi", icon: Monitor },
           { id: 'results', label: 'Kết quả & Báo cáo', icon: BarChart3 },
-          // { id: "ai-exam", label: "Tạo đề thi AI", icon: Brain },
         ];
       case 'student':
         return [
           { id: 'dashboard', label: 'Tổng quan', icon: Home, path: path.STUDENT.OVERVIEW },
           { id: 'classes', label: 'Lớp học phần', icon: GraduationCap, path: path.STUDENT.STUDY_GROUP },
           { id: 'exam-list', label: 'Danh sách bài thi', icon: ClipboardList, path: path.STUDENT.EXAM_LIST },
-          { id: 'exam-results', label: 'Kết quả thi', icon: Trophy, path: path.STUDENT.EXAM_RESULTS },
-          { id: 'exam-calendar', label: 'Lịch thi', icon: CalendarDays, path: path.STUDENT.EXAM_CALENDAR },
-          { id: 'notification', label: 'Thông báo', icon: Bell, path: path.STUDENT.NOTIFICATION },
+          { id: 'exam-results', label: 'Kết quả', icon: Trophy, path: path.STUDENT.EXAM_RESULTS },
         ];
       default:
         return [];
@@ -58,7 +52,7 @@ const AppSidebar = () => {
 
   return (
     <Sidebar collapsible="icon" className="w-[255px] bg-white">
-      <SidebarHeader>
+      <SidebarHeader className="bg-white">
         <div className="flex items-center gap-2 py-1">
           {openSidebar ? <img src={Logo} alt="Logo" className="w-15 h-15 transition-all duration-500" /> : <img src={LogoMini} alt="Logo" className="w-10 h-10 transition-all duration-500" />}
           <div className="grid flex-1 text-left text-sm leading-tight">
@@ -67,7 +61,7 @@ const AppSidebar = () => {
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="bg-white">
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
