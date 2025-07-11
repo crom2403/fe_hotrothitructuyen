@@ -1,16 +1,16 @@
-import { useEffect } from "react";
-import type { Semester, SemesterForm, Year } from "@/types/year_semesterType";
-import type { UseFormReturn } from "react-hook-form";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, PlusIcon } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Calendar } from "../../ui/calendar";
+import { useEffect } from 'react';
+import type { Semester, SemesterForm, Year } from '@/types/year_semesterType';
+import type { UseFormReturn } from 'react-hook-form';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon, PlusIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Calendar } from '../../ui/calendar';
 
 interface SemesterFormDialogProps {
   form: UseFormReturn<SemesterForm>;
@@ -24,31 +24,22 @@ interface SemesterFormDialogProps {
 }
 
 const semesterOptions = [
-  { label: "Học kỳ 1", code: "HK1" },
-  { label: "Học kỳ 2", code: "HK2" },
-  { label: "Học kỳ hè", code: "HKH" },
+  { label: 'Học kỳ 1', code: 'HK1' },
+  { label: 'Học kỳ 2', code: 'HK2' },
+  { label: 'Học kỳ hè', code: 'HKH' },
 ];
 
-const SemesterFormDialog = ({
-  form,
-  years,
-  isDialogOpen,
-  setIsDialogOpen,
-  editingSemester,
-  setEditingSemester,
-  onSubmit,
-  isLoading,
-}: SemesterFormDialogProps) => {
-  const selectedName = form.watch("name");
+const SemesterFormDialog = ({ form, years, isDialogOpen, setIsDialogOpen, editingSemester, setEditingSemester, onSubmit, isLoading }: SemesterFormDialogProps) => {
+  const selectedName = form.watch('name');
 
   useEffect(() => {
     if (selectedName) {
       const selectedOption = semesterOptions.find((option) => option.label === selectedName);
       if (selectedOption) {
-        form.setValue("code", selectedOption.code);
+        form.setValue('code', selectedOption.code);
       }
     } else {
-      form.setValue("code", "");
+      form.setValue('code', '');
     }
   }, [selectedName, form]);
 
@@ -56,22 +47,20 @@ const SemesterFormDialog = ({
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
         <Button
-          className="bg-black hover:bg-black/80"
+          className="bg-primary hover:bg-primary/90 cursor-pointer"
           onClick={() => {
             setEditingSemester(null);
             form.reset();
           }}
         >
           <PlusIcon className="mr-2 h-4 w-4" />
-          {editingSemester ? "Chỉnh sửa học kỳ" : "Thêm học kỳ"}
+          {editingSemester ? 'Chỉnh sửa học kỳ' : 'Thêm học kỳ'}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{editingSemester ? "Chỉnh sửa học kỳ" : "Thêm học kỳ"}</DialogTitle>
-          <DialogDescription>
-            {editingSemester ? "Cập nhật thông tin học kỳ" : "Tạo học kỳ mới trong hệ thống"}
-          </DialogDescription>
+          <DialogTitle>{editingSemester ? 'Chỉnh sửa học kỳ' : 'Thêm học kỳ'}</DialogTitle>
+          <DialogDescription>{editingSemester ? 'Cập nhật thông tin học kỳ' : 'Tạo học kỳ mới trong hệ thống'}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -150,15 +139,9 @@ const SemesterFormDialog = ({
                     <Popover>
                       <PopoverTrigger>
                         <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
+                          <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(field.value, "dd/MM/yyyy") : <span>Chọn ngày bắt đầu</span>}
+                            {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Chọn ngày bắt đầu</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -167,7 +150,7 @@ const SemesterFormDialog = ({
                           mode="single"
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
-                          disabled={(date) => date < new Date("1900-01-01")}
+                          disabled={(date) => date < new Date('1900-01-01')}
                           captionLayout="dropdown"
                         />
                       </PopoverContent>
@@ -185,15 +168,9 @@ const SemesterFormDialog = ({
                     <Popover>
                       <PopoverTrigger>
                         <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
+                          <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? format(field.value, "dd/MM/yyyy") : <span>Chọn ngày kết thúc</span>}
+                            {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Chọn ngày kết thúc</span>}
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -202,7 +179,7 @@ const SemesterFormDialog = ({
                           mode="single"
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
-                          disabled={(date) => date < new Date("1900-01-01")}
+                          disabled={(date) => date < new Date('1900-01-01')}
                           captionLayout="dropdown"
                         />
                       </PopoverContent>
@@ -229,12 +206,12 @@ const SemesterFormDialog = ({
                 {isLoading ? (
                   <>
                     <CalendarIcon className="mr-2 h-4 w-4 animate-spin" />
-                    {editingSemester ? "Đang cập nhật..." : "Đang tạo..."}
+                    {editingSemester ? 'Đang cập nhật...' : 'Đang tạo...'}
                   </>
                 ) : editingSemester ? (
-                  "Cập nhật"
+                  'Cập nhật'
                 ) : (
-                  "Tạo mới"
+                  'Tạo mới'
                 )}
               </Button>
             </div>

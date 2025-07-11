@@ -11,6 +11,7 @@ import { formatDate } from 'date-fns';
 import { useState } from 'react';
 import { Dialog } from '@radix-ui/react-dialog';
 import QuestionDetail from './QuestionDetail';
+import Loading from '@/components/common/Loading';
 
 interface QuestionTableProps {
   questions: QuestionItem[];
@@ -112,7 +113,7 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8">
                   <div className="flex justify-center items-center h-32">
-                    <Loader2 className="w-10 h-10 animate-spin" />
+                    <Loading />
                   </div>
                 </TableCell>
               </TableRow>

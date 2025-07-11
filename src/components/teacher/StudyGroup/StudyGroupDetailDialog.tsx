@@ -1,3 +1,4 @@
+import Loading from '@/components/common/Loading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTitle, DialogContent, DialogHeader, DialogDescription } from '@/components/ui/dialog';
@@ -106,7 +107,7 @@ const StudyGroupDetailDialog = ({ studyGroup, open, setOpen, onRemoveStudent, is
 
         {isLoading && (
           <div className="flex justify-center items-center h-full">
-            <Loader2 className="w-10 h-10 animate-spin" />
+            <Loading />
           </div>
         )}
         {!isLoading && (

@@ -510,7 +510,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
       }}
     >
       <DialogTrigger>
-        <Button className="bg-black hover:bg-black/80" onClick={() => setIsDialogOpen(true)}>
+        <Button className="bg-primary hover:bg-primary/90 cursor-pointer" onClick={() => setIsDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Thêm câu hỏi
         </Button>
@@ -687,10 +687,10 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                   >
                     Hủy
                   </Button>
-                  <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoadingSubmit}>
+                  <Button type="submit" className="bg-primary hover:bg-primary/90 cursor-pointer" disabled={isLoadingSubmit}>
                     {isLoadingSubmit ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin " />
                         {editingQuestion ? 'Đang cập nhật...' : 'Đang tạo...'}
                       </>
                     ) : editingQuestion ? (

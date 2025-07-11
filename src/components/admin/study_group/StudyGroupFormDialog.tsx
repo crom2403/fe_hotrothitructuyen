@@ -95,7 +95,7 @@ const StudyGroupFormDialog = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger>
         <Button
-          className="bg-black hover:bg-black/80"
+          className="bg-primary hover:bg-primary/90 cursor-pointer"
           onClick={() => {
             setEditingStudyGroup(null);
             form.reset();
@@ -317,7 +317,7 @@ const StudyGroupFormDialog = ({
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Hủy
               </Button>
-              <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoading}>
+              <Button type="submit" className="bg-primary hover:bg-primary/90 cursor-pointer" disabled={isLoading}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 {editingStudyGroup ? 'Cập nhật' : 'Thêm'}
               </Button>

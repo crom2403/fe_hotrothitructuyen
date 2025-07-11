@@ -103,7 +103,7 @@ const CreateExam = () => {
         </div>
         <div className="space-x-2">
           <ExamPreview selectedQuestions={commonProps.list_questions} />
-          <Button onClick={handleSaveExam} className="bg-black hover:bg-black/80" disabled={isLoading}>
+          <Button onClick={handleSaveExam} className="bg-primary hover:bg-primary/90 cursor-pointer" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

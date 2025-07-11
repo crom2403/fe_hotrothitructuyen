@@ -267,7 +267,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
               >
                 Hủy
               </Button>
-              <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoading}>
+              <Button type="submit" className="bg-primary hover:bg-primary/90 cursor-pointer" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
