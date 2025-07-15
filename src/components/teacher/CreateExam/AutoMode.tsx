@@ -1,14 +1,17 @@
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import useExamStore from '@/stores/examStore';
+import { Loader2, Shuffle } from 'lucide-react';
 
 interface AutoModeProps {
   examMode: string;
   isLoading: boolean;
+  generateAutoExam: () => void;
 }
 
-const AutoMode = ({ examMode }: AutoModeProps) => {
+const AutoMode = ({ examMode, isLoading, generateAutoExam }: AutoModeProps) => {
   const { tab2Data, setDifficulty } = useExamStore();
 
   // Khởi tạo difficulty nếu undefined
@@ -40,7 +43,7 @@ const AutoMode = ({ examMode }: AutoModeProps) => {
             <Input type="number" value={difficulty.hard} onChange={(e) => handleDifficultyChange('hard', e.target.value)} />
           </div>
         </div>
-        {/* <Button onClick={generateAutoExam} disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 cursor-pointer">
+        <Button onClick={generateAutoExam} disabled={isLoading} className="w-full bg-primary hover:bg-primary/90 cursor-pointer">
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -49,10 +52,10 @@ const AutoMode = ({ examMode }: AutoModeProps) => {
           ) : (
             <>
               <Shuffle className="mr-2 h-4 w-4" />
-              Tạo đề tự động
+              Tạo câu hỏi tự động
             </>
           )}
-        </Button> */}
+        </Button>
       </CardContent>
     </Card>
   );

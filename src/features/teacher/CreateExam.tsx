@@ -50,11 +50,19 @@ const CreateExam = () => {
   };
 
   const handleSaveExam = async () => {
-    setIsLoading(true);
     if (!validateTime(tab1Data.start_time, tab1Data.end_time)) {
       setIsLoading(false);
       return;
     }
+    if (tab1Data.total_questions === 0) {
+      toast.error('Số câu hỏi không được bằng 0!');
+      return;
+    }
+    if (tab1Data.total_questions !== tab2Data.list_questions.length) {
+      toast.error('Số câu hỏi không khớp!');
+      return;
+    }
+    setIsLoading(true);
     try {
       const examData = {
         name: tab1Data.name,

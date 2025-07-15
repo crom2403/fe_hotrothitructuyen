@@ -13,14 +13,14 @@ interface QuestionTabProps {
 }
 
 const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
-  const [examMode, setExamMode] = useState<'manual' | 'auto' | 'ai'>('manual');
+  const [examMode, setExamMode] = useState<'manual' | 'auto'>('manual');
   const [selectedQuestions, setSelectedQuestions] = useState<QuestionItem[]>([]);
   const { tab2Data, setListQuestions, setListQuestionsFull, commonProps } = useExamStore();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (tab2Data.exam_type && tab2Data.exam_type !== examMode) {
-      setExamMode(tab2Data.exam_type as 'manual' | 'auto' | 'ai');
+      setExamMode(tab2Data.exam_type as 'manual' | 'auto');
     }
   }, [tab2Data.exam_type, examMode]);
 
@@ -62,6 +62,12 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
     );
   };
 
+  const generateAutoExam = () => {
+    setIsLoading(true);
+    console.log('generateAutoExam');
+    setIsLoading(false);
+  };
+
   return (
     <div className="space-y-6">
       {examMode === 'manual' && (
@@ -94,23 +100,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
                 <ExamModeSelector examMode={examMode} setExamMode={setExamMode} />
               </CardContent>
             </Card>
-            <AutoMode examMode={examMode} isLoading={isLoading} />
-          </div>
-        </div>
-      )}
-      {examMode === 'ai' && (
-        <div className="grid grid-cols-1 gap-4">
-          <div className="flex flex-col gap-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Phương thức tạo đề</CardTitle>
-                <CardDescription>Chọn cách thức tạo câu hỏi cho đề thi</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ExamModeSelector examMode={examMode} setExamMode={setExamMode} />
-              </CardContent>
-            </Card>
-            <AutoMode examMode={examMode} isLoading={isLoading} />
+            <AutoMode examMode={examMode} isLoading={isLoading} generateAutoExam={generateAutoExam} />
           </div>
         </div>
       )}

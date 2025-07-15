@@ -254,7 +254,7 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
                     </div>
                   )}
                 </div>
-                <Pagination page={pageBank} totalPages={availableQuestions?.metadata.last_page || 1} onPageChange={handlePageClickBank} />
+                {/* <Pagination page={pageBank} totalPages={availableQuestions?.metadata.last_page || 1} onPageChange={handlePageClickBank} /> */}
               </div>
             )}
           </TabsContent>
@@ -292,7 +292,7 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
                     </div>
                   )}
                 </div>
-                <Pagination page={pagePrivate} totalPages={privateQuestions?.metadata.last_page || 1} onPageChange={handlePageClickPrivate} />
+                {/* <Pagination page={pagePrivate} totalPages={privateQuestions?.metadata.last_page || 1} onPageChange={handlePageClickPrivate} /> */}
               </div>
             )}
           </TabsContent>
