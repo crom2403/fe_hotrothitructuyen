@@ -426,6 +426,8 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
         difficulty_level: difficultyLevel?.name || '',
       });
 
+      console.log('res', res);
+
       if (res.status === 200) {
         form.setValue('content', res.data.question);
         let answerConfig: AnswerConfig = { kind: questionType as any, correct: '', options_count: 0 };
