@@ -18,6 +18,7 @@ import parse from 'html-react-parser';
 import QuestionFormDialog from '../QuestionFormDialog';
 import Pagination from '@/components/common/Pagination';
 import { setQuestionsToCache } from '@/utils/questionCache';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface QuestionBankProps {
   selectedQuestions: QuestionItem[];
@@ -56,6 +57,8 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const handleDebounceSearch = useDebounce(searchTerm, 500);
 
   const handleGetQuestionsBank = async () => {
     setIsLoadingAvailableQuestions(true);
@@ -101,7 +104,7 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
     } else if (activeTab === 'question_private') {
       handleGetQuestionsPrivate();
     }
-  }, [activeTab, searchTerm, typeFilter, difficultyFilter]);
+  }, [activeTab, handleDebounceSearch, typeFilter, difficultyFilter, pageBank, pagePrivate]);
 
   useEffect(() => {
     refetchQuestionTypes();
@@ -237,12 +240,12 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
                             <p className="font-medium text-sm">{parse(question.content)}</p>
                             <div className="flex items-center gap-2 mt-2">
                               <Badge variant="outline" className="text-xs">
-                                {question.question_type.name}
+                                {question.question_type?.name}
                               </Badge>
-                              <Badge className={`text-xs ${getDifficultyColor(question.difficulty_level.name)}`}>{question.difficulty_level.name}</Badge>
+                              <Badge className={`text-xs ${getDifficultyColor(question.difficulty_level?.name)}`}>{question.difficulty_level?.name || ''}</Badge>
                             </div>
                           </div>
-                          <Button size="sm" onClick={() => addQuestionToExam(question)} disabled={selectedQuestions.some((q) => q.id === question.id)}>
+                          <Button className="cursor-pointer" size="sm" onClick={() => addQuestionToExam(question)} disabled={selectedQuestions.some((q) => q.id === question.id)}>
                             <Plus className="h-4 w-4" />
                           </Button>
                         </div>

@@ -79,7 +79,7 @@ export default function ExamRoomStudent() {
     });
 
     socketInstance.on('joinExam', () => {
-      toast.success(`Đã tham gia phòng thi ${examId}`);
+      toast.success(`Đã tham gia phòng thi ${exam?.name || ''}`);
     });
 
     socketInstance.on('openExam', () => {
@@ -111,7 +111,7 @@ export default function ExamRoomStudent() {
         socketInstance.disconnect();
       }
     };
-  }, [examId, studyGroupId, currentUser?.id, currentUser?.full_name, currentUser?.avatar, isValidSession, navigate]);
+  }, [examId, studyGroupId, currentUser?.id, isValidSession, navigate]);
 
   // Xử lý sự kiện chuyển tab
   useEffect(() => {
@@ -336,9 +336,9 @@ export default function ExamRoomStudent() {
     );
   }
 
-  if (!examOpened) {
+  if (!examOpened && exam.test_type !== 'exercise') {
     return (
-      <Drawer open={!examOpened}>
+      <Drawer open={!examOpened && exam.test_type !== 'exercise'}>
         <DrawerContent>
           <div className="flex flex-col gap-4 items-center justify-center text-center h-full py-8">
             <h2 className="text-xl font-bold">Thông báo</h2>
