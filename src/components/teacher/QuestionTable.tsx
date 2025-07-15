@@ -11,7 +11,7 @@ import Paginate from '../common/Pagination';
 import parse from 'html-react-parser';
 import { useEffect, useState } from 'react';
 import { Dialog } from '../ui/dialog';
-import QuestionDetail from '../admin/question/QuestionDetail';
+import QuestionDetail from '../shared/QuestionDetail';
 import useAppStore from '@/stores/appStore';
 import Loading from '@/components/common/Loading';
 
@@ -206,7 +206,7 @@ const QuestionTable = ({
       </CardContent>
 
       <Dialog open={openDetail} onOpenChange={setOpenDetail}>
-        <QuestionDetail question={selectedQuestion} />
+        <QuestionDetail id={selectedQuestion?.id} type={selectedQuestion?.question_type.name} />
       </Dialog>
       <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
     </Card>

@@ -8,13 +8,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Search, Users, Clock, CheckCircle, AlertTriangle, Filter, BarChart3, RefreshCw, Maximize2, Monitor, GraduationCap, Play, Pause } from 'lucide-react';
+import { Search, Users, Clock, CheckCircle, AlertTriangle, Filter, BarChart3, Maximize2, Monitor, GraduationCap, Play, Pause, LogOut } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { FlipReveal, FlipRevealItem } from '@/components/ui/flip-reveal';
 import path from '@/utils/path';
 import { apiGetDetailExam } from '@/services/student/exam';
 import { toast } from 'sonner';
 import useAppStore from '@/stores/appStore';
+import { useNavigate } from 'react-router-dom';
 
 export interface Student {
   studentId: string;
@@ -50,6 +51,7 @@ export default function ExamRoomTeacher() {
   const [stats, setStats] = useState<ExamStats>({ total: 0, taking_exam: 0, out_of_exam: 0, submitted: 0, waiting: 0 });
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [examOpened, setExamOpened] = useState(false);
+  const navigate = useNavigate();
 
   const handleGetExam = async () => {
     try {
@@ -198,6 +200,10 @@ export default function ExamRoomTeacher() {
     }
   };
 
+  const handleGetOutRoom = () => {
+    navigate(path.TEACHER.EXAM_RESULT);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
@@ -240,12 +246,11 @@ export default function ExamRoomTeacher() {
                 <div className="font-semibold text-xs">{studyGroupId}</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
-                <div className="text-xs text-blue-200">Cập nhật lúc</div>
-                <div className="font-semibold text-xs">{lastUpdate.toLocaleTimeString()}</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
                 <div className="text-xs text-blue-200">Trạng thái đề thi</div>
                 <div className="font-semibold text-xs">{examOpened ? 'Đang mở' : 'Đã tạm dừng'}</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
+                <div className="text-xs text-blue-200">Thời gian thi</div>
               </div>
             </div>
           </div>
@@ -289,11 +294,6 @@ export default function ExamRoomTeacher() {
             </Button>
           </div>
 
-          <Button onClick={refreshData} variant="outline" size="sm" className="bg-white border-gray-300 hover:bg-gray-50">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Làm mới
-          </Button>
-
           <Button onClick={handleOpenExam} disabled={examOpened} variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
             <Play className="w-4 h-4 mr-2" />
             Mở đề thi
@@ -302,6 +302,11 @@ export default function ExamRoomTeacher() {
           <Button onClick={handlePauseExam} disabled={!examOpened} variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700">
             <Pause className="w-4 h-4 mr-2" />
             Tạm dừng đề thi
+          </Button>
+
+          <Button onClick={handleGetOutRoom} variant="outline" size="sm" className="bg-white border-gray-300 hover:bg-gray-50 hover:text-red-500">
+            <LogOut className="w-4 h-4 mr-2" />
+            Ra khỏi phòng
           </Button>
         </div>
 
@@ -414,9 +419,8 @@ export default function ExamRoomTeacher() {
                                   <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">{student.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div
-                                  className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                                    student.status === 'taking_exam' ? 'bg-emerald-500' : student.status === 'submitted' ? 'bg-blue-500' : student.status === 'waiting' ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
+                                  className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${student.status === 'taking_exam' ? 'bg-emerald-500' : student.status === 'submitted' ? 'bg-blue-500' : student.status === 'waiting' ? 'bg-amber-500' : 'bg-red-500'
+                                    }`}
                                 />
                               </div>
                               <div className="flex-1">
@@ -427,13 +431,12 @@ export default function ExamRoomTeacher() {
                                 {renderStatusBadge(student.status)}
                                 {student.suspicious_activity && student.suspicious_activity > 0 && (
                                   <AlertTriangle
-                                    className={`w-5 h-5 ${
-                                      getSuspiciousActivityLevel(student.suspicious_activity) === 'high'
+                                    className={`w-5 h-5 ${getSuspiciousActivityLevel(student.suspicious_activity) === 'high'
                                         ? 'text-red-500'
                                         : getSuspiciousActivityLevel(student.suspicious_activity) === 'medium'
-                                        ? 'text-amber-500'
-                                        : 'text-orange-500'
-                                    }`}
+                                          ? 'text-amber-500'
+                                          : 'text-orange-500'
+                                      }`}
                                   />
                                 )}
                               </div>

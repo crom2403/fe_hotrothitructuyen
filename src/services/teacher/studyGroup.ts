@@ -21,3 +21,5 @@ export const apiExportStudentOfStudyGroup = async (study_group_id: string) =>
   instance.get(`teacher/users/export-students/${study_group_id}`, {
     responseType: 'arraybuffer', // Đổi từ 'blob' sang 'arraybuffer'
   });
+
+export const apiChangeInviteCode = async (study_group_id: string) => instance.put(apiRoutes.teacher.study_group + `/${study_group_id}/change-invite-code`);

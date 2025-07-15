@@ -10,7 +10,7 @@ import Paginate from '@/components/common/Pagination';
 import { formatDate } from 'date-fns';
 import { useState } from 'react';
 import { Dialog } from '@radix-ui/react-dialog';
-import QuestionDetail from './QuestionDetail';
+import QuestionDetail from '../../shared/QuestionDetail';
 import Loading from '@/components/common/Loading';
 
 interface QuestionTableProps {
@@ -176,7 +176,7 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
       <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
 
       <Dialog open={openDetail} onOpenChange={setOpenDetail}>
-        <QuestionDetail question={questionDetail} />
+        <QuestionDetail id={questionDetail?.id} type={questionDetail?.question_type.name} />
       </Dialog>
     </Card>
   );
