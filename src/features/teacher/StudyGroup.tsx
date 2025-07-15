@@ -1,6 +1,7 @@
 import StudyGroupTable from "@/components/teacher/StudyGroup/StudyGroupTable"
 import { apiGetStudyGroup } from "@/services/teacher/studyGroup"
 import type { StudyGroupResponse } from "@/types/studyGroupType"
+import { useDebounce } from "@/utils/functions"
 import type { AxiosError } from "axios"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -13,11 +14,12 @@ const StudyGroup = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [subjectFilter, setSubjectFilter] = useState("")
   const [yearFilter, setYearFilter] = useState("")
+  const searchDebound = useDebounce(searchTerm, 500)
 
   const handleGetStudyGroup = async () => {
     setIsLoading(true)
     try {
-      const response = await apiGetStudyGroup(page, searchTerm, subjectFilter, yearFilter)
+      const response = await apiGetStudyGroup(page, searchDebound, subjectFilter, yearFilter)
       if (response.status === 200) {
         setStudyGroups(response.data)
       }
@@ -32,7 +34,7 @@ const StudyGroup = () => {
 
   useEffect(() => {
     handleGetStudyGroup()
-  }, [page, searchTerm, subjectFilter, yearFilter])
+  }, [page, searchDebound, subjectFilter, yearFilter])
 
 
   const copyInviteCode = (code: string) => {

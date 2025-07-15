@@ -17,3 +17,5 @@ export const apiGoogleVerify = async (data: object) => instance.post(apiRoutes.g
 export const apiGoogleConfirm = async (data: object) => instance.post(apiRoutes.googleConfirm, data);
 
 export const apiUpdateAvatar = async (data: object) => instance.put(apiRoutes.updateAvatar, data);
+
+export const apiChangePassword = async (data: object) => instance.post(apiRoutes.changePassword, data);

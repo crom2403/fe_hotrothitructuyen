@@ -8,8 +8,14 @@ import { CheckCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import useExamStore from "@/stores/examStore";
 import type { QuestionItem } from "@/types/questionType";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import parse from "html-react-parser";
+import SingleChoiceDetail from "@/components/shared/QuestionTypeDetail/SingleChoiceDetail";
+import MultipleChoiceDetail from "@/components/shared/QuestionTypeDetail/MultipleChoiceDetail";
+import DragDropDetail from "@/components/shared/QuestionTypeDetail/DragDropDetail";
+import MatchingDetail from "@/components/shared/QuestionTypeDetail/MatchingDetail";
+import OrderingDetail from "@/components/shared/QuestionTypeDetail/OrderingDetail";
+import VideoPopupDetail from "@/components/shared/QuestionTypeDetail/VideoPopupDetail";
 
 interface ExamPreviewProps {
   selectedQuestions: QuestionItem[];
@@ -35,6 +41,28 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
   };
 
   const distribution = getDifficultyDistribution();
+  useEffect(() => {
+    console.log(commonProps.list_questions);
+  }, [commonProps.list_questions]);
+
+  const renderQuestionDetail = (question: QuestionItem) => {
+    switch (question.question_type.name) {
+      case "Trắc nghiệm 1 đáp án":
+        return <SingleChoiceDetail question={question} />;
+      case "Trắc nghiệm nhiều đáp án":
+        return <MultipleChoiceDetail question={question} />;
+      case "Kéo thả":
+        return <DragDropDetail question={question} />;
+      case "Nối cột":
+        return <MatchingDetail question={question} key={Date.now()}/>;
+      case "Sắp xếp":
+        return <OrderingDetail question={question} />;
+      case "Video có câu hỏi":
+        return <VideoPopupDetail question={question} />;
+      default:
+        return <div>Loại câu hỏi không được hỗ trợ</div>;
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -44,7 +72,7 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
           Xem chi tiết
         </Button>
       </DialogTrigger>
-      <DialogContent className="min-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="min-w-[70vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">Chi tiết đề thi</DialogTitle>
         </DialogHeader>
@@ -85,7 +113,7 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
               </div>
             </div>
             <Separator className="bg-gray-200" />
-            {/* <div>
+            <div>
               <Label className="text-sm font-medium text-gray-700">Danh sách câu hỏi</Label>
               <div className="mt-4 space-y-6 max-h-[500px] overflow-y-auto">
                 {selectedQuestions.map((question, index) => (
@@ -96,27 +124,7 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4">
-                      <div className="space-y-2">
-                        {question.answers?.map((option, optIndex) => {
-                          const isCorrect = option;
-                          return (
-                            <div
-                              key={optIndex}
-                              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors duration-150
-                                ${isCorrect && "bg-green-50 border border-green-500"}
-                              `}
-                            >
-                              <span className="font-medium text-gray-800">
-                                {String.fromCharCode(65 + optIndex)}.
-                              </span>
-                              <span className="text-gray-700 flex-1">{option.content?.text || ""}</span>
-                              {isCorrect && (
-                                <CheckCircle className="text-green-600 w-4 h-4" />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                      <div className="space-y-2">{renderQuestionDetail(question)}</div>
                     </CardContent>
                   </Card>
                 ))}
@@ -124,12 +132,12 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
                   <p className="text-gray-500 text-center">Chưa có câu hỏi nào được chọn.</p>
                 )}
               </div>
-            </div> */}
+            </div>
           </CardContent>
         </Card>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};
 
-export default ExamPreview
+export default ExamPreview;
