@@ -24,7 +24,7 @@ export const apiDeletePermission = async (id: string) => {
 };
 
 export const apiGetPermissionByRole = async (roleId: string) => {
-  return instance.get<IPermission[]>(`/role/${roleId}/permission`);
+  return instance.get<IPermission[]>(`/role/permission-role/${roleId}`);
 };
 
 export const apiAssignPermissionRole = async (roleId: string, data: string[]) => {
@@ -37,4 +37,12 @@ export const apiAssignPermissionUser = async (userId: string, data: string[]) =>
 
 export const apiRevokePermission = async (data: AssignPermissionRequest) => {
   return instance.post<IPermission[]>(`/role/revoke-permission`, data);
+};
+
+export const apiGetPermissionOfUser = async (userId: string) => {
+  return instance.get<string[]>(`/role/permission-user/${userId}`);
+};
+
+export const apiAssignPermissionOfUser = async (userId: string, data: string[]) => {
+  return instance.post<string[]>(`/role/assign-permission-user/${userId}`, { permissions: data });
 };
