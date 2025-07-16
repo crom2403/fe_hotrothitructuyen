@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface StatCardProps {
   title: string;
-  value: number;
+  value: number | string;
   description: string;
   icon: React.ReactNode;
   color: string;

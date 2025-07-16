@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,13 +75,9 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
       <DialogContent className="min-w-[70vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">Chi tiết đề thi</DialogTitle>
+          <DialogDescription className="text-gray-600 text-center">Xem chi tiết cấu trúc và nội dung đề thi</DialogDescription>
         </DialogHeader>
-        <Card className="shadow-lg">
-          <CardHeader className="bg-gray-50">
-            <CardTitle className="text-xl">Thông tin đề thi</CardTitle>
-            <CardDescription className="text-gray-600">Xem chi tiết cấu trúc và nội dung đề thi</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6 p-6">
+          <div className="space-y-6 mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700">Tên đề thi</Label>
@@ -133,8 +129,7 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
                 )}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
       </DialogContent>
     </Dialog>
   );
