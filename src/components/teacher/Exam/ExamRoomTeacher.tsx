@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 export interface Student {
   studentId: string;
   name: string;
+  code: string;
   avatar: string;
   status: 'taking_exam' | 'out_of_exam' | 'submitted' | 'waiting';
   tab_count: number;
@@ -363,7 +364,7 @@ export default function ExamRoomTeacher() {
                           </TooltipTrigger>
                           <TooltipContent className="bg-white text-gray-800 border border-gray-200 shadow-xl p-4">
                             <p>
-                              <span className="font-semibold">ID:</span> {student.studentId}
+                              <span className="font-semibold">ID:</span> {student.code}
                             </p>
                             <p>
                               <span className="font-semibold">Họ và tên:</span> {student.name}
@@ -419,24 +420,26 @@ export default function ExamRoomTeacher() {
                                   <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">{student.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div
-                                  className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${student.status === 'taking_exam' ? 'bg-emerald-500' : student.status === 'submitted' ? 'bg-blue-500' : student.status === 'waiting' ? 'bg-amber-500' : 'bg-red-500'
-                                    }`}
+                                  className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                                    student.status === 'taking_exam' ? 'bg-emerald-500' : student.status === 'submitted' ? 'bg-blue-500' : student.status === 'waiting' ? 'bg-amber-500' : 'bg-red-500'
+                                  }`}
                                 />
                               </div>
                               <div className="flex-1">
                                 <div className="font-semibold text-gray-800">{student.name}</div>
-                                <div className="text-sm text-gray-500">{student.studentId}</div>
+                                <div className="text-sm text-gray-500">{student.code}</div>
                               </div>
                               <div className="flex items-center gap-3">
                                 {renderStatusBadge(student.status)}
                                 {student.suspicious_activity && student.suspicious_activity > 0 && (
                                   <AlertTriangle
-                                    className={`w-5 h-5 ${getSuspiciousActivityLevel(student.suspicious_activity) === 'high'
+                                    className={`w-5 h-5 ${
+                                      getSuspiciousActivityLevel(student.suspicious_activity) === 'high'
                                         ? 'text-red-500'
                                         : getSuspiciousActivityLevel(student.suspicious_activity) === 'medium'
-                                          ? 'text-amber-500'
-                                          : 'text-orange-500'
-                                      }`}
+                                        ? 'text-amber-500'
+                                        : 'text-orange-500'
+                                    }`}
                                   />
                                 )}
                               </div>
@@ -445,7 +448,7 @@ export default function ExamRoomTeacher() {
                         </TooltipTrigger>
                         <TooltipContent className="bg-white text-gray-800 border border-gray-200 shadow-xl">
                           <p className="font-semibold">{student.name}</p>
-                          <p className="text-sm text-gray-500">{student.studentId}</p>
+                          <p className="text-sm text-gray-500">{student.code}</p>
                         </TooltipContent>
                       </Tooltip>
                       <PopoverContent className="w-80 p-0 bg-white shadow-2xl rounded-xl border border-gray-100" side="top" align="center">
@@ -457,7 +460,7 @@ export default function ExamRoomTeacher() {
                             </Avatar>
                             <div>
                               <h3 className="text-xl font-bold text-gray-800">{student.name}</h3>
-                              <p className="text-gray-600">{student.studentId}</p>
+                              <p className="text-gray-600">{student.code}</p>
                             </div>
                           </div>
                           <Separator className="my-4" />

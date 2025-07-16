@@ -78,7 +78,7 @@ const AppSidebar = () => {
 
   const menuItems = getMenuItems();
 
-  const isActive = (itemPath?: string) => itemPath ? location.pathname === itemPath : false;
+  const isActive = (itemPath?: string) => (itemPath ? location.pathname === itemPath : false);
   const isSubItemActive = (items?: SubMenuItem[]) => items?.some((item) => isActive(item.path)) || false;
 
   const handleApprovalClick = () => {
@@ -88,19 +88,21 @@ const AppSidebar = () => {
   return (
     <Sidebar collapsible="icon" className="w-[255px] bg-white border-r border-gray-200">
       <SidebarHeader className="bg-white px-4 py-3 border-b border-gray-200">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 relative">
           {openSidebar ? (
-            <img src={Logo} alt="Logo" className="h-8 transition-all duration-500" />
+            <img src={Logo} alt="Logo" className="size-8 transition-all duration-500" />
           ) : (
-            <img src={LogoMini} alt="Logo" className="w-8 h-8 transition-all duration-500" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-7">
+              <img src={LogoMini} alt="Logo" className="size-7 transition-all duration-500" />
+            </div>
           )}
-          <div className="grid flex-1 text-left">
-            <span className="truncate font-semibold text-gray-900">Exam System</span>
-            <span className="truncate text-xs text-gray-500">Hệ thống thi trắc nghiệm</span>
+          <div className={openSidebar ? 'grid flex-1 text-left opacity-100' : 'grid flex-1 text-left opacity-0'}>
+            <span className="truncate font-semibold text-gray-900 transition-all duration-500">Exam System</span>
+            <span className="truncate text-xs text-gray-500 transition-all duration-500">Hệ thống thi trắc nghiệm</span>
           </div>
         </div>
       </SidebarHeader>
-      <SidebarContent className="bg-white px-2 py-4">
+      <SidebarContent className="bg-white py-4">
         <SidebarGroup>
           <SidebarGroupLabel className="px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Menu</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -114,10 +116,7 @@ const AppSidebar = () => {
                     <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton
                         asChild
-                        className={`rounded-lg transition-all duration-200 ${isParentActive
-                          ? 'bg-blue-50 text-blue-700 font-medium'
-                          : 'hover:bg-gray-50 hover:text-gray-900'
-                          }`}
+                        className={`rounded-lg transition-all duration-200 ${isParentActive ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 hover:text-gray-900'}`}
                       >
                         <Link to={item.path || ''} className="flex items-center gap-3 px-3 py-2">
                           <Icon className={`w-5 h-5 ${isParentActive ? 'text-blue-600' : 'text-gray-500'}`} />
@@ -132,20 +131,14 @@ const AppSidebar = () => {
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
                       onClick={handleApprovalClick}
-                      className={`rounded-lg transition-all duration-200 ${isParentActive
-                        ? 'bg-blue-50 text-blue-700 font-medium'
-                        : 'hover:bg-gray-50 hover:text-gray-900'
-                        }`}
+                      className={`rounded-lg transition-all duration-200 ${isParentActive ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 hover:text-gray-900'}`}
                     >
                       <div className="flex items-center justify-between w-full ">
                         <div className="flex items-center gap-3">
                           <Icon className={`w-5 h-5 ${isParentActive ? 'text-blue-600' : 'text-gray-500'}`} />
                           <span>{item.label}</span>
                         </div>
-                        <ChevronRight
-                          className={`w-4 h-4 transition-transform ${isApprovalOpen || isParentActive ? 'rotate-90 text-blue-600' : 'text-gray-400'
-                            }`}
-                        />
+                        <ChevronRight className={`w-4 h-4 transition-transform ${isApprovalOpen || isParentActive ? 'rotate-90 text-blue-600' : 'text-gray-400'}`} />
                       </div>
                     </SidebarMenuButton>
                     {(isApprovalOpen || isParentActive) && item.items && (
@@ -154,10 +147,7 @@ const AppSidebar = () => {
                           <SidebarMenuItem key={subItem.id}>
                             <SidebarMenuButton
                               asChild
-                              className={`pl-11 rounded-lg transition-all duration-200 ${isActive(subItem.path)
-                                ? 'bg-blue-50 text-blue-700 font-medium'
-                                : 'hover:bg-gray-50 hover:text-gray-900'
-                                }`}
+                              className={`pl-11 rounded-lg transition-all duration-200 ${isActive(subItem.path) ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 hover:text-gray-900'}`}
                             >
                               <Link to={subItem.path} className="block py-2 px-3">
                                 <span>{subItem.label}</span>
@@ -174,8 +164,7 @@ const AppSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-      </SidebarFooter>
+      <SidebarFooter></SidebarFooter>
     </Sidebar>
   );
 };
