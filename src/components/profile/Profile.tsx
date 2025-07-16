@@ -15,6 +15,7 @@ import { apiChangePassword, apiGetCurrentUser, apiGoogleVerify } from '@/service
 import type { AxiosError } from 'axios';
 import GoogleVerificationDialog from './GoogleVerificationDialog';
 import ChooseAvatarDialog from '@/components/profile/ChooseAvatarDialog';
+import Loading from '@/components/common/Loading';
 
 const profileSchema = z.object({
   name: z.string(),
@@ -120,16 +121,16 @@ const Profile = () => {
   }, []);
 
   const onSubmit = async (data: PasswordFormData) => {
-    setIsLoadingChangePassword(true)
+    setIsLoadingChangePassword(true);
     try {
       const apiData = {
         old_password: data.old_password,
         new_password: data.new_password,
-      }
-      const response = await apiChangePassword(apiData)
+      };
+      const response = await apiChangePassword(apiData);
       if (response.status === 200) {
-        toast.success('Đổi mật khẩu thành công')
-        passwordForm.reset()
+        toast.success('Đổi mật khẩu thành công');
+        passwordForm.reset();
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
@@ -138,13 +139,13 @@ const Profile = () => {
     } finally {
       setIsLoadingChangePassword(false);
     }
-  }
+  };
 
   return (
     <>
       {isLoading ? (
         <div className="flex justify-center items-center h-screen">
-          <Loader2 className="h-10 w-10 animate-spin" />
+          <Loading />
         </div>
       ) : (
         <>
@@ -384,7 +385,7 @@ const Profile = () => {
                             )}
                           />
                         </div>
-                        <Button type="submit" className="bg-black" disabled={isLoadingChangePassword}>
+                        <Button type="submit" className="bg-primary cursor-pointer" disabled={isLoadingChangePassword}>
                           {isLoadingChangePassword ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

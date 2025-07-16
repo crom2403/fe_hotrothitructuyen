@@ -73,6 +73,7 @@ export default function ExamRoomStudent() {
       studyGroupId,
       studentId: currentUser?.id,
       name: currentUser?.full_name,
+      code: currentUser?.code,
       avatar: currentUser?.avatar,
       tab_count: 1,
       status: 'waiting',

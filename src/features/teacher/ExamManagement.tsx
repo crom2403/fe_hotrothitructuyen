@@ -54,7 +54,7 @@ const ExamManagement = () => {
         return <Badge className="bg-gray-100 text-gray-800">Đã kết thúc</Badge>
       case "open":
         return <Badge className="bg-blue-100 text-blue-800">Đang diễn ra</Badge>
-      case "pending":
+      case "closed":
         return <Badge className="bg-green-100 text-green-800">Sắp diễn ra</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
@@ -62,7 +62,6 @@ const ExamManagement = () => {
   }
 
   const getTypeBadge = (type: string) => {
-
     switch (type) {
       case "midterm":
         return <Badge className="bg-purple-100 text-purple-800">Giữa kỳ</Badge>
@@ -201,7 +200,10 @@ const ExamManagement = () => {
                           </div>
 
                           <div className="flex gap-2 pt-2">
-                            <Link to={path.TEACHER.EXAM_RESULT_DETAIL.replace(':exam_id', exam.id).replace(':study_group_id', exam.study_group_id)} className="flex-1">
+                            <Link to={path.TEACHER.EXAM_RESULT_DETAIL.replace(':exam_id', exam.id).replace(':study_group_id', exam.study_group_id)}
+                              state={{ exam }}
+                              className="flex-1"
+                            >
                               <Button className="w-full" size="sm">
                                 <Eye className="w-4 h-4 mr-2" />
                                 Xem chi tiết
