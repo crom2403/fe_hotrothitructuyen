@@ -8,7 +8,7 @@ import { Badge } from '../../ui/badge';
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from '../../ui/dropdown-menu';
 import { useState } from 'react';
 import { AlertDialog } from '../../ui/alert-dialog';
-import DeleteDialog from '../../common/DeleteDialog';
+import DeleteDialog from '../../common/CommonDialog';
 import Paginate from '../../common/Pagination';
 import Loading from '@/components/common/Loading';
 
@@ -190,7 +190,7 @@ const YearSemesterTable = ({
       </CardContent>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DeleteDialog itemName="học kỳ" id={selectedSemester?.id || ''} onDelete={handleDelete} />
+        <DeleteDialog title='xóa' itemName="học kỳ" id={selectedSemester?.id || ''} onDelete={handleDelete} />
       </AlertDialog>
     </Card>
   );

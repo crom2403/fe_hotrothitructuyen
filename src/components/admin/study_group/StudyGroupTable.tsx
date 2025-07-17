@@ -1,4 +1,4 @@
-import DeleteDialog from '@/components/common/DeleteDialog';
+import DeleteDialog from '@/components/common/CommonDialog';
 import Loading from '@/components/common/Loading';
 import Paginate from '@/components/common/Pagination';
 import { AlertDialog } from '@/components/ui/alert-dialog';
@@ -198,7 +198,7 @@ const StudyGroupTable = ({
       </CardContent>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DeleteDialog itemName="lớp học phần" id={selectedClass?.study_group_id || ''} onDelete={handleDelete} />
+        <DeleteDialog title='xóa' itemName="lớp học phần" id={selectedClass?.study_group_id || ''} onDelete={handleDelete} />
       </AlertDialog>
     </Card>
   );
