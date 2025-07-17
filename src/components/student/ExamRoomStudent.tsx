@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Clock, ChevronLeft, ChevronRight, Flag, Send, AlertTriangle } from 'lucide-react';
 import type { IExam } from '@/services/student/interfaces/exam.interface';
-import { apiGetDetailExam, apiSubmitExam } from '@/services/student/exam';
+import { apiGetDetailExam, apiGetExamAttemptId, apiSubmitExam } from '@/services/student/exam';
 import SingleChoiceQuestion from './Exam/SingleChoiceQuestion';
 import MultipleSelectQuestion from './Exam/MultipleSelectQuestion';
 import DragDropQuestion from './Exam/DragDropQuestion';
@@ -31,11 +31,13 @@ import { io, Socket } from 'socket.io-client';
 import { toast } from 'sonner';
 import path from '@/utils/path';
 import useAppStore from '@/stores/appStore';
+import useCommonStore from '@/stores/commonStore';
 
 export default function ExamRoomStudent() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
   const { examId, studyGroupId } = useAppStore();
+  const { exam_attempt_id, setExamAttemptId } = useCommonStore();
 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [exam, setExam] = useState<IExam | null>(null);
@@ -93,9 +95,9 @@ export default function ExamRoomStudent() {
       toast.info('Đề thi đã bị tạm dừng.');
     });
 
-    socketInstance.on('submitExam', (data: { studentId: string }) => {
-      console.log(data);
-    });
+    // socketInstance.on('submitExam', (data: { studentId: string }) => {
+    //   console.log(data);
+    // });
 
     socketInstance.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
@@ -165,15 +167,26 @@ export default function ExamRoomStudent() {
     const handleGetExam = async () => {
       try {
         setIsLoading(true);
-        const response = await apiGetDetailExam(examId);
-        if (response?.data) {
-          setExam(response.data);
-          setTimeLeft(response.data.duration_minutes * 60);
+        const [examResponse, attemptResponse] = await Promise.all([apiGetDetailExam(examId), apiGetExamAttemptId(examId, studyGroupId)]);
+        if (examResponse?.data) {
+          setExam(examResponse.data);
+          setTimeLeft(examResponse.data.duration_minutes * 60);
         } else {
           toast.error('Không tìm thấy thông tin kỳ thi');
           setIsValidSession(false);
           navigate('/student/exam_list');
+          return;
         }
+
+        if (attemptResponse?.data) {
+          setExamAttemptId(attemptResponse.data.id);
+        } else {
+          toast.error('Không tìm thấy ID bài thi');
+          setIsValidSession(false);
+          navigate('/student/exam_list');
+          return;
+        }
+
       } catch (error) {
         console.error('Error fetching exam:', error);
         toast.error('Lỗi khi tải thông tin kỳ thi');
@@ -185,7 +198,7 @@ export default function ExamRoomStudent() {
     };
 
     handleGetExam();
-  }, [examId, isValidSession, navigate]);
+  }, [examId, studyGroupId, isValidSession, navigate]);
 
   // Tự động nộp bài khi hết giờ
   useEffect(() => {
@@ -224,7 +237,6 @@ export default function ExamRoomStudent() {
     if (!socket || isSubmitted || !exam || !isValidSession) return;
 
     const submissionData = {
-      exam_id: exam.id,
       answers: Object.entries(answers).map(([questionId, answer], index) => {
         const question = exam.exam_questions.find((q) => q.question.id === questionId);
         if (question?.question.question_type.code === 'matching') {
@@ -273,27 +285,17 @@ export default function ExamRoomStudent() {
     console.log('Dữ liệu bài làm của sinh viên:', JSON.stringify(submissionData, null, 2));
 
     // const data = JSON.stringify(, null, 2);
-    const res = await apiSubmitExam(submissionData);
+    const res = await apiSubmitExam(exam_attempt_id, submissionData);
     if (res.status === 200) {
       toast.success('Nộp bài thi thành công');
+      socket.emit('submitExam', {
+        examId,
+        studyGroupId,
+        studentId: currentUser?.id
+      });
       navigate('/student/exam_list');
     }
     console.log('res', res);
-
-    socket.emit('submitExam', {
-      examId,
-      studyGroupId,
-      studentId: currentUser?.id,
-      submissionData: {
-        exam_id: exam.id,
-        answers: Object.entries(answers).map(([questionId, answer]) => ({
-          question_id: questionId,
-          answer_content: answer,
-        })),
-        time_spent: exam.duration_minutes * 60 - timeLeft,
-        tab_switches: tabSwitchCount,
-      },
-    });
   };
 
   const getProgress = () => {

@@ -13,6 +13,7 @@ export interface ExamStudyGroup {
   student_count: number;
   average_score: number;
   opening_status: string;
+  pass_points: number;
 }
 
 export interface ExamStudyGroupResponse {
@@ -35,4 +36,28 @@ export interface ExamResult {
   student_email: string;
   study_group_id: string;
   exam_id: string;
+}
+
+interface Question {
+  question_id: string;
+  is_correct: boolean;
+  content: string;
+  question_type: string;
+  answer_data: string;
+  order_index: number;
+  answer_config?: any;
+  answers: any[];
+}
+
+export interface StudentExamResult {
+  exam_name: string;
+  subject_name: string;
+  test_type: string;
+  student_name: string;
+  submitted_at: string;
+  duration_seconds: number;
+  tab_switch_count: number;
+  score: number;
+  total_questions: number;
+  questions: Question[];
 }

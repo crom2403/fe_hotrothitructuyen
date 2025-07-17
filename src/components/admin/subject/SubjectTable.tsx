@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import SubjectDetail from '@/components/admin/subject/SubjectDetail';
 import { useState } from 'react';
 import { Dialog } from '@/components/ui/dialog';
-import DeleteDialog from '@/components/common/DeleteDialog';
+import DeleteDialog from '@/components/common/CommonDialog';
 import { AlertDialog } from '@/components/ui/alert-dialog';
 import Loading from '@/components/common/Loading';
 
@@ -172,7 +172,7 @@ const SubjectTable = ({
         </Dialog>
 
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DeleteDialog itemName="môn học" id={selectedSubject?.id || ''} onDelete={() => handleDelete(selectedSubject?.id || '')} />
+          <DeleteDialog title='xóa' itemName="môn học" id={selectedSubject?.id || ''} onDelete={() => handleDelete(selectedSubject?.id || '')} />
         </AlertDialog>
       </CardContent>
     </Card>

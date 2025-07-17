@@ -47,7 +47,7 @@ const ExamList = () => {
   const [subjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoadingCreateExamAttempt, setIsCreateExamAttempt] = useState<boolean>(false);
+  const [loadingExamAttempts, setLoadingExamAttempts] = useState<Record<string, boolean>>({}); // Thay đổi state loading
   // const [page, setPage] = useState(1);
   const { setExamId, setStudyGroupId } = useAppStore();
 
@@ -91,18 +91,20 @@ const ExamList = () => {
     }
   };
 
-  const handleCreateExamAttempt = async (exam_id: string): Promise<void> => {
+  const handleCreateExamAttempt = async (exam_id: string, study_group_id: string): Promise<void> => {
+    const key = `${exam_id}_${study_group_id}`;
+    setLoadingExamAttempts((prev) => ({ ...prev, [key]: true }));
     try {
-      setIsCreateExamAttempt(true);
-      await apiCreateExamAttempt(exam_id);
+      await apiCreateExamAttempt(exam_id, study_group_id);
     } catch (error) {
       console.error('Error creating exam attempt:', error);
+    } finally {
+      setLoadingExamAttempts((prev) => ({ ...prev, [key]: false }));
     }
-    setIsCreateExamAttempt(false);
   };
 
   const handleJoinExamRoom = async (examId: string, studyGroupId: string) => {
-    await handleCreateExamAttempt(examId);
+    await handleCreateExamAttempt(examId, studyGroupId);
     setExamId(examId);
     setStudyGroupId(studyGroupId);
     navigate(path.STUDENT.EXAM_ROOM_STUDENT);
@@ -137,10 +139,19 @@ const ExamList = () => {
   };
 
   const handleGetButton = (status: string, examId: string, groupId: string, is_taking: boolean) => {
+    const key = `${examId}_${groupId}`;
     if (is_taking) {
       return (
         <Button className="w-full" variant="default">
           Đã nộp bài
+        </Button>
+      );
+    }
+    if (loadingExamAttempts[key]) {
+      return (
+        <Button disabled className="w-full">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Loading...
         </Button>
       );
     }
@@ -281,14 +292,7 @@ const ExamList = () => {
                           </span>
                         </div>
                         <div className="mt-6">
-                          {isLoadingCreateExamAttempt ? (
-                            <Button disabled className="w-full">
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Loading...
-                            </Button>
-                          ) : (
-                            handleGetButton(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)), exam.id, group.id, exam.exam_attempts.length > 0 ? true : false)
-                          )}
+                          {handleGetButton(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)), exam.id, group.id, exam.exam_attempts.length > 0 ? true : false)}
                         </div>
                       </CardContent>
                     </Card>

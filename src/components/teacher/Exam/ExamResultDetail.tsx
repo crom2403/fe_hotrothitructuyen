@@ -4,13 +4,14 @@ import { Badge } from '@/components/ui/badge';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Dialog } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Select } from '@/components/ui/select';
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from '@/components/ui/table';
 import { apiExportAllExamAttemptToExcel, apiExportExamAttemptToWord, apiGetDetailExamAttempt, apiGetExamDetail } from '@/services/teacher/exam';
-import type { ExamResult, ExamStudyGroup } from '@/types/ExamStudyGroupType';
+import type { ExamResult, ExamStudyGroup, StudentExamResult } from '@/types/ExamStudyGroupType';
 import path from '@/utils/path';
 import type { AxiosError } from 'axios';
 import { formatDate } from 'date-fns';
@@ -18,6 +19,7 @@ import { ArrowLeft, Award, BookOpen, Calendar, Clock, Download, Eye, Filter, Mor
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import StudentExamResultDialog from './StudentExamResultDialog';
 
 const ExamResultDetail = () => {
   const { exam_id, study_group_id } = useParams();
@@ -27,6 +29,9 @@ const ExamResultDetail = () => {
   const exam = location.state?.exam as ExamStudyGroup | undefined;
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [studentExamResult, setStudentExamResult] = useState<StudentExamResult | null>(null); // Thay đổi thành null để tránh undefined
+  const [isStudentExamResultLoading, setIsStudentExamResultLoading] = useState<boolean>(false);
+  const [isStudentExamResultOpen, setIsStudentExamResultOpen] = useState<boolean>(false);
 
   const handleDownloadWord = async (exam_attempt_id: string) => {
     try {
@@ -47,12 +52,19 @@ const ExamResultDetail = () => {
   };
 
   const handleViewExam = async (exam_attempt_id: string) => {
+    setIsStudentExamResultLoading(true); 
+    setIsStudentExamResultOpen(true);
     try {
       const response = await apiGetDetailExamAttempt(exam_attempt_id);
       console.log(response.data);
+      setStudentExamResult(response.data);
     } catch (error) {
-      console.error('Error downloading Word file:', error);
-      toast.error('Đã xảy ra lỗi khi tải file Word');
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+      setIsStudentExamResultOpen(false); // Đóng Dialog nếu có lỗi
+    } finally {
+      setIsStudentExamResultLoading(false);
     }
   };
 
@@ -117,15 +129,11 @@ const ExamResultDetail = () => {
     }
   };
 
-  const exportToExcel = () => {
-    console.log('exportToExcel');
-  };
-
   const getScoreBadge = (score: number) => {
     if (!score) {
       return <Badge variant="secondary">Chưa có kết quả</Badge>;
     }
-    if (score >= 5) {
+    if (score >= exam.pass_points) {
       return <Badge className="bg-green-100 text-green-800">Đậu</Badge>;
     } else {
       return <Badge className="bg-red-100 text-red-800">Rớt</Badge>;
@@ -145,7 +153,7 @@ const ExamResultDetail = () => {
   const totalStudents = examResult.length;
   const completedStudents = examResult.filter((r) => r.exam_attempt_submitted_at !== null).length;
   const averageScore = examResult.length > 0 ? (examResult.reduce((sum, r) => sum + (r.exam_attempt_score || 0), 0) / examResult.length).toFixed(2) : 0;
-  const passRate = examResult.length > 0 ? ((examResult.filter((r) => (r.exam_attempt_score || 0) >= 5).length / examResult.length) * 100).toFixed(0) : 0; // sửa lại theo pass point
+  const passRate = examResult.length > 0 ? ((examResult.filter((r) => (r.exam_attempt_score || 0) >= exam.pass_points).length / examResult.length) * 100).toFixed(0) : 0;
   const completionRate = totalStudents > 0 ? ((completedStudents / totalStudents) * 100).toFixed(0) : 0;
 
   return (
@@ -200,7 +208,6 @@ const ExamResultDetail = () => {
                     <span>{getTypeBadge(exam.test_type)}</span>
                   </div>
                 </div>
-                {/* {exam.exam_description && <p className="text-gray-600 mt-2">{exam.exam_description}</p>} */}
               </div>
               <Button onClick={() => handleExportExcel(exam_id, study_group_id)} className="bg-green-600 hover:bg-green-700">
                 <Download className="w-4 h-4 mr-2" />
@@ -211,8 +218,8 @@ const ExamResultDetail = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <StatCard title="Tổng sinh viên" value={totalStudents} description={`${completedStudents} đã hoàn thành`} icon={<Users className="w-4 h-4" />} color="text-blue-500" />
-            <StatCard title="Điểm trung bình" value={averageScore} description={`Thang điểm 10`} icon={<TrendingUp className="w-4 h-4" />} color="text-green-500" />
-            <StatCard title="Tỷ lệ đậu" value={`${passRate}%`} description={`Điểm ≥ ${5}`} icon={<Award className="w-4 h-4" />} color="text-red-500" />
+            <StatCard title="Điểm trung bình" value={Number(averageScore).toFixed(2)} description={`Thang điểm 10`} icon={<TrendingUp className="w-4 h-4" />} color="text-green-500" />
+            <StatCard title="Tỷ lệ đậu" value={`${passRate}%`} description={`Điểm ≥ ${exam.pass_points}`} icon={<Award className="w-4 h-4" />} color="text-red-500" />
             <StatCard title="Tỷ lệ hoàn thành" value={`${completionRate}%`} description={`Sinh viên đã thi`} icon={<Clock className="w-4 h-4" />} color="text-yellow-500" />
           </div>
 
@@ -260,7 +267,7 @@ const ExamResultDetail = () => {
                       <TableRow key={result.exam_attempt_id}>
                         <TableCell className="font-medium">{result.student_code}</TableCell>
                         <TableCell>{result.student_full_name}</TableCell>
-                        <TableCell className="text-center font-semibold">{result.exam_attempt_score > 0 ? result.exam_attempt_score : '-'}</TableCell>
+                        <TableCell className="text-center font-semibold">{result.exam_attempt_score > 0 ? result.exam_attempt_score.toFixed(2) : '-'}</TableCell>
                         <TableCell className="text-center">{getScoreBadge(result.exam_attempt_score)}</TableCell>
                         <TableCell className="text-center">{result.exam_attempt_duration_seconds ? result.exam_attempt_duration_seconds : '-'}</TableCell>
                         <TableCell className="text-center">{result.exam_attempt_submitted_at ? formatDate(result.exam_attempt_submitted_at, 'dd/MM/yyyy HH:mm:ss') : '-'}</TableCell>
@@ -298,6 +305,9 @@ const ExamResultDetail = () => {
           </Card>
         </div>
       )}
+      <Dialog open={isStudentExamResultOpen} onOpenChange={setIsStudentExamResultOpen}>
+        <StudentExamResultDialog studentExamResult={studentExamResult || undefined} isLoading={isStudentExamResultLoading} />
+      </Dialog>
     </>
   );
 };

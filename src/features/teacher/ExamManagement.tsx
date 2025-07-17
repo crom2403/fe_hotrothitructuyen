@@ -50,11 +50,11 @@ const ExamManagement = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "finished":
+      case "closed":
         return <Badge className="bg-gray-100 text-gray-800">Đã kết thúc</Badge>
       case "open":
         return <Badge className="bg-blue-100 text-blue-800">Đang diễn ra</Badge>
-      case "closed":
+      case "pending":
         return <Badge className="bg-green-100 text-green-800">Sắp diễn ra</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
@@ -187,7 +187,7 @@ const ExamManagement = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground">Điểm TB:</span>
-                              <span className="font-semibold">{exam.average_score > 0 ? exam.average_score : "N/A"}</span>
+                              <span className="font-semibold">{exam.average_score > 0 ? exam.average_score.toFixed(2) : "N/A"}</span>
                             </div>
                           </div>
 
