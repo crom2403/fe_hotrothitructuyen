@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Play, Clock, Users, BookOpen, Check, Loader2 } from 'lucide-react';
+import { Search, Clock, BookOpen, Loader2, FileText } from 'lucide-react';
 import { apiCreateExamAttempt, apiGetListExams } from '@/services/student/exam';
 import Loading from '@/components/common/Loading';
 import path from '@/utils/path';
@@ -275,7 +275,7 @@ const ExamList = () => {
                             <span>{exam.duration_minutes} phút</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-gray-400" />
+                            <FileText className="h-4 w-4 text-gray-400" />
                             <span>{exam.exam_question_count} câu</span>
                           </div>
                         </div>

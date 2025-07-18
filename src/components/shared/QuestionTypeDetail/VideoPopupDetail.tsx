@@ -9,14 +9,14 @@ interface VideoPopupDetailProps {
 const VideoPopupDetail = ({ question }: VideoPopupDetailProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const popupTimes = question?.answer_config.popup_times || [];
+  const popupTimes = question?.answer_config?.popup_times || [];
   const answers = question?.answers || [];
   const videoUrl = question?.answer_config.url || '';
 
-  const answerMap: Record<string, string> = {};
-  answers.forEach((answer) => {
-    answerMap[answer.content.value] = answer.content.text;
-  });
+  // const answerMap: Record<string, string> = {};
+  // answers.forEach((answer) => {
+  //   answerMap[answer.content.value] = answer.content.text;
+  // });
 
   return (
     <div className="space-y-4">

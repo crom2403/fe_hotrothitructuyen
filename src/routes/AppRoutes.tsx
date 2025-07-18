@@ -34,8 +34,10 @@ const CreateStudentSocket = lazy(() => import('@/components/student/CreateStuden
 const IEduLandingPage = lazy(() => import('@/components/landing/IEduLandingPage'));
 const ExamRoomStudent = lazy(() => import('@/components/student/ExamRoomStudent'));
 const ExamRoomTeacher = lazy(() => import('@/components/teacher/Exam/ExamRoomTeacher'));
-const ExamManagementTeacher = lazy(() => import('@/features/teacher/ExamManagement'));
+const ExamResultManagement = lazy(() => import('@/features/teacher/ExamResultManagement'));
 const ExamResultDetail = lazy(() => import('@/components/teacher/Exam/ExamResultDetail'));
+const AdminExamManagement = lazy(() => import('@/features/admin/ExamManagement'));
+const ExamDetail = lazy(() => import('@/components/shared/ExamDetail'));  
 
 const AppRoutes = () => {
   return (
@@ -118,7 +120,7 @@ const AppRoutes = () => {
             path={path.TEACHER.EXAM_RESULT}
             element={
               <ProtectedRoute allowedRoles={['teacher']}>
-                <ExamManagementTeacher />
+                <ExamResultManagement />
               </ProtectedRoute>
             }
           />
@@ -212,7 +214,22 @@ const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path={path.ADMIN.EXAM}
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminExamManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.EXAM_DETAIL}
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                <ExamDetail />
+              </ProtectedRoute>
+            }
+          />
           {/* Student routes */}
           <Route
             path={path.STUDENT.OVERVIEW}

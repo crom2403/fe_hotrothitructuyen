@@ -6,7 +6,7 @@ interface MultipleChoiceDetailProps {
 }
 
 const MultipleChoiceDetail = ({ question }: MultipleChoiceDetailProps) => {
-  const correctAnswers = question?.answer_config.correct || [];
+  const correctAnswers = question?.answer_config?.correct || [];
   const answers = question?.answers || [];
 
   return (

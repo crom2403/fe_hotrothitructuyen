@@ -80,7 +80,7 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
   const handleGetQuestionsPrivate = async () => {
     setIsLoadingPrivateQuestions(true);
     try {
-      const response = await apiGetQuestionPrivate(pagePrivate, searchTerm, selectedSubjectId, typeFilter, difficultyFilter, 100);
+      const response = await apiGetQuestionPrivate(pagePrivate, searchTerm, selectedSubjectId, typeFilter, difficultyFilter, 10);
       if (response.status === 200) {
         setPrivateQuestions(response.data);
         setQuestionsToCache(response.data.data);
@@ -257,7 +257,7 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
                     </div>
                   )}
                 </div>
-                {/* <Pagination page={pageBank} totalPages={availableQuestions?.metadata.last_page || 1} onPageChange={handlePageClickBank} /> */}
+                <Pagination page={pageBank} totalPages={availableQuestions?.metadata.last_page || 1} onPageChange={handlePageClickBank} />
               </div>
             )}
           </TabsContent>
@@ -295,7 +295,7 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
                     </div>
                   )}
                 </div>
-                {/* <Pagination page={pagePrivate} totalPages={privateQuestions?.metadata.last_page || 1} onPageChange={handlePageClickPrivate} /> */}
+                <Pagination page={pagePrivate} totalPages={privateQuestions?.metadata.last_page || 1} onPageChange={handlePageClickPrivate} />
               </div>
             )}
           </TabsContent>
