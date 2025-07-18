@@ -17,7 +17,7 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
 
-const ExamManagement = () => {
+const ExamResultManagement = () => {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
@@ -224,4 +224,4 @@ const ExamManagement = () => {
   )
 }
 
-export default ExamManagement
+export default ExamResultManagement

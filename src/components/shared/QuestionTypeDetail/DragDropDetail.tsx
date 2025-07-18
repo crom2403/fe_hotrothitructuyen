@@ -5,8 +5,8 @@ interface DragDropDetailProps {
 }
 
 const DragDropDetail = ({ question }: DragDropDetailProps) => {
-  const zones = question?.answer_config.zones || [];
-  const correctPairs = question?.answer_config.correct || [];
+  const zones = question?.answer_config?.zones || [];
+  const correctPairs = question?.answer_config?.correct || [];
   const answers = question?.answers || [];
 
   const answerMap: Record<string, string> = {};
@@ -16,8 +16,10 @@ const DragDropDetail = ({ question }: DragDropDetailProps) => {
 
   const zoneItems: Record<string, string[]> = {};
   zones.forEach((zone) => {
-    zoneItems[zone.value] = correctPairs.filter((pair) => pair.zone === zone.value).map((pair) => answerMap[pair.value] || 'N/A');
-  })
+    zoneItems[zone.value] = correctPairs
+      .filter((pair) => pair.zone === zone.value)
+      .map((pair) => answerMap[pair.value] || 'N/A');
+  });
 
   return (
     <div className="space-y-4">
@@ -31,7 +33,7 @@ const DragDropDetail = ({ question }: DragDropDetailProps) => {
               </h5>
               <div className="p-3 rounded-b-lg bg-white space-y-2">
                 {
-                  zoneItems[zone.value].length > 0 ? (
+                  zoneItems[zone.value]?.length > 0 ? (
                     zoneItems[zone.value].map((item, index) => (
                       <div
                         key={index}

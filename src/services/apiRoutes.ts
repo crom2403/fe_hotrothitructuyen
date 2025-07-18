@@ -21,7 +21,7 @@ const apiRoutes = {
     academic_year: '/academic-years',
     semester: '/admin/semesters',
     assignment: '/admin/assignment',
-    exam: '/admin/exam',
+    exam: '/exams',
     notification: '/admin/notification',
     permission: '/admin/permission',
   },

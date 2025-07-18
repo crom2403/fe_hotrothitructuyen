@@ -62,7 +62,7 @@ const ExamResultDetail = () => {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
-      setIsStudentExamResultOpen(false); // Đóng Dialog nếu có lỗi
+      setIsStudentExamResultOpen(false); 
     } finally {
       setIsStudentExamResultLoading(false);
     }
@@ -306,7 +306,7 @@ const ExamResultDetail = () => {
         </div>
       )}
       <Dialog open={isStudentExamResultOpen} onOpenChange={setIsStudentExamResultOpen}>
-        <StudentExamResultDialog studentExamResult={studentExamResult || undefined} isLoading={isStudentExamResultLoading} />
+        <StudentExamResultDialog studentExamResult={studentExamResult || undefined} isLoading={isStudentExamResultLoading} isTeacher={true} />
       </Dialog>
     </>
   );

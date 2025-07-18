@@ -10,6 +10,7 @@ const path = {
   PROFILE: '/profile',
   ACCESS_DENIED: '/access-denied',
   OTP_CONFIRMATION: '/otp-confirmation',
+  EXAM_DETAIL: '/exam-detail/:exam_id',
   ADMIN: {
     OVERVIEW: '/admin/overview',
     STUDY_GROUP: '/admin/study_group',

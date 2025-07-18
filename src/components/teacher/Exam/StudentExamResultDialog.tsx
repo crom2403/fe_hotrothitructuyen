@@ -8,22 +8,30 @@ import type { StudentExamResult } from "@/types/ExamStudyGroupType";
 interface StudentExamResultDialogProps {
   studentExamResult: StudentExamResult | undefined;
   isLoading: boolean;
+  isTeacher?: boolean;
 }
 
-const StudentExamResultDialog = ({ studentExamResult, isLoading }: StudentExamResultDialogProps) => {
+const StudentExamResultDialog = ({ studentExamResult, isLoading, isTeacher = false }: StudentExamResultDialogProps) => {
   if (isLoading) {
     return <div className="flex justify-center items-center h-full"><Loading /></div>;
   }
 
   if (!studentExamResult) {
-    return <div className="text-center py-4 text-muted-foreground"></div>;
+    return <div className="text-center py-4 text-muted-foreground">Không có dữ liệu bài thi</div>;
   }
 
   const getAnswerColor = (isCorrect: boolean, isStudentAnswer: boolean) => {
-    if (isStudentAnswer) {
-      return isCorrect ? "bg-green-50 border border-green-500" : "bg-red-100 border border-red-500";
+    if (isTeacher) {
+      if (isStudentAnswer) {
+        return isCorrect ? "bg-green-50 border border-green-500" : "bg-red-100 border border-red-500";
+      }
+      return isCorrect ? "bg-green-50 border border-green-500" : "bg-transparent border border-gray-200";
+    } else {
+      if (isStudentAnswer) {
+        return isCorrect ? "bg-yellow-50 border border-yellow-500" : "bg-yellow-50 border border-yellow-500";
+      }
+      return "bg-transparent border border-gray-200"; 
     }
-    return isCorrect ? "bg-green-50 border border-green-500" : "bg-transparent border border-gray-200";
   };
 
   return (
@@ -76,7 +84,8 @@ const StudentExamResultDialog = ({ studentExamResult, isLoading }: StudentExamRe
                       >
                         <span>{answer.content.value}. {answer.content.text}</span>
                         {isStudentAnswer && <span className="text-sm text-muted-foreground">(Bạn chọn)</span>}
-                        {isCorrectAnswer && <span className="text-sm text-muted-foreground">(Đáp án đúng)</span>}
+                        {isTeacher && isCorrectAnswer && <span className="text-sm text-muted-foreground">(Đáp án đúng)</span>}
+                        {!isTeacher && q.is_correct && isStudentAnswer && <span className="text-sm text-muted-foreground">(Đáp án đúng)</span>}
                       </div>
                     );
                   })}
@@ -98,7 +107,8 @@ const StudentExamResultDialog = ({ studentExamResult, isLoading }: StudentExamRe
                       >
                         <span>{answer.content.text}</span>
                         {isStudentAnswer && <span className="text-sm text-muted-foreground">(Bạn chọn)</span>}
-                        {isCorrectAnswer && <span className="text-sm text-muted-foreground">(Đáp án đúng)</span>}
+                        {isTeacher && isCorrectAnswer && <span className="text-sm text-muted-foreground">(Đáp án đúng)</span>}
+                        {!isTeacher && q.is_correct && isStudentAnswer && <span className="text-sm text-muted-foreground">(Đáp án đúng)</span>}
                       </div>
                     );
                   })}
@@ -119,16 +129,20 @@ const StudentExamResultDialog = ({ studentExamResult, isLoading }: StudentExamRe
                       return (
                         <div
                           key={idx}
-                          className={`flex items-center space-x-2 p-2 rounded-lg ${isCorrect ? "bg-green-50" : "bg-red-100"}`}
+                          className={`flex items-center space-x-2 p-2 rounded-lg ${isTeacher ? (isCorrect ? "bg-green-50" : "bg-red-100") : "bg-transparent border border-gray-200"}`}
                         >
                           <div className="flex items-center space-x-2">
                             <span>{pair.left}</span>
                             <span>→</span>
                             <span>{pair.right}</span>
-                            {isCorrect ? (
-                              <span className="text-green-600">✔</span>
-                            ) : (
-                              <span className="text-red-600">✖</span>
+                            {isTeacher && (
+                              <>
+                              {isCorrect ? (
+                                <span className="text-green-600">✔</span>
+                              ) : (
+                                <span className="text-red-600">✖</span>
+                              )}
+                              </>
                             )}
                           </div>
                         </div>
@@ -138,12 +152,7 @@ const StudentExamResultDialog = ({ studentExamResult, isLoading }: StudentExamRe
                     <div className="text-red-500">Dữ liệu câu trả lời không hợp lệ</div>
                   )}
                 </div>
-                {!Array.isArray(q.answer_data) ||
-                  !q.answer_data.every((pair: any) =>
-                    q.answer_config.correct.some(
-                      (c: any) => c.left === pair.left && c.right === pair.right
-                    )
-                  ) ? (
+                {isTeacher && (
                   <>
                     <p className="font-semibold text-sm mt-2">Đáp án đúng:</p>
                     <div className="pl-4 space-y-2">
@@ -159,89 +168,69 @@ const StudentExamResultDialog = ({ studentExamResult, isLoading }: StudentExamRe
                       ))}
                     </div>
                   </>
-                ) : null}
+                )}
               </div>
             )}
 
             {q.question_type === "ordering" && (
               <div className="space-y-4">
-                {
-                  q.is_correct ? (
-                    <>
-                      <p className="font-semibold text-sm mt-2">Đáp án đúng:</p>
-                      <ol className="pl-4 list-decimal space-y-2">
-                        {q.answer_config.correct
-                          .sort((a: any, b: any) => a.order - b.order)
-                          .map((item: any, idx: number) => {
-                            const answer = q.answers.find((a: any) => a.content.value === item.value);
-                            return (
-                              <li key={idx} className="p-2 bg-green-50 rounded">
-                                {answer?.content.text}
-                              </li>);
-                          })}
-                      </ol>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-semibold text-sm">Câu trả lời của bạn:</p>
-                      <div className="pl-4 space-y-2">
-                        {Object.entries(q.answer_data)
-                          .sort((a: any, b: any) => a[1] - b[1])
-                          .map(([value, order], idx) => {
-                            const answer = q.answers.find((a: any) => a.content.value === value);
-                            const correctPosition = q.answer_config.correct.find((c: any) => c.value === value)?.order;
-                            const isCorrect = correctPosition === order + 1;
-                            return (
-                              <div
-                                key={idx}
-                                className={`p-2 rounded-lg flex items-center justify-between ${isCorrect ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
-                                  }`}
-                              >
-                                <div className="flex items-center gap-3">
-                                  <span className="font-medium text-gray-600 min-w-[24px]">{order + 1}.</span>
+                {q.is_correct ? (
+                  <>
+                    <p className="font-semibold text-sm mt-2">Đáp án đúng:</p>
+                    <ol className="pl-4 list-decimal space-y-2">
+                      {q.answer_config.correct
+                        .sort((a: any, b: any) => a.order - b.order)
+                        .map((item: any, idx: number) => {
+                          const answer = q.answers.find((a: any) => a.content.value === item.value);
+                          return (
+                            <li key={idx} className="p-2 bg-green-50 rounded">
+                              {answer?.content.text}
+                            </li>
+                          );
+                        })}
+                    </ol>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-semibold text-sm">Câu trả lời của bạn:</p>
+                    <div className="pl-4 space-y-2">
+                      {Object.entries(q.answer_data)
+                        .sort((a: any, b: any) => a[1] - b[1])
+                        .map(([value, order], idx) => {
+                          const answer = q.answers.find((a: any) => a.content.value === value);
+                          return (
+                            <div
+                              key={idx}
+                              className={`p-2 rounded-lg flex items-center border ${isTeacher ? (order + 1 === q.answer_config.correct.find((c: any) => c.value === value)?.order ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200") : ""}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="font-medium text-gray-600 min-w-[24px]">{order}.</span>
+                                <span>{answer?.content.text}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                    {isTeacher && (
+                      <>
+                        <p className="font-semibold text-sm mt-4">Đáp án đúng:</p>
+                        <div className="pl-4 space-y-2">
+                          {q.answer_config.correct
+                            .sort((a: any, b: any) => a.order - b.order)
+                            .map((item: any, idx: number) => {
+                              const answer = q.answers.find((a: any) => a.content.value === item.value);
+                              return (
+                                <div key={idx} className="p-2 rounded-lg bg-green-50 border border-green-200 flex items-center gap-3">
+                                  <span className="font-medium text-gray-600 min-w-[24px]">{item.order}.</span>
                                   <span>{answer?.content.text}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {isCorrect ? (
-                                    <span className="text-green-600 flex items-center gap-1">
-                                      <span>✓</span>
-                                      <span className="text-sm">Đúng vị trí</span>
-                                    </span>
-                                  ) : (
-                                    <span className="text-red-600 flex items-center gap-1">
-                                      <span>✗</span>
-                                      <span className="text-sm">Vị trí đúng: {correctPosition}</span>
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                      {!Object.entries(q.answer_data).every(([value, order]) => {
-                        const correctPosition = q.answer_config.correct.find((c: any) => c.value === value)?.order;
-                        return correctPosition === order + 1;
-                      }) && (
-                          <>
-                            <p className="font-semibold text-sm mt-4">Đáp án đúng:</p>
-                            <div className="pl-4 space-y-2">
-                              {q.answer_config.correct
-                                .sort((a: any, b: any) => a.order - b.order)
-                                .map((item: any, idx: number) => {
-                                  const answer = q.answers.find((a: any) => a.content.value === item.value);
-                                  return (
-                                    <div key={idx} className="p-2 rounded-lg bg-green-50 border border-green-200 flex items-center gap-3">
-                                      <span className="font-medium text-gray-600 min-w-[24px]">{item.order}.</span>
-                                      <span>{answer?.content.text}</span>
-                                    </div>
-                                  );
-                                })}
-                            </div>
-                          </>
-                        )}
-                    </>
-                  )
-                }
+                              );
+                            })}
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
             )}
 
@@ -269,7 +258,8 @@ const StudentExamResultDialog = ({ studentExamResult, isLoading }: StudentExamRe
                             >
                               <span>{option.value}. {option.text}</span>
                               {isStudentAnswer && <span className="text-sm text-muted-foreground">(Bạn chọn)</span>}
-                              {isCorrectAnswer && <span className="text-sm text-muted-foreground">(Đáp án đúng)</span>}
+                              {isTeacher && isCorrectAnswer && <span className="text-sm text-muted-foreground">(Đáp án đúng)</span>}
+                              {!isTeacher && q.is_correct && isStudentAnswer && <span className="text-sm text-muted-foreground">(Đáp án đúng)</span>}
                             </div>
                           );
                         })}
@@ -304,29 +294,32 @@ const StudentExamResultDialog = ({ studentExamResult, isLoading }: StudentExamRe
                     );
                   })}
                 </div>
+                {isTeacher && (
+                  <>
+                    <p className="font-semibold text-sm mt-4">Đáp án đúng:</p>
+                    <div className="grid gap-4">
+                      {q.answer_config.zones.map((zone: any) => {
+                        const correctAnswers = q.answer_config.correct
+                          .filter((item: any) => item.zone === zone.value)
+                          .map((item: any) => q.answers.find((a: any) => a.content.value === item.value)?.content.text)
+                          .filter(Boolean);
 
-                <p className="font-semibold text-sm mt-4">Đáp án đúng:</p>
-                <div className="grid gap-4">
-                  {q.answer_config.zones.map((zone: any) => {
-                    const correctAnswers = q.answer_config.correct
-                      .filter((item: any) => item.zone === zone.value)
-                      .map((item: any) => q.answers.find((a: any) => a.content.value === item.value)?.content.text)
-                      .filter(Boolean);
-
-                    return (
-                      <div key={zone.value} className="border rounded-lg p-4 bg-green-50 border-green-200">
-                        <div className="font-medium text-primary mb-2">{zone.text}</div>
-                        <div className="flex flex-wrap gap-2">
-                          {correctAnswers.map((answer, idx) => (
-                            <div key={idx} className="bg-white px-3 py-1.5 rounded-lg border border-green-300 shadow-sm">
-                              {answer}
+                        return (
+                          <div key={zone.value} className="border rounded-lg p-4 bg-green-50 border-green-200">
+                            <div className="font-medium text-primary mb-2">{zone.text}</div>
+                            <div className="flex flex-wrap gap-2">
+                              {correctAnswers.map((answer, idx) => (
+                                <div key={idx} className="bg-white px-3 py-1.5 rounded-lg border border-green-300 shadow-sm">
+                                  {answer}
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </CardContent>

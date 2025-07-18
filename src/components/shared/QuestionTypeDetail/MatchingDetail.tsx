@@ -4,7 +4,7 @@ import type { QuestionItem } from "@/types/questionType";
 
 interface MatchingDetailProps {
   question: QuestionItem | null;
-  key: any; // Sử dụng key để ép tái render
+  key: any; 
 }
 
 const MatchingDetail = ({ question, key }: MatchingDetailProps) => {
@@ -45,7 +45,7 @@ const MatchingDetail = ({ question, key }: MatchingDetailProps) => {
       console.log("All refs found:", allRefsFound);
       setIsReady(allRefsFound);
     }
-  }, [answers, key]); // key thay đổi sẽ kích hoạt lại
+  }, [answers, key]); 
 
   // Theo dõi thay đổi kích thước container
   useEffect(() => {

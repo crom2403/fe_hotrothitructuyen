@@ -92,23 +92,24 @@ export interface Answer {
 export interface QuestionItem {
   id: string;
   content: string;
-  created_at: string;
-  review_status: 'pending' | 'approved' | 'rejected';
-  is_public: boolean;
+  created_at?: string;
+  review_status?: 'pending' | 'approved' | 'rejected';
+  is_public?: boolean;
   is_active?: boolean;
-  subject: {
+  subject?: {
     id: string;
     name: string;
   };
   question_type: {
+    id?: string;
+    name?: string;
+    code?: string;
+  };
+  difficulty_level?: {
     id: string;
     name: string;
   };
-  difficulty_level: {
-    id: string;
-    name: string;
-  };
-  created_by: {
+  created_by?: {
     id: string;
     full_name: string;
   };

@@ -1,4 +1,4 @@
-import { BarChart3, BookOpen, Calendar, ClipboardList, Database, GraduationCap, Home, PenTool, Shield, ShieldUser, Trophy, Users, ChevronRight } from 'lucide-react';
+import { BarChart3, BookOpen, Calendar, ClipboardList, Database, GraduationCap, Home, PenTool, Shield, ShieldUser, Trophy, Users, ChevronRight, User } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar';
 import Logo from '../../../public/images/svg/logo.svg';
@@ -36,10 +36,11 @@ const AppSidebar = () => {
           { id: 'dashboard', label: 'Tổng quan', icon: Home, path: path.ADMIN.OVERVIEW },
           { id: 'users', label: 'Quản lý người dùng', icon: Users, path: path.ADMIN.USER },
           { id: 'subjects', label: 'Quản lý môn học', icon: BookOpen, path: path.ADMIN.SUBJECT },
-          { id: 'assign-subject', label: 'Phân công giảng dạy', icon: Users, path: path.ADMIN.ASSIGN_TEACHER },
+          { id: 'assign-subject', label: 'Phân công giảng dạy', icon: User, path: path.ADMIN.ASSIGN_TEACHER },
           { id: 'semesters', label: 'Năm học & Học kỳ', icon: Calendar, path: path.ADMIN.YEAR_SEMESTER },
           { id: 'classes', label: 'Lớp học phần', icon: GraduationCap, path: path.ADMIN.STUDY_GROUP },
           { id: 'questions', label: 'Quản lý câu hỏi', icon: Database, path: path.ADMIN.QUESTION },
+          { id: 'exams', label: 'Quản lý đề thi', icon: BarChart3, path: path.ADMIN.EXAM },
           { id: 'permission_role', label: 'Phân quyền vai trò', icon: Shield, path: path.ADMIN.PERMISSTION_ROLE },
           { id: 'permission_user', label: 'Phân quyền người dùng', icon: ShieldUser, path: path.ADMIN.PERMISSTION_USER },
         ];
