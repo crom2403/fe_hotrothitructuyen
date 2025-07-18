@@ -52,7 +52,7 @@ const ExamResultDetail = () => {
   };
 
   const handleViewExam = async (exam_attempt_id: string) => {
-    setIsStudentExamResultLoading(true); 
+    setIsStudentExamResultLoading(true);
     setIsStudentExamResultOpen(true);
     try {
       const response = await apiGetDetailExamAttempt(exam_attempt_id);
@@ -130,14 +130,13 @@ const ExamResultDetail = () => {
   };
 
   const getScoreBadge = (score: number) => {
-    if (!score) {
-      return <Badge variant="secondary">Chưa có kết quả</Badge>;
-    }
-    if (score >= exam.pass_points) {
-      return <Badge className="bg-green-100 text-green-800">Đậu</Badge>;
-    } else {
-      return <Badge className="bg-red-100 text-red-800">Rớt</Badge>;
-    }
+    if (score === 0) return <Badge className="bg-red-100 text-red-800">Rớt</Badge>;
+
+    if (!score) return <Badge variant="secondary">Chưa có kết quả</Badge>;
+
+    if (score >= exam.pass_points) return <Badge className="bg-green-100 text-green-800">Đậu</Badge>;
+
+    return <Badge className="bg-red-100 text-red-800">Rớt</Badge>;
   };
 
   const filteredResults = examResult.filter((result) => {
@@ -267,7 +266,7 @@ const ExamResultDetail = () => {
                       <TableRow key={result.exam_attempt_id}>
                         <TableCell className="font-medium">{result.student_code}</TableCell>
                         <TableCell>{result.student_full_name}</TableCell>
-                        <TableCell className="text-center font-semibold">{result.exam_attempt_score > 0 ? result.exam_attempt_score.toFixed(2) : '-'}</TableCell>
+                        <TableCell className="text-center font-semibold">{result.exam_attempt_score > 0 ? result.exam_attempt_score.toFixed(2) : 0}</TableCell>
                         <TableCell className="text-center">{getScoreBadge(result.exam_attempt_score)}</TableCell>
                         <TableCell className="text-center">{result.exam_attempt_duration_seconds ? result.exam_attempt_duration_seconds : '-'}</TableCell>
                         <TableCell className="text-center">{result.exam_attempt_submitted_at ? formatDate(result.exam_attempt_submitted_at, 'dd/MM/yyyy HH:mm:ss') : '-'}</TableCell>
