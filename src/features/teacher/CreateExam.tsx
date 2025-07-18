@@ -62,6 +62,7 @@ const CreateExam = () => {
       toast.error('Số câu hỏi không khớp!');
       return;
     }
+  
     setIsLoading(true);
     try {
       const examData = {

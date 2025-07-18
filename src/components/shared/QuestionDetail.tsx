@@ -12,9 +12,17 @@ import DragDropDetail from './QuestionTypeDetail/DragDropDetail';
 import VideoPopupDetail from './QuestionTypeDetail/VideoPopupDetail';
 import type { QuestionItem } from '@/types/questionType';
 
+export interface QuestionDetail {
+  id: string;
+  type: string;
+  question: string;
+  options?: any[];
+  correctAnswer?: any;
+}
+
 interface QuestionDetailProps {
-  id: string,
-  type: string,
+  id: string;
+  type: string;
 }
 
 const QuestionDetail = ({ id, type }: QuestionDetailProps) => {

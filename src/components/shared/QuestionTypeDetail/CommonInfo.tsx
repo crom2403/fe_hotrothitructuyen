@@ -1,13 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import parse from 'html-react-parser';
-import type { QuestionDetail } from '../QuestionDetail';
 
-interface CommonInfoProps {
-  questionDetail: QuestionDetail | null;
-}
-
-const CommonInfo = ({ questionDetail }: CommonInfoProps) => {
+const CommonInfo = ({ questionDetail }: { questionDetail: any | null }) => {
   const getDifficultyColor = (difficultyName: string) => {
     switch (difficultyName) {
       case 'Dễ':
@@ -57,10 +52,7 @@ const CommonInfo = ({ questionDetail }: CommonInfoProps) => {
           <span className="font-semibold">Loại câu hỏi:</span> {questionDetail?.question_type.name || 'N/A'}
         </div>
         <div>
-          <span className="font-semibold">Độ khó:</span>{' '}
-          <Badge className={getDifficultyColor(questionDetail?.difficulty_level.name || 'N/A')}>
-            {questionDetail?.difficulty_level.name || 'N/A'}
-          </Badge>
+          <span className="font-semibold">Độ khó:</span> <Badge className={getDifficultyColor(questionDetail?.difficulty_level.name || 'N/A')}>{questionDetail?.difficulty_level.name || 'N/A'}</Badge>
         </div>
         <div>
           <span className="font-semibold">Người tạo:</span> {questionDetail?.created_by.full_name || 'N/A'}
@@ -72,8 +64,7 @@ const CommonInfo = ({ questionDetail }: CommonInfoProps) => {
           </Badge>
         </div>
         <div>
-          <span className="font-semibold">Ngày tạo:</span>{' '}
-          {questionDetail?.created_at ? new Date(questionDetail.created_at).toLocaleString('vi-VN') : 'N/A'}
+          <span className="font-semibold">Ngày tạo:</span> {questionDetail?.created_at ? new Date(questionDetail.created_at).toLocaleString('vi-VN') : 'N/A'}
         </div>
       </div>
 
