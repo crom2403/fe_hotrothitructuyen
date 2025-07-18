@@ -1,8 +1,8 @@
 const path = {
-  SERVER_URL: 'https://successful-laura-tsondev-c5a7fe4d.koyeb.app',
-  SOCKET_URL: 'https://successful-laura-tsondev-c5a7fe4d.koyeb.app/events',
-  // SERVER_URL: 'http://localhost:3000',
-  // SOCKET_URL: 'http://localhost:3000/events',
+  // SERVER_URL: 'https://successful-laura-tsondev-c5a7fe4d.koyeb.app',
+  // SOCKET_URL: 'https://successful-laura-tsondev-c5a7fe4d.koyeb.app/events',
+  SERVER_URL: 'http://localhost:3000',
+  SOCKET_URL: 'http://localhost:3000/events',
   PUBLIC: '/',
   HOME: '',
   LOGIN: '/login',
