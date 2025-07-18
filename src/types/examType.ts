@@ -73,7 +73,7 @@ export type ExamFormData = {
 //   dragDropItems?: { id: string; content: string; correctPosition: number }[];
 // };
 
-export type ExamForStudyGroupItem= {
+export type ExamForStudyGroupItem = {
   id: string;
   name: string;
   start_time: string;
@@ -86,8 +86,9 @@ export type ExamForStudyGroupItem= {
   question_count: number;
   attempt_count: number;
   opening_status: string;
+  approval_status: string;
   study_group_id: string;
-}
+};
 
 export type ExamForStudyGroup = {
   data: ExamForStudyGroupItem[];
@@ -97,4 +98,4 @@ export type ExamForStudyGroup = {
     page: number;
     last_page: number;
   };
-}
+};

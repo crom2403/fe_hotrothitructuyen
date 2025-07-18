@@ -3,20 +3,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import type { StudyGroupDetail, StudyGroupInfo } from '@/types/studyGroupType';
 import AddStudentDialog from './AddStudentDialog';
 import { Table, TableHead, TableRow, TableHeader, TableBody, TableCell } from '@/components/ui/table';
-import { Copy, Eye, FileText, Loader2, MoreHorizontal, Search, Users } from 'lucide-react';
+import { Copy, Eye, FileText, Loader2, MoreHorizontal, RefreshCcw, Search, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectValue, SelectTrigger, SelectItem } from '@/components/ui/select';
 import Paginate from '@/components/common/Pagination';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { apiGetStudyGroupDetail, apiRemoveStudentFromStudyGroup } from '@/services/teacher/studyGroup';
+import { apiChangeInviteCode, apiGetStudyGroupDetail, apiRemoveStudentFromStudyGroup } from '@/services/teacher/studyGroup';
 import StudyGroupDetailDialog from './StudyGroupDetailDialog';
 import useAppStore from '@/stores/appStore';
 import ExamListDialog from './ExamStudyGroupDialog';
 import type { ExamForStudyGroup } from '@/types/examType';
 import { apiExamForStudyGroup } from '@/services/teacher/createExam';
 import { useState } from 'react';
+import Loading from '@/components/common/Loading';
 
 interface StudyGroupTableProps {
   studyGroups: StudyGroupInfo[];
@@ -122,6 +123,20 @@ const StudyGroupTable = ({
     setPageExams(page);
   };
 
+  const handleChangeInviteCode = async (studyGroupId: string) => {
+    try {
+      const response = await apiChangeInviteCode(studyGroupId);
+      if (response.status === 200) {
+        toast.success('Đổi mã mời thành công');
+        handleGetStudyGroup();
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -185,7 +200,7 @@ const StudyGroupTable = ({
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
                   <div className="flex justify-center items-center h-32">
-                    <Loader2 className="w-10 h-10 animate-spin" />
+                    <Loading />
                   </div>
                 </TableCell>
               </TableRow>
@@ -226,12 +241,16 @@ const StudyGroupTable = ({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => handleViewDetail(studyGroup.study_group_id)}>
-                          <Eye className="mr-2 h-4 w-4" />
+                          <Eye className="mr-2 h-4 w-4 text-green-500" />
                           Xem chi tiết
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleViewExam(studyGroup.study_group_id)}>
-                          <FileText className="mr-2 h-4 w-4" />
+                          <FileText className="mr-2 h-4 w-4 text-blue-500" />
                           Xem đề thi
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleChangeInviteCode(studyGroup.study_group_id)}>
+                          <RefreshCcw className="mr-2 h-4 w-4 text-yellow-500" />
+                          Đổi mã mời
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

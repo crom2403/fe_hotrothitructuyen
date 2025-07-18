@@ -1,55 +1,76 @@
-import type { QuestionItem } from "@/types/questionType"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
-import { Input } from "../ui/input"
-import { Edit, Eye, Loader2, MoreHorizontal, Search, Trash2 } from "lucide-react"
-import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "../ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
-import { Badge } from "../ui/badge"
-import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "../ui/dropdown-menu"
-import { Button } from "../ui/button"
-import Paginate from "../common/Pagination"
-import parse from "html-react-parser"
-import { useEffect, useState } from "react"
-import { Dialog } from "../ui/dialog"
-import QuestionDetail from "../admin/question/QuestionDetail"
-import useAppStore from "@/stores/appStore"
+import type { QuestionItem } from '@/types/questionType';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Input } from '../ui/input';
+import { Edit, Eye, Loader2, MoreHorizontal, Search, Trash2 } from 'lucide-react';
+import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from '../ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Badge } from '../ui/badge';
+import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { Button } from '../ui/button';
+import Paginate from '../common/Pagination';
+import parse from 'html-react-parser';
+import { useEffect, useState } from 'react';
+import { Dialog } from '../ui/dialog';
+import QuestionDetail from '../shared/QuestionDetail';
+import useAppStore from '@/stores/appStore';
+import Loading from '@/components/common/Loading';
 
 interface QuestionTableProps {
-  questions: QuestionItem[],
-  searchTerm: string,
-  setSearchTerm: (term: string) => void,
-  subjectFilter: string,
-  setSubjectFilter: (subject: string) => void,
-  typeFilter: string,
-  setTypeFilter: (type: string) => void,
-  difficultyFilter: string,
-  setDifficultyFilter: (difficulty: string) => void,
-  page: number,
-  totalPages: number,
-  handleEdit?: (question: QuestionItem) => void,
-  handleDelete?: (questionId: string) => void,
-  handlePageClick: (page: number) => void,
-  isLoading: boolean,
+  questions: QuestionItem[];
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  subjectFilter: string;
+  setSubjectFilter: (subject: string) => void;
+  typeFilter: string;
+  setTypeFilter: (type: string) => void;
+  difficultyFilter: string;
+  setDifficultyFilter: (difficulty: string) => void;
+  page: number;
+  totalPages: number;
+  handleEdit?: (question: QuestionItem) => void;
+  handleDelete?: (questionId: string) => void;
+  handlePageClick: (page: number) => void;
+  isLoading: boolean;
 }
 
-const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, setSubjectFilter, typeFilter, setTypeFilter, difficultyFilter, setDifficultyFilter, page, totalPages, handleEdit, handleDelete, handlePageClick, isLoading }: QuestionTableProps) => {
+const QuestionTable = ({
+  questions,
+  searchTerm,
+  setSearchTerm,
+  subjectFilter,
+  setSubjectFilter,
+  typeFilter,
+  setTypeFilter,
+  difficultyFilter,
+  setDifficultyFilter,
+  page,
+  totalPages,
+  handleEdit,
+  handleDelete,
+  handlePageClick,
+  isLoading,
+}: QuestionTableProps) => {
   const { subjects, difficultyLevels, questionTypes } = useAppStore();
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionItem | null>(null);
   const [openDetail, setOpenDetail] = useState(false);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "Dễ": return "bg-green-100 text-green-800";
-      case "Trung bình": return "bg-yellow-100 text-yellow-800";
-      case "Khó": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case 'Dễ':
+        return 'bg-green-100 text-green-800';
+      case 'Trung bình':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Khó':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const handleViewDetail = (question: QuestionItem) => {
     setSelectedQuestion(question);
     setOpenDetail(true);
-  }
+  };
 
   return (
     <Card>
@@ -61,12 +82,7 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
         <div className="flex items-center space-x-4 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Tìm kiếm câu hỏi..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+            <Input placeholder="Tìm kiếm câu hỏi..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
           <Select value={subjectFilter} onValueChange={setSubjectFilter}>
             <SelectTrigger className="w-48">
@@ -74,11 +90,11 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả môn học</SelectItem>
-              {
-                subjects.map((subject) => (
-                  <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
-                ))
-              }
+              {subjects.map((subject) => (
+                <SelectItem key={subject.id} value={subject.id}>
+                  {subject.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
@@ -87,11 +103,11 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả</SelectItem>
-              {
-                difficultyLevels.map((difficultyLevel) => (
-                  <SelectItem key={difficultyLevel.id} value={difficultyLevel.id}>{difficultyLevel.name}</SelectItem>
-                ))
-              }
+              {difficultyLevels.map((difficultyLevel) => (
+                <SelectItem key={difficultyLevel.id} value={difficultyLevel.id}>
+                  {difficultyLevel.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -100,11 +116,11 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả loại</SelectItem>
-              {
-                questionTypes.map((questionType) => (
-                  <SelectItem key={questionType.id} value={questionType.id}>{questionType.name}</SelectItem>
-                ))
-              }
+              {questionTypes.map((questionType) => (
+                <SelectItem key={questionType.id} value={questionType.id}>
+                  {questionType.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -126,7 +142,7 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-8">
                   <div className="flex justify-center items-center h-32">
-                    <Loader2 className="w-10 h-10 animate-spin" />
+                    <Loading />
                   </div>
                 </TableCell>
               </TableRow>
@@ -143,9 +159,7 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
                     <Badge variant="outline">{question.question_type.name}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getDifficultyColor(question.difficulty_level.name)}>
-                      {question.difficulty_level.name}
-                    </Badge>
+                    <Badge className={getDifficultyColor(question.difficulty_level.name)}>{question.difficulty_level.name}</Badge>
                   </TableCell>
                   <TableCell>{question.created_by.full_name}</TableCell>
                   <TableCell>
@@ -160,22 +174,18 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
                           <Eye className="mr-2 h-4 w-4 text-primary" />
                           Xem chi tiết
                         </DropdownMenuItem>
-                        {
-                          question.is_public === false && (
-                            <DropdownMenuItem onClick={() => handleEdit?.(question)}>
-                              <Edit className="mr-2 h-4 w-4 text-primary" />
-                              Chỉnh sửa
-                            </DropdownMenuItem>
-                          )
-                        }
-                        {
-                          question.is_public === false && (
-                            <DropdownMenuItem onClick={() => handleDelete?.(question.id)} className="text-red-600">
-                              <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                              Xóa
-                            </DropdownMenuItem>
-                          )
-                        }
+                        {question.is_public === false && (
+                          <DropdownMenuItem onClick={() => handleEdit?.(question)}>
+                            <Edit className="mr-2 h-4 w-4 text-primary" />
+                            Chỉnh sửa
+                          </DropdownMenuItem>
+                        )}
+                        {question.is_public === false && (
+                          <DropdownMenuItem onClick={() => handleDelete?.(question.id)} className="text-red-600">
+                            <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                            Xóa
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -186,7 +196,9 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
           {questions.length === 0 && !isLoading && (
             <TableBody>
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">Không tìm thấy câu hỏi nào</TableCell>
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  Không tìm thấy câu hỏi nào
+                </TableCell>
               </TableRow>
             </TableBody>
           )}
@@ -194,11 +206,11 @@ const QuestionTable = ({ questions, searchTerm, setSearchTerm, subjectFilter, se
       </CardContent>
 
       <Dialog open={openDetail} onOpenChange={setOpenDetail}>
-        <QuestionDetail question={selectedQuestion} />
+        <QuestionDetail id={selectedQuestion?.id} type={selectedQuestion?.question_type.name} />
       </Dialog>
       <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
     </Card>
-  )
-}
+  );
+};
 
-export default QuestionTable
+export default QuestionTable;

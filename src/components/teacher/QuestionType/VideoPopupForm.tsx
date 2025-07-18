@@ -3,7 +3,7 @@ import React, { useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -50,6 +50,7 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [isVideoLoaded, setIsVideoLoaded] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [videoConfig, setVideoConfig] = useState<VideoPopupConfig>({
     video_id: uuidv4(),
     url: '',
@@ -203,7 +204,7 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
       toast.error(`Số lượng đáp án (${answers.length}) không khớp với tổng số phương án (${totalOptions})!`);
       return;
     }
-
+    setIsLoading(true);
     try {
       const apiData = {
         subject_id: form.getValues('subject_id'),
@@ -238,6 +239,8 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
       const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -310,8 +313,8 @@ export const VideoPopupForm = ({ form, onSaveSuccess }: VideoPopupFormProps) => 
       </div>
 
       <div className="flex justify-end">
-        <Button type="button" onClick={saveQuestions} disabled={!videoConfig.popup_times.length} className="mt-4 bg-black hover:bg-black/80">
-          Lưu câu hỏi
+        <Button type="button" onClick={saveQuestions} disabled={!videoConfig.popup_times.length || isLoading} className="mt-4 bg-primary hover:bg-primary/90 cursor-pointer">
+          {isLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : 'Lưu câu hỏi'}
         </Button>
       </div>
     </div>

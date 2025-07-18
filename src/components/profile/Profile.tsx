@@ -11,10 +11,11 @@ import { Input } from '../ui/input';
 import { useEffect, useState } from 'react';
 import useAuthStore, { type CurrentUser } from '@/stores/authStore';
 import { toast } from 'sonner';
-import { apiGetCurrentUser, apiGoogleVerify } from '@/services/auth';
+import { apiChangePassword, apiGetCurrentUser, apiGoogleVerify } from '@/services/auth';
 import type { AxiosError } from 'axios';
 import GoogleVerificationDialog from './GoogleVerificationDialog';
 import ChooseAvatarDialog from '@/components/profile/ChooseAvatarDialog';
+import Loading from '@/components/common/Loading';
 
 const profileSchema = z.object({
   name: z.string(),
@@ -26,15 +27,15 @@ const profileSchema = z.object({
 
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(1, { message: 'Vui lòng nhập mật khẩu hiện tại' }),
-    newPassword: z
+    old_password: z.string().min(1, { message: 'Vui lòng nhập mật khẩu hiện tại' }),
+    new_password: z
       .string()
       .min(8, 'Mật khẩu phải có ít nhất 8 ký tự')
       .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 'Mật khẩu phải chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt'),
-    confirmPassword: z.string().min(1, { message: 'Vui lòng nhập lại mật khẩu' }),
+    confirm_password: z.string().min(1, { message: 'Vui lòng nhập lại mật khẩu' }),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    path: ['confirmPassword'],
+  .refine((data) => data.new_password === data.confirm_password, {
+    path: ['confirm_password'],
     message: 'Mật khẩu không khớp',
   });
 
@@ -43,6 +44,7 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 
 const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingChangePassword, setIsLoadingChangePassword] = useState(false);
   const [isLoadingUpdateAvatar, setIsLoadingUpdateAvatar] = useState(false);
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [isVerificationDialogOpen, setVerificationDialogOpen] = useState(false);
@@ -70,9 +72,9 @@ const Profile = () => {
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
+      old_password: '',
+      new_password: '',
+      confirm_password: '',
     },
   });
 
@@ -118,11 +120,32 @@ const Profile = () => {
     handleGetCurrentUser();
   }, []);
 
+  const onSubmit = async (data: PasswordFormData) => {
+    setIsLoadingChangePassword(true);
+    try {
+      const apiData = {
+        old_password: data.old_password,
+        new_password: data.new_password,
+      };
+      const response = await apiChangePassword(apiData);
+      if (response.status === 200) {
+        toast.success('Đổi mật khẩu thành công');
+        passwordForm.reset();
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingChangePassword(false);
+    }
+  };
+
   return (
     <>
       {isLoading ? (
         <div className="flex justify-center items-center h-screen">
-          <Loader2 className="h-10 w-10 animate-spin" />
+          <Loading />
         </div>
       ) : (
         <>
@@ -290,11 +313,11 @@ const Profile = () => {
                   </CardHeader>
                   <CardContent>
                     <Form {...passwordForm}>
-                      <form className="space-y-4" action="POST">
+                      <form className="space-y-4" onSubmit={passwordForm.handleSubmit(onSubmit)}>
                         <div className="space-y-3">
                           <FormField
                             control={passwordForm.control}
-                            name="currentPassword"
+                            name="old_password"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Mật khẩu hiện tại</FormLabel>
@@ -317,7 +340,7 @@ const Profile = () => {
                           />
                           <FormField
                             control={passwordForm.control}
-                            name="newPassword"
+                            name="new_password"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Mật khẩu mới</FormLabel>
@@ -340,7 +363,7 @@ const Profile = () => {
                           />
                           <FormField
                             control={passwordForm.control}
-                            name="confirmPassword"
+                            name="confirm_password"
                             render={({ field }) => (
                               <FormItem>
                                 <FormLabel>Xác nhận mật khẩu mới</FormLabel>
@@ -362,8 +385,8 @@ const Profile = () => {
                             )}
                           />
                         </div>
-                        <Button type="submit" className="bg-black" disabled={isLoading}>
-                          {isLoading ? (
+                        <Button type="submit" className="bg-primary cursor-pointer" disabled={isLoadingChangePassword}>
+                          {isLoadingChangePassword ? (
                             <>
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                               Đang thay đổi...

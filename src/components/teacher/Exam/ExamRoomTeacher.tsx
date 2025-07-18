@@ -8,17 +8,19 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { Search, Users, Clock, CheckCircle, AlertTriangle, Filter, BarChart3, RefreshCw, Maximize2, Monitor, GraduationCap, Play, Pause } from 'lucide-react';
+import { Search, Users, Clock, CheckCircle, AlertTriangle, Filter, BarChart3, Maximize2, Monitor, GraduationCap, Play, Pause, LogOut } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { FlipReveal, FlipRevealItem } from '@/components/ui/flip-reveal';
 import path from '@/utils/path';
 import { apiGetDetailExam } from '@/services/student/exam';
 import { toast } from 'sonner';
 import useAppStore from '@/stores/appStore';
+import { useNavigate } from 'react-router-dom';
 
 export interface Student {
   studentId: string;
   name: string;
+  code: string;
   avatar: string;
   status: 'taking_exam' | 'out_of_exam' | 'submitted' | 'waiting';
   tab_count: number;
@@ -50,6 +52,7 @@ export default function ExamRoomTeacher() {
   const [stats, setStats] = useState<ExamStats>({ total: 0, taking_exam: 0, out_of_exam: 0, submitted: 0, waiting: 0 });
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [examOpened, setExamOpened] = useState(false);
+  const navigate = useNavigate();
 
   const handleGetExam = async () => {
     try {
@@ -198,6 +201,10 @@ export default function ExamRoomTeacher() {
     }
   };
 
+  const handleGetOutRoom = () => {
+    navigate(path.TEACHER.EXAM_RESULT);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
@@ -240,12 +247,11 @@ export default function ExamRoomTeacher() {
                 <div className="font-semibold text-xs">{studyGroupId}</div>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
-                <div className="text-xs text-blue-200">Cập nhật lúc</div>
-                <div className="font-semibold text-xs">{lastUpdate.toLocaleTimeString()}</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
                 <div className="text-xs text-blue-200">Trạng thái đề thi</div>
                 <div className="font-semibold text-xs">{examOpened ? 'Đang mở' : 'Đã tạm dừng'}</div>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
+                <div className="text-xs text-blue-200">Thời gian thi</div>
               </div>
             </div>
           </div>
@@ -289,11 +295,6 @@ export default function ExamRoomTeacher() {
             </Button>
           </div>
 
-          <Button onClick={refreshData} variant="outline" size="sm" className="bg-white border-gray-300 hover:bg-gray-50">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Làm mới
-          </Button>
-
           <Button onClick={handleOpenExam} disabled={examOpened} variant="default" size="sm" className="bg-green-600 hover:bg-green-700">
             <Play className="w-4 h-4 mr-2" />
             Mở đề thi
@@ -302,6 +303,11 @@ export default function ExamRoomTeacher() {
           <Button onClick={handlePauseExam} disabled={!examOpened} variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700">
             <Pause className="w-4 h-4 mr-2" />
             Tạm dừng đề thi
+          </Button>
+
+          <Button onClick={handleGetOutRoom} variant="outline" size="sm" className="bg-white border-gray-300 hover:bg-gray-50 hover:text-red-500">
+            <LogOut className="w-4 h-4 mr-2" />
+            Ra khỏi phòng
           </Button>
         </div>
 
@@ -358,7 +364,7 @@ export default function ExamRoomTeacher() {
                           </TooltipTrigger>
                           <TooltipContent className="bg-white text-gray-800 border border-gray-200 shadow-xl p-4">
                             <p>
-                              <span className="font-semibold">ID:</span> {student.studentId}
+                              <span className="font-semibold">ID:</span> {student.code}
                             </p>
                             <p>
                               <span className="font-semibold">Họ và tên:</span> {student.name}
@@ -421,7 +427,7 @@ export default function ExamRoomTeacher() {
                               </div>
                               <div className="flex-1">
                                 <div className="font-semibold text-gray-800">{student.name}</div>
-                                <div className="text-sm text-gray-500">{student.studentId}</div>
+                                <div className="text-sm text-gray-500">{student.code}</div>
                               </div>
                               <div className="flex items-center gap-3">
                                 {renderStatusBadge(student.status)}
@@ -442,7 +448,7 @@ export default function ExamRoomTeacher() {
                         </TooltipTrigger>
                         <TooltipContent className="bg-white text-gray-800 border border-gray-200 shadow-xl">
                           <p className="font-semibold">{student.name}</p>
-                          <p className="text-sm text-gray-500">{student.studentId}</p>
+                          <p className="text-sm text-gray-500">{student.code}</p>
                         </TooltipContent>
                       </Tooltip>
                       <PopoverContent className="w-80 p-0 bg-white shadow-2xl rounded-xl border border-gray-100" side="top" align="center">
@@ -454,7 +460,7 @@ export default function ExamRoomTeacher() {
                             </Avatar>
                             <div>
                               <h3 className="text-xl font-bold text-gray-800">{student.name}</h3>
-                              <p className="text-gray-600">{student.studentId}</p>
+                              <p className="text-gray-600">{student.code}</p>
                             </div>
                           </div>
                           <Separator className="my-4" />

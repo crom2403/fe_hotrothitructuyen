@@ -16,6 +16,7 @@ export interface CurrentUser {
   phone: string | null;
   gender: string;
   date_of_birth: string | null;
+  permissions: string[];
   role_id: string;
   role_code: string;
   role_name: string;

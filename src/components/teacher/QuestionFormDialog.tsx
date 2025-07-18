@@ -127,8 +127,8 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           ],
         };
         newAnswers = [
-          { id: uuidv4(), content: { left: '', right: '' }, order_index: 1 },
-          { id: uuidv4(), content: { left: '', right: '' }, order_index: 2 },
+          { id: uuidv4(), content: { left: 'Nội dung A', right: 'Nội dung B' }, order_index: 1 },
+          { id: uuidv4(), content: { left: 'Nội dung C', right: 'Nội dung D' }, order_index: 2 },
         ];
         break;
       case 'ordering':
@@ -345,6 +345,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
 
   const onSubmit = async (data: QuestionFormData) => {
     console.log('Form Data before submit:', data);
+    console.log('Form Data before submit:', JSON.stringify(data, null, 2));
     setIsLoadingSubmit(true);
     try {
       if (questionType === 'drag_drop' && isDragDropConfig(data.answer_config) && data.answers.length !== data.answer_config.correct.length) {
@@ -425,13 +426,53 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
         difficulty_level: difficultyLevel?.name || '',
       });
 
+      console.log('res', res);
+
       if (res.status === 200) {
         form.setValue('content', res.data.question);
         let answerConfig: AnswerConfig = { kind: questionType as any, correct: '', options_count: 0 };
-        const answers = res.data.options.map((answer: any, index: number) => {
+        const answers = res.data.options?.map((answer: any, index: number) => {
           if (answer.is_correct) {
             if (questionType === 'single_choice') (answerConfig as SingleChoiceConfig).correct = String.fromCharCode(65 + index);
-            else if (questionType === 'multiple_select') (answerConfig as MultipleSelectConfig).correct = [String.fromCharCode(65 + index)];
+            else if (questionType === 'multiple_select') {
+              (answerConfig as MultipleSelectConfig).correct = [
+                ...res.data.options
+                  ?.map((e: any, index: number) => {
+                    if (e.is_correct) return String.fromCharCode(65 + index);
+                    return;
+                  })
+                  .filter(Boolean),
+              ];
+            } else if (questionType === 'drag_drop') {
+              (answerConfig as DragDropConfig).correct = [
+                ...res.data.options
+                  ?.map((e: any, index: number) => {
+                    if (e.is_correct) return String.fromCharCode(65 + index);
+                    return;
+                  })
+                  .filter(Boolean),
+              ];
+            } else if (questionType === 'ordering') {
+              (answerConfig as OrderingConfig).correct = [
+                ...res.data.options?.map((e: { content: string; order: number }) => {
+                  return { id: uuidv4(), value: String.fromCharCode(65 + e.order), order: e.order };
+                }),
+              ];
+            } else if (questionType === 'matching') {
+              const matchingAnswers = res.data.options.map((e: { left: string; right: string }, idx: number) => ({
+                id: uuidv4(),
+                content: { left: e.left, right: e.right },
+                order_index: idx + 1,
+              }));
+              answerConfig = {
+                kind: 'matching',
+                pairs: res.data.options.map((e: { left: string; right: string }) => ({ left: e.left, right: e.right })),
+                correct: res.data.options.map((e: { left: string; right: string }) => ({ left: e.left, right: e.right })),
+              };
+              form.setValue('answers', matchingAnswers);
+              form.setValue('answer_config', answerConfig);
+              return; // Thoát sớm để tránh overwrite
+            }
           }
           return {
             id: uuidv4(),
@@ -471,7 +512,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
       }}
     >
       <DialogTrigger>
-        <Button className="bg-black hover:bg-black/80" onClick={() => setIsDialogOpen(true)}>
+        <Button className="bg-primary hover:bg-primary/90 cursor-pointer" onClick={() => setIsDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Thêm câu hỏi
         </Button>
@@ -484,7 +525,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
               <DialogDescription>{editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 06/07/2025, 11:41 AM)'}</DialogDescription>
             </div>
             <div>
-              {form.getValues('subject_id') && questionType === 'single_choice' && (
+              {form.getValues('subject_id') && (
                 <Popover>
                   <PopoverTrigger>
                     <img src={IconAI} alt="Icon AI" className="size-14" />
@@ -648,10 +689,10 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                   >
                     Hủy
                   </Button>
-                  <Button type="submit" className="bg-black hover:bg-black/80" disabled={isLoadingSubmit}>
+                  <Button type="submit" className="bg-primary hover:bg-primary/90 cursor-pointer" disabled={isLoadingSubmit}>
                     {isLoadingSubmit ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin " />
                         {editingQuestion ? 'Đang cập nhật...' : 'Đang tạo...'}
                       </>
                     ) : editingQuestion ? (

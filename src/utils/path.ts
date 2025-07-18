@@ -1,6 +1,7 @@
 const path = {
   SERVER_URL: 'https://successful-laura-tsondev-c5a7fe4d.koyeb.app',
   SOCKET_URL: 'https://successful-laura-tsondev-c5a7fe4d.koyeb.app/events',
+  // SERVER_URL: 'http://localhost:3000',
   // SOCKET_URL: 'http://localhost:3000/events',
   PUBLIC: '/',
   HOME: '',
@@ -9,19 +10,19 @@ const path = {
   PROFILE: '/profile',
   ACCESS_DENIED: '/access-denied',
   OTP_CONFIRMATION: '/otp-confirmation',
+  EXAM_DETAIL: '/exam-detail/:exam_id',
   ADMIN: {
     OVERVIEW: '/admin/overview',
     STUDY_GROUP: '/admin/study_group',
     QUESTION: '/admin/question',
     USER: '/admin/user',
-    SUBJECT: '/admin/subject', // Môn học
-    YEAR_SEMESTER: '/admin/year_semester', // Học kỳ
-    ASSIGNMENT: '/admin/assignment', // Phân công
-    EXAM: '/admin/exam', // Đề kiểm tra
-    NOTIFICATION: '/admin/notification', // Thông báo
-    PERMISSTION_ROLE: '/admin/permission_role', // Phân quyền
-    PERMISSTION_USER: '/admin/permission_user', // Phân quyền
-    ASSIGN_TEACHER: '/admin/assign_teacher', // Phân công giảng dạy
+    SUBJECT: '/admin/subject',
+    YEAR_SEMESTER: '/admin/year_semester',
+    ASSIGNMENT: '/admin/assignment',
+    EXAM: '/admin/exam',
+    PERMISSTION_ROLE: '/admin/permission_role',
+    PERMISSTION_USER: '/admin/permission_user',
+    ASSIGN_TEACHER: '/admin/assign_teacher',
   },
   TEACHER: {
     OVERVIEW: '/teacher/overview',
@@ -35,19 +36,21 @@ const path = {
     ASSIGNMENT: '/teacher/assignment',
     EXAM: '/teacher/exam',
     EXAM_ROOM_TEACHER: '/teacher/exam-room-teacher',
-
+    EXAM_RESULT: '/teacher/exam-result',
+    EXAM_RESULT_DETAIL: '/teacher/exam-result/:exam_id/study-group/:study_group_id',
+    APPROVE_QUESTION: '/teacher/approve-question',
+    APPROVE_EXAM: '/teacher/approve-exam',
     NOTIFICATION: '/teacher/notification',
   },
   STUDENT: {
     OVERVIEW: '/student/overview',
     STUDY_GROUP: '/student/study_group',
     EXAM: '/student/exam',
-    NOTIFICATION: '/student/notification',
     EXAM_LIST: '/student/exam_list',
     EXAM_RESULTS: '/student/exam_results',
     EXAM_CALENDAR: '/student/exam_calendar',
-    EXAM_TAKING: '/student/exam-taking',
     EXAM_ROOM_STUDENT: '/student/exam-room-student',
+    CREATE_STUDENT_SOCKET: '/student/create-student-socket',
   },
 };
 

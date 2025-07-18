@@ -10,7 +10,10 @@ import Paginate from '@/components/common/Pagination';
 import { formatDate } from 'date-fns';
 import { useState } from 'react';
 import { Dialog } from '@radix-ui/react-dialog';
-import QuestionDetail from './QuestionDetail';
+import QuestionDetail from '../../shared/QuestionDetail';
+import Loading from '@/components/common/Loading';
+import CommonDialog from '@/components/common/CommonDialog';
+import { AlertDialog } from '@/components/ui/alert-dialog';
 
 interface QuestionTableProps {
   questions: QuestionItem[];
@@ -27,7 +30,8 @@ interface QuestionTableProps {
 const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, page, totalPages, handleApprove, handleReject, handlePageClick }: QuestionTableProps) => {
   const [openDetail, setOpenDetail] = useState(false);
   const [questionDetail, setQuestionDetail] = useState<QuestionItem | null>(null);
-
+  const [openDialog, setOpenDialog] = useState(false);
+  const [questionId, setQuestionId] = useState<string | null>(null);
   const getDifficultyColor = (difficultyName: string) => {
     switch (difficultyName) {
       case 'Dễ':
@@ -72,6 +76,11 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
     setOpenDetail(true);
   };
 
+  const handleRejectDialog = (questionId: string) => {
+    setQuestionId(questionId);
+    setOpenDialog(true);
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -112,7 +121,7 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8">
                   <div className="flex justify-center items-center h-32">
-                    <Loader2 className="w-10 h-10 animate-spin" />
+                    <Loading />
                   </div>
                 </TableCell>
               </TableRow>
@@ -148,7 +157,7 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
                               <Check className="mr-2 h-4 w-4 text-primary" />
                               Duyệt
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleReject(question.id)}>
+                            <DropdownMenuItem onClick={() => handleRejectDialog(question.id)}>
                               <X className="mr-2 h-4 w-4 text-red-600" />
                               Từ chối
                             </DropdownMenuItem>
@@ -175,8 +184,12 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
       <Paginate page={page} totalPages={totalPages} onPageChange={handlePageClick} />
 
       <Dialog open={openDetail} onOpenChange={setOpenDetail}>
-        <QuestionDetail question={questionDetail} />
+        <QuestionDetail id={questionDetail?.id} type={questionDetail?.question_type.name} />
       </Dialog>
+
+      <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
+        <CommonDialog title='từ chối' itemName='câu hỏi' id={questionId || ''} onDelete={handleReject} />
+      </AlertDialog>
     </Card>
   );
 };

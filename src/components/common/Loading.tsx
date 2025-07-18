@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 const Loading = () => {
   return (
     <div className="text-center p-4">
-      <Loader2 className="h-10 w-10 mx-auto mb-4 text-blue-600 animate-spin" />
+      <Loader2 className="h-10 w-10 mx-auto mb-4 text-blue-700 animate-spin" />
     </div>
 
     //     <div className="flex items-center justify-center">

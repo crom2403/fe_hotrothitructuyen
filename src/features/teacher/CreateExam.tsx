@@ -50,11 +50,20 @@ const CreateExam = () => {
   };
 
   const handleSaveExam = async () => {
-    setIsLoading(true);
     if (!validateTime(tab1Data.start_time, tab1Data.end_time)) {
       setIsLoading(false);
       return;
     }
+    if (tab1Data.total_questions === 0) {
+      toast.error('Số câu hỏi không được bằng 0!');
+      return;
+    }
+    if (tab1Data.total_questions !== tab2Data.list_questions.length) {
+      toast.error('Số câu hỏi không khớp!');
+      return;
+    }
+  
+    setIsLoading(true);
     try {
       const examData = {
         name: tab1Data.name,
@@ -103,7 +112,7 @@ const CreateExam = () => {
         </div>
         <div className="space-x-2">
           <ExamPreview selectedQuestions={commonProps.list_questions} />
-          <Button onClick={handleSaveExam} className="bg-black hover:bg-black/80" disabled={isLoading}>
+          <Button onClick={handleSaveExam} className="bg-primary hover:bg-primary/90 cursor-pointer" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

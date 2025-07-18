@@ -3,7 +3,6 @@ import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { apiAssignPermissionRole, apiGetPermissionByRole } from '@/services/admin/permission';
 import { apiGetRoles } from '@/services/admin/role';
-import type { IPermission } from '@/types/permissionType';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -14,7 +13,7 @@ interface IRole {
 }
 
 const PermissionRole = () => {
-  const [permissions, setPermissions] = useState<IPermission[]>([]);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [roles, setRoles] = useState<IRole[]>([]);
   const [selectedRole, setSelectedRole] = useState<IRole | null>(null);
 
@@ -47,7 +46,7 @@ const PermissionRole = () => {
     try {
       const { data } = await apiGetPermissionByRole(selectedRole.id);
       console.log('fetchPermissions', data);
-      setPermissions(data);
+      setPermissions(data.map((permission) => permission));
     } catch (error) {
       console.error(error);
       toast.error('Không thể tải danh sách quyền');

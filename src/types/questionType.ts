@@ -14,30 +14,30 @@ export interface QuestionRequest {
   is_public?: boolean;
 }
 
-export interface QuestionItem {
-  id: string;
-  content: string;
-  created_at: string;
-  review_status: 'pending' | 'approved' | 'rejected';
-  is_public: boolean;
-  subject: {
-    id: string;
-    name: string;
-  };
-  question_type: {
-    id: string;
-    name: string;
-  };
-  difficulty_level: {
-    id: string;
-    name: string;
-  };
-  created_by: {
-    id: string;
-    full_name: string;
-  };
-  answers: Answer[];
-}
+// export interface QuestionItem {
+//   id: string;
+//   content: string;
+//   created_at: string;
+//   review_status: 'pending' | 'approved' | 'rejected';
+//   is_public: boolean;
+//   subject: {
+//     id: string;
+//     name: string;
+//   };
+//   question_type: {
+//     id: string;
+//     name: string;
+//   };
+//   difficulty_level: {
+//     id: string;
+//     name: string;
+//   };
+//   created_by: {
+//     id: string;
+//     full_name: string;
+//   };
+//   answers: Answer[];
+// }
 
 export interface QuestionType {
   id: string;
@@ -92,27 +92,29 @@ export interface Answer {
 export interface QuestionItem {
   id: string;
   content: string;
-  created_at: string;
-  review_status: 'pending' | 'approved' | 'rejected';
-  is_public: boolean;
-  subject: {
+  created_at?: string;
+  review_status?: 'pending' | 'approved' | 'rejected';
+  is_public?: boolean;
+  is_active?: boolean;
+  subject?: {
     id: string;
     name: string;
   };
   question_type: {
+    id?: string;
+    name?: string;
+    code?: string;
+  };
+  difficulty_level?: {
     id: string;
     name: string;
   };
-  difficulty_level: {
-    id: string;
-    name: string;
-  };
-  created_by: {
+  created_by?: {
     id: string;
     full_name: string;
   };
-  answers: Answer[];
-  answer_config?: AnswerConfig;
+  answers: any[];
+  answer_config?: any;
 }
 
 export interface QuestionListResponse {

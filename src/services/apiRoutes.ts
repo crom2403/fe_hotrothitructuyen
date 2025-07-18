@@ -8,6 +8,7 @@ const apiRoutes = {
   resetPassword: '/auth/password/confirm',
   googleVerify: '/auth/google/verify',
   googleConfirm: '/auth/google/confirm',
+  changePassword: '/auth/change-password',
   difficultyLevel: '/difficulty-levels',
   updateAvatar: '/users/change-avatar',
   admin: {
@@ -20,7 +21,7 @@ const apiRoutes = {
     academic_year: '/academic-years',
     semester: '/admin/semesters',
     assignment: '/admin/assignment',
-    exam: '/admin/exam',
+    exam: '/exams',
     notification: '/admin/notification',
     permission: '/admin/permission',
   },

@@ -29,13 +29,15 @@ const CreateExam = lazy(() => import('@/features/teacher/CreateExam'));
 const TeacherStudyGroup = lazy(() => import('@/features/teacher/StudyGroup'));
 const ExamList = lazy(() => import('@/components/student/ExamList'));
 const ExamResults = lazy(() => import('@/components/student/ExamResults'));
-const ExamCalendar = lazy(() => import('@/components/student/ExamCalendar'));
 const StudentGroup = lazy(() => import('@/components/student/StudentGroup'));
-const Notifications = lazy(() => import('@/components/student/Notifications'));
-const ExamTaking = lazy(() => import('@/components/student/ExamTaking'));
+const CreateStudentSocket = lazy(() => import('@/components/student/CreateStudentSocket'));
 const IEduLandingPage = lazy(() => import('@/components/landing/IEduLandingPage'));
 const ExamRoomStudent = lazy(() => import('@/components/student/ExamRoomStudent'));
 const ExamRoomTeacher = lazy(() => import('@/components/teacher/Exam/ExamRoomTeacher'));
+const ExamResultManagement = lazy(() => import('@/features/teacher/ExamResultManagement'));
+const ExamResultDetail = lazy(() => import('@/components/teacher/Exam/ExamResultDetail'));
+const AdminExamManagement = lazy(() => import('@/features/admin/ExamManagement'));
+const ExamDetail = lazy(() => import('@/components/shared/ExamDetail'));  
 
 const AppRoutes = () => {
   return (
@@ -54,15 +56,14 @@ const AppRoutes = () => {
         <Route path={path.ACCESS_DENIED} element={<AccessDeniedPage />} />
         <Route path={path.OTP_CONFIRMATION} element={<OTPConfirmation />} />
         <Route path={path.PUBLIC} element={<IEduLandingPage />} />
-        <Route path={path.STUDENT.EXAM_ROOM_STUDENT} element={<ExamTaking />} />
-        <Route path={path.STUDENT.EXAM_TAKING} element={<ExamRoomStudent />} />
+        <Route path={path.STUDENT.CREATE_STUDENT_SOCKET} element={<CreateStudentSocket />} />
         <Route path={path.TEACHER.EXAM_ROOM_TEACHER} element={<ExamRoomTeacher />} />
 
         <Route
           path={path.STUDENT.EXAM_ROOM_STUDENT}
           element={
             <ProtectedRoute allowedRoles={['student']}>
-              <ExamTaking />
+              <ExamRoomStudent />
             </ProtectedRoute>
           }
         />
@@ -112,6 +113,30 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute allowedRoles={['teacher']}>
                 <TeacherStudyGroup />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.TEACHER.EXAM_RESULT}
+            element={
+              <ProtectedRoute allowedRoles={['teacher']}>
+                <ExamResultManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.TEACHER.EXAM_RESULT_DETAIL}
+            element={
+              <ProtectedRoute allowedRoles={['teacher']}>
+                <ExamResultDetail/>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.TEACHER.APPROVE_QUESTION}
+            element={
+              <ProtectedRoute allowedRoles={['teacher']}>
+                <QuestionManagement/>
               </ProtectedRoute>
             }
           />
@@ -189,7 +214,22 @@ const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path={path.ADMIN.EXAM}
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminExamManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={path.EXAM_DETAIL}
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'teacher']}>
+                <ExamDetail />
+              </ProtectedRoute>
+            }
+          />
           {/* Student routes */}
           <Route
             path={path.STUDENT.OVERVIEW}
@@ -221,24 +261,6 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute allowedRoles={['student']}>
                 <ExamResults />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path={path.STUDENT.EXAM_CALENDAR}
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <ExamCalendar />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path={path.STUDENT.NOTIFICATION}
-            element={
-              <ProtectedRoute allowedRoles={['student']}>
-                <Notifications />
               </ProtectedRoute>
             }
           />
