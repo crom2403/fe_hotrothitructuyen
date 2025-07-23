@@ -18,7 +18,7 @@ export interface ExamTab1 {
 }
 
 export interface ExamTab2 {
-  exam_type: "manual" | "auto" | "ai";
+  exam_type: "manual" | "auto";
   list_questions: { question_id: string; order_index: number }[] | [];
   difficulty: {
     easy: number;
@@ -62,7 +62,7 @@ interface ExamStore {
   setTab1Type: (type: "exercise" | "midterm" | "final") => void;
   setTab1MaxTabSwitch: (max_tab_switch: number) => void;
 
-  setExamType: (type: "manual" | "auto" | "ai") => void;
+  setExamType: (type: "manual" | "auto") => void;
   setListQuestions: (questions: { question_id: string; order_index: number }[]) => void;
   setDifficulty: (difficulty: { easy: number; medium: number; hard: number }) => void;
 
@@ -91,9 +91,9 @@ const useExamStore = create<ExamStore>()(
         description: "",
         start_time: "",
         end_time: "",
-        duration_minutes: 0,
+        duration_minutes: 60,
         total_questions: 0,
-        pass_points: 0,
+        pass_points: 5,
         point_scale: "",
         type: "exercise",
         max_tab_switch: 3,
@@ -108,10 +108,10 @@ const useExamStore = create<ExamStore>()(
         },
       },
       tab3Data: {
-        is_shuffled_questions: false,
-        is_shuffled_answer: false,
-        allow_review: false,
-        allow_review_point: false,
+        is_shuffled_questions: true,
+        is_shuffled_answer: true,
+        allow_review: true,
+        allow_review_point: true,
         show_correct_answer: false,
         instruction: `
           <p>Chào bạn, trước khi bắt đầu bài thi, vui lòng đọc kỹ các hướng dẫn và nội quy sau:</p>
@@ -179,9 +179,9 @@ const useExamStore = create<ExamStore>()(
             description: "",
             start_time: "",
             end_time: "",
-            duration_minutes: 0,
+            duration_minutes: 60,
             total_questions: 0,
-            pass_points: 0,
+            pass_points: 5,
             point_scale: "",
             type: "exercise",
             max_tab_switch: 3,
@@ -196,10 +196,10 @@ const useExamStore = create<ExamStore>()(
             },
           },
           tab3Data: {
-            is_shuffled_questions: false,
-            is_shuffled_answer: false,
-            allow_review: false,
-            allow_review_point: false,
+            is_shuffled_questions: true,
+            is_shuffled_answer: true,
+            allow_review: true,
+            allow_review_point: true,
             show_correct_answer: false,
             instruction: `
               <p>Chào bạn, trước khi bắt đầu bài thi, vui lòng đọc kỹ các hướng dẫn và nội quy sau:</p>

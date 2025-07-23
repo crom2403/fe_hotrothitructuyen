@@ -1,7 +1,7 @@
 import { Badge } from "../ui/badge";
 
 interface RecentExamProps {
-  id: number;
+  id: string;
   title: string;
   subject: string;
   student: number;

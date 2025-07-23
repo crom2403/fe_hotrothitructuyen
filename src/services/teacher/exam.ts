@@ -1,7 +1,7 @@
 import apiRoutes from '../apiRoutes';
 import instance from '../instance';
 
-export const apiGetExamStudyGroupList = async (page: number, subject_id: string, exam_status: string, q: string, test_type: string) => {
+export const apiGetExamStudyGroupList = async (page: number, subject_id?: string, exam_status?: string, q?: string, test_type?: string) => {
   let query = apiRoutes.teacher.exam + `/teacher/study-group-exam?page=${page}`;
   if (subject_id && subject_id !== 'all') {
     query += `&subject_id=${subject_id}`;

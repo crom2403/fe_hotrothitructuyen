@@ -13,7 +13,7 @@ import { apiApproveExam, apiGetExamDashBoard, apiGetExamList } from "@/services/
 import useAppStore from "@/stores/appStore"
 import path from "@/utils/path"
 import type { AxiosError } from "axios"
-import { AlertCircle, BookOpen, Calendar, CheckCircle, Clock, Eye, FileText, Filter, MessageSquare, Search, User, XCircle } from "lucide-react"
+import { AlertCircle, BookOpen, Calendar, CheckCircle, Clock, Eye, FileText, Filter, Loader2, MessageSquare, Search, User, XCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
@@ -149,7 +149,7 @@ const ExamManagement = () => {
     try {
       const data = {
         approval_status: actionType === "approved" ? "approved" : "rejected",
-        reason_reject: actionType === "rejected" ? actionNote : null
+      ...(actionType === "rejected" && { reason_reject: actionNote })
       }
       const response = await apiApproveExam(selectedExam?.id, data)
       if (response.status === 200) {
@@ -379,7 +379,7 @@ const ExamManagement = () => {
                 {examsList?.data.length === 0 && !loading && (
                   <div className="text-center py-12 text-muted-foreground">
                     <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg">Không tìm thấy đề thi nào</p>
+                    <p className="text-lg">Không tìm thấy đề thi nào cần duyệt</p>
                     <p className="text-sm">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
                   </div>
                 )}
@@ -429,15 +429,15 @@ const ExamManagement = () => {
                   </div>
                 )}
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsActionDialogOpen(false)}>
+                  <Button variant="outline" onClick={() => setIsActionDialogOpen(false)} disabled={isLoadingAction}>
                     Hủy
                   </Button>
                   <Button
                     onClick={confirmAction}
                     className={actionType === "approved" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
-                    disabled={actionType === "rejected" && !actionNote.trim()}
+                    disabled={actionType === "rejected" && !actionNote.trim() || isLoadingAction}
                   >
-                    {actionType === "approved" ? "Xác nhận duyệt" : "Xác nhận từ chối"}
+                    {isLoadingAction ? <Loader2 className="w-4 h-4 mr-2 animate-spin text-primary" /> : actionType === "approved" ? "Xác nhận duyệt" : "Xác nhận từ chối"}
                   </Button>
                 </DialogFooter>
               </DialogContent>

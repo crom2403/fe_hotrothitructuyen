@@ -38,6 +38,7 @@ const ExamResultManagement = lazy(() => import('@/features/teacher/ExamResultMan
 const ExamResultDetail = lazy(() => import('@/components/teacher/Exam/ExamResultDetail'));
 const AdminExamManagement = lazy(() => import('@/features/admin/ExamManagement'));
 const ExamDetail = lazy(() => import('@/components/shared/ExamDetail'));  
+const ReviewQuestion = lazy(() => import('@/features/teacher/ReviewQuestion')); 
 
 const AppRoutes = () => {
   return (
@@ -136,7 +137,7 @@ const AppRoutes = () => {
             path={path.TEACHER.APPROVE_QUESTION}
             element={
               <ProtectedRoute allowedRoles={['teacher']}>
-                <QuestionManagement/>
+                <ReviewQuestion/>
               </ProtectedRoute>
             }
           />
