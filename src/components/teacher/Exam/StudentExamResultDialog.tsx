@@ -17,7 +17,7 @@ const StudentExamResultDialog = ({ studentExamResult, isLoading, isTeacher = fal
   }
 
   if (!studentExamResult) {
-    return <div className="text-center py-4 text-muted-foreground">Không có dữ liệu bài thi</div>;
+    return <div className="text-center py-4 text-muted-foreground"></div>;
   }
 
   const getAnswerColor = (isCorrect: boolean, isStudentAnswer: boolean) => {

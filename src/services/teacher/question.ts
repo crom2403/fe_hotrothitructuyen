@@ -63,3 +63,23 @@ export const apiGetQuestionPrivate = async (
 }
 
 export const apiGetQuestionDetail = async (id: string) => instance.get(apiRoutes.teacher.question + `/${id}/detail`)
+
+export const apiGetQuestionPending = async (page: number, q?: string, subject_id?: string, question_type_id?: string, difficulty_level_id?: string, review_status?: string) => {
+  let query = apiRoutes.teacher.question + `/teacher/list-pending?page=${page}`;
+  if (q) {
+    query += `&q=${q}`;
+  }
+  if (subject_id && subject_id !== "all") {
+    query += `&subject_id=${subject_id}`;
+  }
+  if (question_type_id && question_type_id !== "all") {
+    query += `&question_type_id=${question_type_id}`;
+  }
+  if (difficulty_level_id && difficulty_level_id !== "all") {
+    query += `&difficulty_level_id=${difficulty_level_id}`;
+  }
+  if (review_status) {
+    query += `&review_status=${review_status}`;
+  }
+  return instance.get(query);
+}

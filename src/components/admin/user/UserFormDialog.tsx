@@ -93,7 +93,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
       <div className="flex gap-2">
         <Button className="bg-green-700 hover:bg-green-700/80 cursor-pointer" onClick={handleExportExcel}>
           <FileUp className="h-4 w-4" />
-          Export
+          Xuất Excel
         </Button>
         <DialogTrigger asChild>
           <Button

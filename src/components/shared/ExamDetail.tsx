@@ -1,12 +1,12 @@
-import { apiGetExamDetail } from '@/services/admin/exam';
+import { apiApproveExam, apiGetExamDetail } from '@/services/admin/exam';
 import type { QuestionItem } from '@/types/questionType';
 import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import Loading from '../common/Loading';
 import { Badge } from '../ui/badge';
-import { AlertCircle, ArrowLeft, Calendar, CheckCircle, Clock, FileText, Target, User, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Calendar, CheckCircle, Clock, FileText, Loader2, Target, User, XCircle } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '../ui/breadcrumb';
 import path from '@/utils/path';
 import { Button } from '../ui/button';
@@ -18,6 +18,8 @@ import MultipleChoiceDetail from './QuestionTypeDetail/MultipleChoiceDetail';
 import MatchingDetail from './QuestionTypeDetail/MatchingDetail';
 import DragDropDetail from './QuestionTypeDetail/DragDropDetail';
 import VideoPopupDetail from './QuestionTypeDetail/VideoPopupDetail';
+import { DialogContent, DialogDescription, DialogTitle, DialogHeader, Dialog, DialogFooter } from '../ui/dialog';
+import { Textarea } from '../ui/textarea';
 
 interface ExamDetailResponse {
   id: string;
@@ -51,10 +53,7 @@ interface ExamDetailResponse {
   point_scale: {
     name: string;
   };
-  exam_questions: {
-    id: string;
-    question: QuestionItem;
-  }[];
+  questions:  QuestionItem[];
   exam_type: {
     name: string;
   };
@@ -62,6 +61,7 @@ interface ExamDetailResponse {
 
 const ExamDetail = () => {
   const { exam_id } = useParams();
+  const navigate = useNavigate();
   const location = useLocation();
   const exam = location.state?.exam;
   const [examDetail, setExamDetail] = useState<ExamDetailResponse | null>(null);
@@ -69,6 +69,7 @@ const ExamDetail = () => {
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<'approved' | 'rejected' | null>(null);
   const [actionNote, setActionNote] = useState('');
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   const handleGetExamDetail = async () => {
     if (!exam_id) return;
@@ -76,8 +77,8 @@ const ExamDetail = () => {
     try {
       const response = await apiGetExamDetail(exam_id);
       if (response.status === 200) {
-        console.log('Exam detail loaded:', response.data);
-        if (!response.data?.exam_questions?.length) {
+        // console.log('Exam detail loaded:', response.data);
+        if (!response.data?.questions?.length) {
           console.error('No exam questions found in response');
         }
         setExamDetail(response.data);
@@ -161,31 +162,30 @@ const ExamDetail = () => {
     }
   };
 
-  const renderQuestionType = (questionObj: { id: string; question: QuestionItem }, type: string) => {
-    if (!questionObj?.question) {
+  const renderQuestionType = (questionObj: QuestionItem, type: string) => {
+    if (!questionObj) {
       console.error('Question object is undefined:', questionObj);
       return <div>Không thể tải dữ liệu câu hỏi</div>;
     }
 
-    const question = questionObj.question;
     if (!type) {
-      console.error('Question type is undefined for question:', question);
+      console.error('Question type is undefined for question:', questionObj);
       return <div>Loại câu hỏi không xác định</div>;
     }
 
     switch (type) {
       case 'ordering':
-        return <OrderingDetail question={question} />;
+        return <OrderingDetail question={questionObj} />;
       case 'single_choice':
-        return <SingleChoiceDetail question={question} />;
+        return <SingleChoiceDetail question={questionObj} />;
       case 'multiple_select':
-        return <MultipleChoiceDetail question={question} />;
+        return <MultipleChoiceDetail question={questionObj} />;
       case 'matching':
-        return <MatchingDetail question={question} key={Date.now()} />;
+        return <MatchingDetail question={questionObj} key={Date.now()} />;
       case 'drag_drop':
-        return <DragDropDetail question={question} />;
+        return <DragDropDetail question={questionObj} />;
       case 'video_popup':
-        return <VideoPopupDetail question={question} />;
+        return <VideoPopupDetail question={questionObj} />;
       default:
         return <div>Loại câu hỏi không được hỗ trợ</div>;
     }
@@ -196,6 +196,30 @@ const ExamDetail = () => {
     setActionNote('');
     setIsActionDialogOpen(true);
   };
+
+  const confirmAction = async () => {
+    setIsLoadingAction(true)
+    try {
+      const data = {
+        approval_status: actionType === "approved" ? "approved" : "rejected",
+      ...(actionType === "rejected" && { reason_reject: actionNote })
+      }
+      const response = await apiApproveExam(exam_id, data)
+      if (response.status === 200) {
+        toast.success("Đã duyệt đề thi thành công")
+        navigate(path.ADMIN.EXAM)
+      } else {
+        toast.error("Đã có lỗi xảy ra")
+      }
+      setIsActionDialogOpen(false)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingAction(false)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -311,12 +335,12 @@ const ExamDetail = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Danh sách câu hỏi ({examDetail?.exam_questions.length || exam?.exam_questions.length || 0} câu)</CardTitle>
+                <CardTitle>Danh sách câu hỏi ({examDetail?.questions.length || 0} câu)</CardTitle>
                 <CardDescription>Chi tiết các câu hỏi trong đề thi</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {(examDetail?.exam_questions || exam?.exam_questions || []).map((questionObj, index) => {
-                  if (!questionObj?.question?.question_type?.code) {
+                {(examDetail?.questions || []).map((questionObj, index) => {
+                  if (!questionObj?.question_type?.code) {
                     console.error('Invalid question object:', questionObj);
                     return (
                       <div key={questionObj.id || index} className="p-4 border border-red-200 rounded-md">
@@ -328,9 +352,9 @@ const ExamDetail = () => {
                     <div key={questionObj.id}>
                       <div className="flex items-center gap-2">
                         <p className="font-bold">Câu {index + 1}: </p>
-                        <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: questionObj?.question?.content || '' }} />
+                        <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: questionObj?.content || '' }} />
                       </div>
-                      {renderQuestionType(questionObj, questionObj.question.question_type?.code || '')}
+                      {renderQuestionType(questionObj, questionObj.question_type?.code || '')}
                     </div>
                   );
                 })}
@@ -355,34 +379,82 @@ const ExamDetail = () => {
                 <div className="flex justify-between">
                   <span>Trắc nghiệm 1 đáp án:</span>
                   <span className="font-semibold">
-                    {examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "single_choice").length} câu
+                    {examDetail?.questions.filter((q) => q.question_type?.code === "single_choice").length} câu
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Trắc nghiệm nhiều đáp án:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "multiple_select").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "multiple_select").length} câu</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Kéo thả:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "drag_drop").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "drag_drop").length} câu</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Nối cột:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "matching").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "matching").length} câu</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sắp xếp:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "ordering").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "ordering").length} câu</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Video có câu hỏi:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "video_popup").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "video_popup").length} câu</span>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
       )}
+
+      <Dialog open={isActionDialogOpen} onOpenChange={setIsActionDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{actionType === "approved" ? "Duyệt đề thi" : "Từ chối đề thi"}</DialogTitle>
+            <DialogDescription>
+              {actionType === "approved"
+                ? "Bạn có chắc chắn muốn duyệt đề thi này?"
+                : "Vui lòng nhập lý do từ chối đề thi"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <h4 className="font-semibold">{examDetail?.name || exam?.name}</h4>
+              <p className="text-sm text-gray-600">
+                {examDetail?.subject.name || exam?.subject.name}
+              </p>
+              <p className="text-sm text-gray-600">Giảng viên: {examDetail?.created_by.full_name || exam?.created_by.full_name}</p>
+            </div>
+            {actionType === "rejected" && (
+              <div className="space-y-2">
+                <label htmlFor="rejection-reason" className="text-sm font-medium">
+                  Lý do từ chối <span className="text-red-500">*</span>
+                </label>
+                <Textarea
+                  id="rejection-reason"
+                  placeholder="Nhập lý do từ chối đề thi..."
+                  value={actionNote}
+                  onChange={(e) => setActionNote(e.target.value)}
+                  rows={4}
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsActionDialogOpen(false)} disabled={isLoadingAction}>
+              Hủy 
+            </Button>
+            <Button
+              onClick={confirmAction}
+              className={actionType === "approved" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+              disabled={actionType === "rejected" && !actionNote.trim() || isLoadingAction}
+            >
+              {isLoadingAction ? <Loader2 className="w-4 h-4 text-center animate-spin" /> : actionType === "approved" ? "Xác nhận duyệt" : "Xác nhận từ chối"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

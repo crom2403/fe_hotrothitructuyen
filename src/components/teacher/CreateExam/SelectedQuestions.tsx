@@ -22,7 +22,12 @@ const SelectedQuestions = ({ selectedQuestions, setSelectedQuestions, removeQues
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    setSelectedQuestions(items);
+    const updatedQuestions = items.map((question, index) => ({
+      ...question,
+      order_index: index + 1,
+    }));
+
+    setSelectedQuestions(updatedQuestions);
   };
 
   return (

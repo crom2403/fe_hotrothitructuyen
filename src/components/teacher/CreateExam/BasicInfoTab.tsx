@@ -77,10 +77,6 @@ const BasicInfoTab = () => {
       setTab1Duration(0);
       return;
     }
-
-    const diffMs = end.getTime() - start.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    setTab1Duration(diffMinutes);
   };
 
   const handleStartTimeChange = (value: string) => {
@@ -311,8 +307,10 @@ const BasicInfoTab = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="duration">Thời gian (phút)</Label>
-            <Input id="duration" type="number" disabled={true} value={tab1Data.duration_minutes} onChange={(e) => setTab1Duration(Number(e.target.value))} />
+            <Label htmlFor="duration">Thời gian làm bài (phút)</Label>
+            <Input id="duration" type="number" value={tab1Data.duration_minutes}
+              defaultValue={60}
+              onChange={(e) => setTab1Duration(Number(e.target.value))} />
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import useExamStore from '@/stores/examStore';
-import { FileText, Settings, Shuffle } from 'lucide-react';
+import { FileText, Shuffle } from 'lucide-react';
 
 interface ExamModeSelectorProps {
   examMode: 'manual' | 'auto';
@@ -8,7 +8,7 @@ interface ExamModeSelectorProps {
 }
 
 const ExamModeSelector = ({ examMode, setExamMode }: ExamModeSelectorProps) => {
-  const { setExamType, tab2Data } = useExamStore();
+  const { setExamType } = useExamStore();
 
   const handleModeChange = (mode: 'manual' | 'auto') => {
     setExamMode(mode);

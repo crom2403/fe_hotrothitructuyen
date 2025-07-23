@@ -39,11 +39,12 @@ interface QuestionFormDialogProps {
   editingQuestion?: QuestionItem | null;
   setEditingQuestion?: (question: QuestionItem | null) => void;
   refetchQuestionsPrivate?: () => void;
+  hide?: boolean
 }
 
 const DEFAULT_OPTIONS = ['A', 'B', 'C', 'D'];
 
-const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, setEditingQuestion, refetchQuestionsPrivate }: QuestionFormDialogProps) => {
+const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, setEditingQuestion, refetchQuestionsPrivate, hide }: QuestionFormDialogProps) => {
   const { questionTypes, difficultyLevels } = useAppStore();
   const [open, setOpen] = useState(false);
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
@@ -512,7 +513,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
       }}
     >
       <DialogTrigger>
-        <Button className="bg-primary hover:bg-primary/90 cursor-pointer" onClick={() => setIsDialogOpen(true)}>
+        <Button className={`bg-primary hover:bg-primary/90 cursor-pointer ${hide ? 'hidden' : ''}`} onClick={() => setIsDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Thêm câu hỏi
         </Button>

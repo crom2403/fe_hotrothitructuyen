@@ -15,11 +15,32 @@ import type { ExamResult, ExamStudyGroup, StudentExamResult } from '@/types/Exam
 import path from '@/utils/path';
 import type { AxiosError } from 'axios';
 import { formatDate } from 'date-fns';
-import { ArrowLeft, Award, BookOpen, Calendar, Clock, Download, Eye, Filter, MoreHorizontal, Search, TrendingUp, Users } from 'lucide-react';
+import { ArrowLeft, Award, BarChart3, BookOpen, Calendar, Clock, Download, Eye, Filter, MoreHorizontal, PieChartIcon, Search, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import StudentExamResultDialog from './StudentExamResultDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+} from "recharts";
+
+
+const COLORS = ["#22c55e", "#3b82f6", "#eab308", "#ef4444", "#8b5cf6", "#f97316"]
 
 const ExamResultDetail = () => {
   const { exam_id, study_group_id } = useParams();
@@ -29,7 +50,7 @@ const ExamResultDetail = () => {
   const exam = location.state?.exam as ExamStudyGroup | undefined;
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [studentExamResult, setStudentExamResult] = useState<StudentExamResult | null>(null); // Thay đổi thành null để tránh undefined
+  const [studentExamResult, setStudentExamResult] = useState<StudentExamResult | null>(null);
   const [isStudentExamResultLoading, setIsStudentExamResultLoading] = useState<boolean>(false);
   const [isStudentExamResultOpen, setIsStudentExamResultOpen] = useState<boolean>(false);
 
@@ -62,7 +83,7 @@ const ExamResultDetail = () => {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
-      setIsStudentExamResultOpen(false); 
+      setIsStudentExamResultOpen(false);
     } finally {
       setIsStudentExamResultLoading(false);
     }
@@ -155,6 +176,48 @@ const ExamResultDetail = () => {
   const passRate = examResult.length > 0 ? ((examResult.filter((r) => (r.exam_attempt_score || 0) >= exam.pass_points).length / examResult.length) * 100).toFixed(0) : 0;
   const completionRate = totalStudents > 0 ? ((completedStudents / totalStudents) * 100).toFixed(0) : 0;
 
+  const passFailData = [
+    { name: "Đậu", value: examResult.filter((r) => r.exam_attempt_score >= exam.pass_points).length, fill: "#22c55e" },
+    { name: "Rớt", value: examResult.filter((r) => r.exam_attempt_score < exam.pass_points).length, fill: "#ef4444" },
+    // { name: "Chưa thi", value: examResult.filter((r) => r.exam_attempt_submitted_at === null).length, fill: "#6b7280" },
+  ]
+
+  const gradeDistribution = [
+    { grade: "Xuất sắc", count: examResult.filter((r) => r.exam_attempt_score >= 8.5).length },
+    { grade: "Khá", count: examResult.filter((r) => r.exam_attempt_score >= 7 && r.exam_attempt_score < 8.5).length },
+    { grade: "Trung bình", count: examResult.filter((r) => r.exam_attempt_score >= 5.5 && r.exam_attempt_score < 7).length },
+    { grade: "Yếu", count: examResult.filter((r) => r.exam_attempt_score > 0 && r.exam_attempt_score < 5.5).length },
+  ]
+
+  const timeDistribution = [
+    { range: "0-30 phút", count: examResult.filter((r) => Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 30).length },
+    {
+      range: "31-45 phút",
+      count: examResult.filter(
+        (r) =>
+          Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) > 30 &&
+          Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 45
+      ).length,
+    },
+    {
+      range: "46-60 phút",
+      count: examResult.filter(
+        (r) =>
+          Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) > 45 &&
+          Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 60
+      ).length,
+    },
+  ];
+
+  const scoreDistribution = [
+    { range: "0-2", count: examResult.filter((r) => r.exam_attempt_score >= 0 && r.exam_attempt_score < 2).length },
+    { range: "2-4", count: examResult.filter((r) => r.exam_attempt_score >= 2 && r.exam_attempt_score < 4).length },
+    { range: "4-5.5", count: examResult.filter((r) => r.exam_attempt_score >= 4 && r.exam_attempt_score < 5.5).length },
+    { range: "5.5-7", count: examResult.filter((r) => r.exam_attempt_score >= 5.5 && r.exam_attempt_score < 7).length },
+    { range: "7-8.5", count: examResult.filter((r) => r.exam_attempt_score >= 7 && r.exam_attempt_score < 8.5).length },
+    { range: "8.5-10", count: examResult.filter((r) => r.exam_attempt_score >= 8.5 && r.exam_attempt_score <= 10).length },
+  ]
+
   return (
     <>
       {isLoading ? (
@@ -222,86 +285,197 @@ const ExamResultDetail = () => {
             <StatCard title="Tỷ lệ hoàn thành" value={`${completionRate}%`} description={`Sinh viên đã thi`} icon={<Clock className="w-4 h-4" />} color="text-yellow-500" />
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Kết quả chi tiết</CardTitle>
-              <CardDescription>Danh sách kết quả thi của sinh viên trong lớp học phần</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Tìm kiếm theo tên hoặc mã sinh viên..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+          <Tabs defaultValue="charts" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="charts" className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Thống kê & Biểu đồ
+              </TabsTrigger>
+              <TabsTrigger value="details" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Chi tiết kết quả
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="charts" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Biểu đồ tròn tỷ lệ đậu/rớt */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <PieChartIcon className="w-5 h-5" />
+                      Tỷ lệ đậu/rớt
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className='p-2'>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <PieChart>
+                        <Pie
+                          data={passFailData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={70}
+                          outerRadius={90}
+                          paddingAngle={3}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {passFailData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Phân loại học lực</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={gradeDistribution}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="grade" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                          {gradeDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Biểu đồ thời gian hoàn thành */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Thời gian hoàn thành</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <AreaChart data={timeDistribution}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="range" />
+                        <YAxis />
+                        <Tooltip />
+                        <Area type="monotone" dataKey="count" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.6} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Phân bố điểm số</CardTitle>
+                    <CardDescription>Số lượng sinh viên theo từng khoảng điểm</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={scoreDistribution}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="range" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                          {scoreDistribution.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="details">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Kết quả chi tiết</CardTitle>
+                  <CardDescription>Danh sách kết quả thi của sinh viên trong lớp học phần</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Tìm kiếm theo tên hoặc mã sinh viên..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+                      </div>
+                    </div>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-full sm:w-48">
+                        <Filter className="w-4 h-4 mr-2" />
+                        <SelectValue placeholder="Lọc theo trạng thái" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả</SelectItem>
+                        <SelectItem value="completed">Đã hoàn thành</SelectItem>
+                        <SelectItem value="pending">Chưa thi</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-48">
-                    <Filter className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Lọc theo trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả</SelectItem>
-                    <SelectItem value="completed">Đã hoàn thành</SelectItem>
-                    <SelectItem value="pending">Chưa thi</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Mã SV</TableHead>
-                      <TableHead>Họ và tên</TableHead>
-                      <TableHead className="text-center">Điểm</TableHead>
-                      <TableHead className="text-center">Xếp loại</TableHead>
-                      <TableHead className="text-center">Thời gian</TableHead>
-                      <TableHead className="text-center">Hoàn thành</TableHead>
-                      <TableHead className="text-center">Trạng thái</TableHead>
-                      <TableHead>Thao tác</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredResults.map((result) => (
-                      <TableRow key={result.exam_attempt_id}>
-                        <TableCell className="font-medium">{result.student_code}</TableCell>
-                        <TableCell>{result.student_full_name}</TableCell>
-                        <TableCell className="text-center font-semibold">{result.exam_attempt_score > 0 ? result.exam_attempt_score.toFixed(2) : 0}</TableCell>
-                        <TableCell className="text-center">{getScoreBadge(result.exam_attempt_score)}</TableCell>
-                        <TableCell className="text-center">{result.exam_attempt_duration_seconds ? result.exam_attempt_duration_seconds : '-'}</TableCell>
-                        <TableCell className="text-center">{result.exam_attempt_submitted_at ? formatDate(result.exam_attempt_submitted_at, 'dd/MM/yyyy HH:mm:ss') : '-'}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant={result.exam_attempt_submitted_at === null ? 'secondary' : 'default'}>{result.exam_attempt_submitted_at === null ? 'Chưa thi' : 'Đã thi'}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {result.exam_attempt_id && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem onClick={() => handleViewExam(result.exam_attempt_id)}>
-                                  <Eye className="mr-2 h-4 w-4 text-green-500" />
-                                  Xem bài thi
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDownloadWord(result.exam_attempt_id)}>
-                                  <Download className="mr-2 h-4 w-4 text-blue-500" />
-                                  Xuất Word
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              {filteredResults.length === 0 && <div className="text-center py-8 text-muted-foreground">Không tìm thấy kết quả nào phù hợp với bộ lọc</div>}
-            </CardContent>
-          </Card>
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Mã SV</TableHead>
+                          <TableHead>Họ và tên</TableHead>
+                          <TableHead className="text-center">Điểm</TableHead>
+                          <TableHead className="text-center">Xếp loại</TableHead>
+                          <TableHead className="text-center">Thời gian</TableHead>
+                          <TableHead className="text-center">Hoàn thành</TableHead>
+                          <TableHead className="text-center">Trạng thái</TableHead>
+                          <TableHead>Thao tác</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredResults.map((result) => (
+                          <TableRow key={result.exam_attempt_id}>
+                            <TableCell className="font-medium">{result.student_code}</TableCell>
+                            <TableCell>{result.student_full_name}</TableCell>
+                            <TableCell className="text-center font-semibold">{result.exam_attempt_score > 0 ? result.exam_attempt_score.toFixed(2) : 0}</TableCell>
+                            <TableCell className="text-center">{getScoreBadge(result.exam_attempt_score)}</TableCell>
+                            <TableCell className="text-center">{result.exam_attempt_duration_seconds ? result.exam_attempt_duration_seconds : '-'}</TableCell>
+                            <TableCell className="text-center">{result.exam_attempt_submitted_at ? formatDate(result.exam_attempt_submitted_at, 'dd/MM/yyyy HH:mm:ss') : '-'}</TableCell>
+                            <TableCell className="text-center">
+                              <Badge variant={result.exam_attempt_submitted_at === null ? 'secondary' : 'default'}>{result.exam_attempt_submitted_at === null ? 'Chưa thi' : 'Đã thi'}</Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              {result.exam_attempt_id && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => handleViewExam(result.exam_attempt_id)}>
+                                      <Eye className="mr-2 h-4 w-4 text-green-500" />
+                                      Xem bài thi
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleDownloadWord(result.exam_attempt_id)}>
+                                      <Download className="mr-2 h-4 w-4 text-blue-500" />
+                                      Xuất Word
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {filteredResults.length === 0 && <div className="text-center py-8 text-muted-foreground">Không tìm thấy kết quả nào phù hợp với bộ lọc</div>}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
       <Dialog open={isStudentExamResultOpen} onOpenChange={setIsStudentExamResultOpen}>
