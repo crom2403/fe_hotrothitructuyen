@@ -115,36 +115,6 @@ const Overview = () => {
     }
   };
 
-  const recentResults = [
-    {
-      id: 1,
-      title: 'Kiểm tra - Hệ điều hành',
-      subject: 'Hệ điều hành',
-      score: 8.5,
-      maxScore: 10,
-      completedAt: '2024-12-01',
-      status: 'Đạt',
-    },
-    {
-      id: 2,
-      title: 'Bài tập - Thuật toán',
-      subject: 'Thuật toán',
-      score: 7.2,
-      maxScore: 10,
-      completedAt: '2024-11-28',
-      status: 'Đạt',
-    },
-    {
-      id: 3,
-      title: 'Thực hành - Java',
-      subject: 'Lập trình Java',
-      score: 9.1,
-      maxScore: 10,
-      completedAt: '2024-11-25',
-      status: 'Đạt',
-    },
-  ];
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'opening':
