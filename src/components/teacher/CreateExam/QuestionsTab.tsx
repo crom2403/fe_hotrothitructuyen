@@ -6,9 +6,16 @@ import type { QuestionItem } from "@/types/questionType";
 import QuestionList from "./QuestionList";
 import useExamStore from "@/stores/examStore";
 import AutoMode from "./AutoMode";
+import type { AxiosError } from "axios";
+import { toast } from "sonner";
+import { apiGetRandomQuestions } from "@/services/teacher/createExam";
 
 interface QuestionTabProps {
   selectedSubjectId: string;
+}
+
+interface RandomQuestion {
+  data: QuestionItem[];
 }
 
 const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
@@ -51,10 +58,33 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
     );
   };
 
-  const generateAutoExam = () => {
+  const generateAutoExam = async () => {
     setIsLoading(true);
-    console.log("generateAutoExam");
-    setIsLoading(false);
+    try{
+      const response = await apiGetRandomQuestions(selectedSubjectId, tab2Data.difficulty.easy, tab2Data.difficulty.medium, tab2Data.difficulty.hard);
+      if (response.status === 200) {
+        if (response.status === 200) {
+          const questions = response.data || []; // Xử lý nếu data.data là undefined
+          console.log(questions);
+          if (!Array.isArray(questions)) {
+            throw new Error("Dữ liệu câu hỏi không hợp lệ từ API");
+          }
+          setListQuestionsFull(questions);
+          setListQuestions(
+            questions.map((q, index) => ({
+              question_id: q.id,
+              order_index: index + 1,
+            })),
+          );
+        }
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -98,6 +128,11 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
               </CardContent>
             </Card>
             <AutoMode examMode={examMode} isLoading={isLoading} generateAutoExam={generateAutoExam} />
+            <SelectedQuestions
+              selectedQuestions={commonProps.list_questions}
+              setSelectedQuestions={(questions) => setListQuestionsFull(questions)}
+              removeQuestionFromExam={removeQuestionFromExam}
+            />
           </div>
         </div>
       )}

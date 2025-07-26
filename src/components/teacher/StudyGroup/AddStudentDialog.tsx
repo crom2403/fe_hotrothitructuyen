@@ -8,6 +8,7 @@ import { apiGetUsers } from '@/services/admin/user';
 import { apiAddStudentToStudyGroup, apiGetStudyGroup } from '@/services/teacher/studyGroup';
 import type { StudyGroupInfo, StudyGroupResponse } from '@/types/studyGroupType';
 import type { UserInfo, UserResponse } from '@/types/userType';
+import { useDebounce } from '@/utils/functions';
 import type { AxiosError } from 'axios';
 import { Import, Loader2, Search, UserPlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -31,6 +32,7 @@ const AddStudentDialog = ({ open, onOpenChange, handleGetStudyGroup }: AddStuden
   const [isLoadingStudent, setIsLoadingStudent] = useState(false);
   const [openStudent, setOpenStudent] = useState(false);
   const [isLoadingAddStudent, setIsLoadingAddStudent] = useState(false);
+  const searchDebound = useDebounce(searchStudent, 500);
 
   const handleGetStudyGroups = async () => {
     setIsLoadingStudyGroup(true);
@@ -51,7 +53,7 @@ const AddStudentDialog = ({ open, onOpenChange, handleGetStudyGroup }: AddStuden
   const handleGetStudent = async () => {
     setIsLoadingStudent(true);
     try {
-      const response = await apiGetUsers(1, 'student', searchStudent, 100);
+      const response = await apiGetUsers(1, 'student', searchDebound, 100);
       if (response.status === 200) {
         setStudent(response.data);
       }
@@ -74,7 +76,7 @@ const AddStudentDialog = ({ open, onOpenChange, handleGetStudyGroup }: AddStuden
     if (openStudent) {
       handleGetStudent();
     }
-  }, [openStudent, searchStudent]);
+  }, [openStudent, searchDebound]);
 
   const handleSelectStudyGroup = (studyGroup: StudyGroupInfo) => {
     setSelectedStudyGroup(studyGroup);

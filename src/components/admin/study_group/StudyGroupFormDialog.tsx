@@ -63,12 +63,15 @@ const StudyGroupFormDialog = ({
   const selectedYear = form.watch('academic_year');
   const selectedTeacher = form.watch('teacher_id');
 
-  const handleGetAssignedSubjects = async () => {
-    if (!selectedTeacher) return;
+  const handleGetAssignedSubjects = async (teacherId: string) => {
+    if (!teacherId) return;
     setIsLoadingAssignedSubjects(true);
     try {
-      const response = await apiGetAssignedSubjectByTeacher(selectedTeacher);
+      const response = await apiGetAssignedSubjectByTeacher(teacherId);
       setAssignedSubjects(response.data);
+      if (editingStudyGroup && response.data.some((s) => s.subject.id === editingStudyGroup.subject_id)) {
+        form.setValue('subject_id', editingStudyGroup.subject_id);
+      }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
@@ -79,26 +82,40 @@ const StudyGroupFormDialog = ({
   };
 
   useEffect(() => {
-    if (selectedTeacher) {
-      handleGetAssignedSubjects();
+    if (selectedTeacher && !editingStudyGroup) {
+      handleGetAssignedSubjects(selectedTeacher);
     }
-  }, [selectedTeacher, isOpen]);
+  }, [selectedTeacher, isOpen, editingStudyGroup]);
 
   useEffect(() => {
-    if (selectedYear && isOpen && selectedYear !== prevYearRef.current) {
+    if (isOpen && editingStudyGroup && selectedTeacher) {
+      handleGetAssignedSubjects(selectedTeacher);
+    }
+  }, [isOpen, editingStudyGroup, selectedTeacher]);
+
+  useEffect(() => {
+    if (selectedYear && isOpen && selectedYear !== prevYearRef.current && !editingStudyGroup) {
       onYearChange(selectedYear);
       prevYearRef.current = selectedYear;
     }
-  }, [selectedYear, isOpen, onYearChange]);
+  }, [selectedYear, isOpen, onYearChange, editingStudyGroup]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button
           className="bg-primary hover:bg-primary/90 cursor-pointer"
           onClick={() => {
             setEditingStudyGroup(null);
-            form.reset();
+            form.reset({
+              name: '',
+              subject_id: '',
+              academic_year: '',
+              semester_id: '',
+              teacher_id: '',
+              max_students: 0,
+              description: '',
+            });
           }}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -169,27 +186,38 @@ const StudyGroupFormDialog = ({
                     <FormItem>
                       <FormLabel>Giáo viên</FormLabel>
                       <Popover open={openTeacher} onOpenChange={setOpenTeacher}>
-                        <PopoverTrigger>
-                          <FormControl>
-                            <Button variant="outline" role="combobox" className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}>
-                              {isLoadingTeachers ? (
-                                <>
-                                  <span>Đang tải...</span>
-                                  <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                                </>
-                              ) : (
-                                <>
-                                  {field.value ? teachers.find((teacher) => teacher.id === field.value)?.code + ' - ' + teachers.find((teacher) => teacher.id === field.value)?.name : 'Chọn giáo viên'}
-                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </>
-                              )}
-                            </Button>
-                          </FormControl>
+                        <PopoverTrigger asChild>
+                          <Button
+                            disabled={!!editingStudyGroup}
+                            type="button"
+                            variant="outline"
+                            role="combobox"
+                            className={cn('w-full justify-between', !field.value && 'text-muted-foreground')}
+                          >
+                            {isLoadingTeachers ? (
+                              <>
+                                <span>Đang tải...</span>
+                                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                              </>
+                            ) : (
+                              <>
+                                {field.value ? teachers.find((teacher) => teacher.id === field.value)?.code + ' - ' + teachers.find((teacher) => teacher.id === field.value)?.name : 'Chọn giáo viên'}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </>
+                            )}
+                          </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[400px] max-h-[300px] overflow-y-auto">
+                        <PopoverContent className={cn("w-[400px] max-h-[300px] overflow-y-auto", !!editingStudyGroup && "pointer-events-none")}>
                           <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                            <Input type="text" placeholder="Tìm kiếm theo tên, mã giảng viên..." value={teacherSearchTerm} onChange={(e) => setTeacherSearchTerm(e.target.value)} className="pl-10" />
+                            <Input
+                              type="text"
+                              placeholder="Tìm kiếm theo tên, mã giảng viên..."
+                              value={teacherSearchTerm}
+                              onChange={(e) => setTeacherSearchTerm(e.target.value)}
+                              className="pl-10"
+                              disabled={!!editingStudyGroup}
+                            />
                           </div>
                           <div className="max-h-[300px] overflow-y-auto">
                             {isLoadingTeachers ? (
@@ -203,8 +231,10 @@ const StudyGroupFormDialog = ({
                                     key={teacher.id}
                                     className="p-2 hover:bg-gray-100 cursor-pointer rounded-md flex items-center"
                                     onClick={() => {
-                                      form.setValue('teacher_id', teacher.id);
-                                      setOpenTeacher(false);
+                                      if (!editingStudyGroup) {
+                                        form.setValue('teacher_id', teacher.id);
+                                        setOpenTeacher(false);
+                                      }
                                     }}
                                   >
                                     <Check className={cn('mr-2 h-4 w-4', field.value === teacher.id ? 'opacity-100' : 'opacity-0')} />
@@ -229,7 +259,11 @@ const StudyGroupFormDialog = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Môn học</FormLabel>
-                      <Select onValueChange={(value) => form.setValue('subject_id', value)} value={field.value} disabled={!selectedTeacher}>
+                      <Select
+                        onValueChange={(value) => form.setValue('subject_id', value)}
+                        value={field.value}
+                        disabled={!selectedTeacher || !!editingStudyGroup}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder={isLoadingAssignedSubjects ? 'Đang tải môn học...' : 'Chọn môn học'} />
                         </SelectTrigger>
@@ -268,6 +302,7 @@ const StudyGroupFormDialog = ({
                             form.setValue('semester_id', '');
                           }}
                           value={field.value}
+                          disabled={!!editingStudyGroup}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder={isLoadingAcademicYears ? 'Đang tải năm học...' : 'Chọn năm học'} />
@@ -294,9 +329,15 @@ const StudyGroupFormDialog = ({
                     <FormItem>
                       <FormLabel>Học kỳ</FormLabel>
                       <FormControl>
-                        <Select onValueChange={(value) => form.setValue('semester_id', value)} value={form.watch('semester_id')} disabled={!form.watch('academic_year')}>
+                        <Select
+                          onValueChange={(value) => form.setValue('semester_id', value)}
+                          value={form.watch('semester_id')}
+                          disabled={!form.watch('academic_year') || !!editingStudyGroup}
+                        >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder={form.watch('academic_year') ? (isLoadingSemesters ? 'Đang tải học kỳ...' : 'Chọn học kỳ') : 'Chọn năm học trước'} />
+                            <SelectValue
+                              placeholder={form.watch('academic_year') ? (isLoadingSemesters ? 'Đang tải học kỳ...' : 'Chọn học kỳ') : 'Chọn năm học trước'}
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             {semestersPerYear.map((semester) => (

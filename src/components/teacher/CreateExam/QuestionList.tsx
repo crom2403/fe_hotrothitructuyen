@@ -22,8 +22,8 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 interface QuestionBankProps {
   selectedQuestions: QuestionItem[];
-  addQuestionToExam: (question: QuestionItem) => void;
-  selectedSubjectId: string;
+  addQuestionToExam?: (question: QuestionItem) => void;
+  selectedSubjectId?: string;
 }
 
 const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId }: QuestionBankProps) => {
