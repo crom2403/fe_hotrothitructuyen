@@ -63,15 +63,6 @@ const BasicInfoTab = () => {
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
 
-    const startDate = start.toISOString().split('T')[0];
-    const endDate = end.toISOString().split('T')[0];
-
-    // if (startDate !== endDate) {
-    //   setEndTimeError("Ngày bắt đầu và kết thúc phải cùng ngày");
-    //   setTab1Duration(0);
-    //   return;
-    // }
-
     if (end <= start) {
       setEndTimeError('Giờ kết thúc phải sau giờ bắt đầu');
       setTab1Duration(0);

@@ -265,6 +265,14 @@ const Overview = () => {
     }
   };
 
+  const getStudentStatusColor = (exam_pass_point: number, score: number) => {
+    if (score >= exam_pass_point) {
+      return 'bg-primary';
+    } else {
+      return 'bg-destructive';
+    }
+  };
+
   const handleViewExam = async (exam_attempt_id: string) => {
     setIsExamResultDetailLoading(true);
     setIsExamResultOpen(true);
@@ -359,7 +367,7 @@ const Overview = () => {
                             <p className={`font-bold ${getScoreColor(result.score, 10)}`}>
                               {result.score === 10 || result.score === 0 ? result.score : result.score.toFixed(2)}/{10}
                             </p>
-                            <Badge variant={getStudentGradeColor(result.exam_pass_point, result.score) === 'bg-green-100 text-green-800' ? 'default' : 'destructive'} className="bg-black rounded-full">
+                            <Badge className={getStudentStatusColor(result.exam_pass_point, result.score)}>
                               {getStudentGradeColor(result.exam_pass_point, result.score) === 'bg-green-100 text-green-800' ? 'Đạt' : 'Không đạt'}
                             </Badge>
                           </div>
