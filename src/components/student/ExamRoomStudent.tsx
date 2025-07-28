@@ -36,7 +36,7 @@ import useCommonStore from '@/stores/commonStore';
 export default function ExamRoomStudent() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
-  const { examId, studyGroupId } = useAppStore();
+  const { examId, studyGroupId, setExamId, setStudyGroupId } = useAppStore();
   const { exam_attempt_id, setExamAttemptId } = useCommonStore();
 
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -50,6 +50,11 @@ export default function ExamRoomStudent() {
   const [examOpened, setExamOpened] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isValidSession, setIsValidSession] = useState(true);
+
+  const handleClearExamStore = () => {
+    setExamId(null);
+    setStudyGroupId(null);
+  };
 
   // Kiểm tra điều kiện hợp lệ và điều hướng nếu cần
   useEffect(() => {
@@ -296,6 +301,7 @@ export default function ExamRoomStudent() {
         studentId: currentUser?.id,
       });
       const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
+      handleClearExamStore();
       navigate(path1);
     } else {
       navigate(path.STUDENT.EXAM_LIST);
