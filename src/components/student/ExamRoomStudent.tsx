@@ -36,7 +36,7 @@ import useCommonStore from '@/stores/commonStore';
 export default function ExamRoomStudent() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
-  const { examId, studyGroupId } = useAppStore();
+  const { examId, studyGroupId, setExamId, setStudyGroupId } = useAppStore();
   const { exam_attempt_id, setExamAttemptId } = useCommonStore();
 
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -46,10 +46,16 @@ export default function ExamRoomStudent() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [examOpened, setExamOpened] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isValidSession, setIsValidSession] = useState(true);
+
+  const handleClearExamStore = () => {
+    setExamId(null);
+    setStudyGroupId(null);
+  };
 
   // Kiểm tra điều kiện hợp lệ và điều hướng nếu cần
   useEffect(() => {
@@ -57,7 +63,7 @@ export default function ExamRoomStudent() {
       setIsValidSession(false);
       toast.error('Thông tin kỳ thi hoặc tài khoản không hợp lệ');
       navigate('/student/study-groups');
-    }
+}
   }, [examId, studyGroupId, currentUser?.id, navigate]);
 
   // Khởi tạo Socket và xử lý các sự kiện
@@ -158,7 +164,7 @@ export default function ExamRoomStudent() {
 
     const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
     return () => clearTimeout(timer);
-  }, [isValidSession, timeLeft, isSubmitted, examOpened]);
+}, [isValidSession, timeLeft, isSubmitted, examOpened]);
 
   // Tải dữ liệu kỳ thi
   useEffect(() => {
@@ -237,6 +243,7 @@ export default function ExamRoomStudent() {
 
   const handleSubmit = async () => {
     if (!socket || isSubmitted || !exam || !isValidSession) return;
+    setIsSubmitting(true);
 
     const submissionData = {
       answers: Object.entries(answers).map(([questionId, answer], index) => {
@@ -248,7 +255,7 @@ export default function ExamRoomStudent() {
           }));
 
           return {
-            question_id: questionId,
+question_id: questionId,
             question_type: question?.question.question_type.code,
             order_index: index + 1,
             answer_content: formattedAnswer,
@@ -287,20 +294,30 @@ export default function ExamRoomStudent() {
     console.log('Dữ liệu bài làm của sinh viên:', JSON.stringify(submissionData, null, 2));
 
     // const data = JSON.stringify(, null, 2);
-    const res = await apiSubmitExam(exam_attempt_id, submissionData);
-    if (res.status === 200 && exam_attempt_id && exam.allow_review_point === true) {
-      toast.success('Nộp bài thi thành công');
-      socket.emit('submitExam', {
-        examId,
-        studyGroupId,
-        studentId: currentUser?.id,
-      });
-      const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
-      navigate(path1);
-    } else {
+    try {
+      const res = await apiSubmitExam(exam_attempt_id, submissionData);
+      if (res.status === 200 && exam_attempt_id && exam.allow_review_point === true) {
+        toast.success('Nộp bài thi thành công');
+        socket.emit('submitExam', {
+          examId,
+          studyGroupId,
+          studentId: currentUser?.id,
+        });
+        const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
+        navigate(path1);
+      } else {
+        navigate(path.STUDENT.EXAM_LIST);
+      }
+      console.log('res', res);
+    } catch (error) {
+      console.error('Error submitting exam:', error);
+      toast.error('Lỗi khi nộp bài thi');
       navigate(path.STUDENT.EXAM_LIST);
+    } finally {
+      setIsSubmitting(false);
+      setIsSubmitted(true);
     }
-    console.log('res', res);
+    // console.log('res', res);
   };
 
   const getProgress = () => {
@@ -335,7 +352,7 @@ export default function ExamRoomStudent() {
   const currentQ = exam.exam_questions[currentQuestion]?.question;
   if (!currentQ) {
     return (
-      <div className="flex justify-center items-center h-screen">
+<div className="flex justify-center items-center h-screen">
         <div className="text-center space-y-4">
           <h3 className="text-xl font-semibold text-gray-700">Không tìm thấy câu hỏi</h3>
           <p className="text-gray-500">Đã xảy ra lỗi khi tải câu hỏi. Vui lòng thử lại.</p>
@@ -367,6 +384,13 @@ export default function ExamRoomStudent() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 p-4">
+      
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <Loading />
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -407,7 +431,7 @@ export default function ExamRoomStudent() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <Card className="lg:col-span-3">
+<Card className="lg:col-span-3">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -463,7 +487,7 @@ export default function ExamRoomStudent() {
                     if (leftId && rightId) {
                       newConnections[leftId] = rightId;
                     }
-                    handleAnswerChange(currentQ.id, newConnections);
+handleAnswerChange(currentQ.id, newConnections);
                   }
                 }}
               />
@@ -524,7 +548,7 @@ export default function ExamRoomStudent() {
                     </AlertDialogContent>
                   </AlertDialog>
                 ) : (
-                  <Button onClick={() => setCurrentQuestion(Math.min(exam.exam_questions.length - 1, currentQuestion + 1))}>
+<Button onClick={() => setCurrentQuestion(Math.min(exam.exam_questions.length - 1, currentQuestion + 1))}>
                     Câu tiếp
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
