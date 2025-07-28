@@ -46,6 +46,7 @@ export default function ExamRoomStudent() {
   const [timeLeft, setTimeLeft] = useState(0);
   const [flaggedQuestions, setFlaggedQuestions] = useState<Set<string>>(new Set());
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [examOpened, setExamOpened] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -242,6 +243,7 @@ export default function ExamRoomStudent() {
 
   const handleSubmit = async () => {
     if (!socket || isSubmitted || !exam || !isValidSession) return;
+    setIsSubmitting(true);
 
     const submissionData = {
       answers: Object.entries(answers).map(([questionId, answer], index) => {
@@ -292,21 +294,30 @@ export default function ExamRoomStudent() {
     console.log('Dữ liệu bài làm của sinh viên:', JSON.stringify(submissionData, null, 2));
 
     // const data = JSON.stringify(, null, 2);
-    const res = await apiSubmitExam(exam_attempt_id, submissionData);
-    if (res.status === 200 && exam_attempt_id && exam.allow_review_point === true) {
-      toast.success('Nộp bài thi thành công');
-      socket.emit('submitExam', {
-        examId,
-        studyGroupId,
-        studentId: currentUser?.id,
-      });
-      const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
-      handleClearExamStore();
-      navigate(path1);
-    } else {
+    try {
+      const res = await apiSubmitExam(exam_attempt_id, submissionData);
+      if (res.status === 200 && exam_attempt_id && exam.allow_review_point === true) {
+        toast.success('Nộp bài thi thành công');
+        socket.emit('submitExam', {
+          examId,
+          studyGroupId,
+          studentId: currentUser?.id,
+        });
+        const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
+        navigate(path1);
+      } else {
+        navigate(path.STUDENT.EXAM_LIST);
+      }
+      console.log('res', res);
+    } catch (error) {
+      console.error('Error submitting exam:', error);
+      toast.error('Lỗi khi nộp bài thi');
       navigate(path.STUDENT.EXAM_LIST);
+    } finally {
+      setIsSubmitting(false);
+      setIsSubmitted(true);
     }
-    console.log('res', res);
+    // console.log('res', res);
   };
 
   const getProgress = () => {
@@ -373,6 +384,12 @@ export default function ExamRoomStudent() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 p-4">
+      {isSubmitting && (
+        <div className="fixed inset-0 flex justify-center items-center z-50">
+          <Loading />
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

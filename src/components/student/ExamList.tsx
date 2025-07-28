@@ -22,7 +22,11 @@ interface Exam {
   test_type: string;
   exam_question_count: string;
   subject_name: string;
-  exam_attempts: string[];
+  exam_attempts: {
+    id: string;
+    student_id: string;
+    handle_status: string;
+  }[];
 }
 
 interface Subject {
@@ -292,7 +296,12 @@ const ExamList = () => {
                           </span>
                         </div>
                         <div className="mt-6">
-                          {handleGetButton(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)), exam.id, group.id, exam.exam_attempts.length > 0 ? true : false)}
+                          {handleGetButton(
+                            handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)),
+                            exam.id,
+                            group.id,
+                            exam.exam_attempts.length > 0 ? exam.exam_attempts[0].handle_status === 'submitted' : false,
+                          )}
                         </div>
                       </CardContent>
                     </Card>

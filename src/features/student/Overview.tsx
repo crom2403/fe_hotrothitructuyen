@@ -332,7 +332,7 @@ const Overview = () => {
                                 {getStatusText(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)))}
                               </Badge>
                               {handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)) === 'opening' && exam.exam_attempts.length === 0 && (
-                                <Button size="sm" className="bg-black"
+                                <Button size="sm" className="bg-primary text-white hover:bg-primary/90"
                                   onClick={() => handleJoinExamRoom(exam.id, studyGroup.id)}
                                 >
                                   <Play className="mr-1 h-3 w-3" />
