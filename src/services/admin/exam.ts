@@ -10,7 +10,7 @@ export const apiGetExamList = async (page: number, q: string, status: string, su
     query += `&approval_status=${status}`;
   }
   if (subject && subject !== 'all') {
-    query += `&subject=${subject}`;
+    query += `&subject_id=${subject}`;
   }
   return instance.get(query);
 }

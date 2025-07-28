@@ -114,8 +114,8 @@ const StudyGroupTable = ({
   };
 
   const handleViewExam = async (studyGroupId: string) => {
-    setIsLoadingExams(true);
     setOpenExam(true);
+    setIsLoadingExams(true);
     await handleGetExams(studyGroupId);
   };
 

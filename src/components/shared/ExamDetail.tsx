@@ -20,8 +20,9 @@ import DragDropDetail from './QuestionTypeDetail/DragDropDetail';
 import VideoPopupDetail from './QuestionTypeDetail/VideoPopupDetail';
 import { DialogContent, DialogDescription, DialogTitle, DialogHeader, Dialog, DialogFooter } from '../ui/dialog';
 import { Textarea } from '../ui/textarea';
+import useAuthStore from '@/stores/authStore';
 
-interface ExamDetailResponse {
+export interface ExamDetailResponse {
   id: string;
   created_at: string;
   updated_at: string;
@@ -53,14 +54,20 @@ interface ExamDetailResponse {
   point_scale: {
     name: string;
   };
-  questions:  QuestionItem[];
+  study_groups: {
+    id: string;
+    name: string;
+  }[];
+  questions: QuestionItem[];
   exam_type: {
     name: string;
+    code: string;
   };
 }
 
 const ExamDetail = () => {
   const { exam_id } = useParams();
+  const { currentUser } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const exam = location.state?.exam;
@@ -202,7 +209,7 @@ const ExamDetail = () => {
     try {
       const data = {
         approval_status: actionType === "approved" ? "approved" : "rejected",
-      ...(actionType === "rejected" && { reason_reject: actionNote })
+        ...(actionType === "rejected" && { reason_reject: actionNote })
       }
       const response = await apiApproveExam(exam_id, data)
       if (response.status === 200) {
@@ -239,16 +246,21 @@ const ExamDetail = () => {
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-4">
-              <Link to={path.ADMIN.EXAM}>
+              {currentUser?.role_code === "admin" ? <Link to={path.ADMIN.EXAM}>
                 <Button variant="outline" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Quay lại
                 </Button>
-              </Link>
+              </Link> : <Link to={path.TEACHER.EXAM_MANAGEMENT}>
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Quay lại
+                </Button>
+              </Link>}
               {getStatusBadge(
-                exam?.approval_at === null
+                (exam?.approval_at === null || exam?.approval_status === "pending")
                   ? 'Chờ duyệt'
-                  : exam?.approval_at
+                  : exam?.approval_status === "approved"
                     ? 'Đã duyệt'
                     : 'Bị từ chối'
               )}
@@ -256,20 +268,27 @@ const ExamDetail = () => {
 
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{examDetail?.name || exam?.name}</h1>
             <p className="text-gray-600 mb-4">
-              {examDetail?.subject.name || exam?.subject.name}
+              {examDetail?.subject.name}
             </p>
 
             <div className="flex items-center gap-4 mb-4">
-              <Avatar className="w-12 h-12">
-                <AvatarImage src={exam?.created_by.avatar || '/placeholder.svg'} alt={exam?.created_by.full_name} />
-                <AvatarFallback>
-                  <User className="w-6 h-6" />
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium">{exam?.created_by.full_name}</p>
-                <p className="text-sm text-gray-600">{exam?.created_by.code}</p>
-              </div>
+              {
+                currentUser?.role_code === "admin" && (
+                  <>
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={exam?.created_by.avatar || '/placeholder.svg'} alt={exam?.created_by.full_name} />
+                      <AvatarFallback>
+                        <User className="w-6 h-6" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{exam?.created_by.full_name}</p>
+                      <p className="text-sm text-gray-600">{exam?.created_by.code}</p>
+                    </div>
+                  </>
+                )
+              }
+
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -283,7 +302,7 @@ const ExamDetail = () => {
               </div>
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground" />
-                <span>Câu hỏi: {exam?.exam_questions.length}</span>
+                <span>Câu hỏi: {examDetail?.questions.length}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-muted-foreground" />
@@ -296,7 +315,7 @@ const ExamDetail = () => {
             </div>
           </div>
 
-          {(exam?.approval_at === null || exam?.approval_at === null) && (
+          {currentUser?.role_code === "admin" && (exam?.approval_at === null || exam?.approval_at === null) && (
             <div className="flex gap-2 ml-4">
               <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleAction('approved')}>
                 <CheckCircle className="w-4 h-4 mr-2" />
@@ -323,7 +342,7 @@ const ExamDetail = () => {
                 <CardTitle className="text-lg font-bold">Mô tả đề thi</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700">{examDetail?.description || exam?.description}</p>
+                <p className="text-gray-700">{examDetail?.description}</p>
                 {examDetail?.instructions && (
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
                     <h4 className="font-medium text-blue-900 mb-2">Hướng dẫn làm bài:</h4>
@@ -420,11 +439,11 @@ const ExamDetail = () => {
           </DialogHeader>
           <div className="py-4">
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <h4 className="font-semibold">{examDetail?.name || exam?.name}</h4>
+              <h4 className="font-semibold">{examDetail?.name}</h4>
               <p className="text-sm text-gray-600">
-                {examDetail?.subject.name || exam?.subject.name}
+                {examDetail?.subject.name}
               </p>
-              <p className="text-sm text-gray-600">Giảng viên: {examDetail?.created_by.full_name || exam?.created_by.full_name}</p>
+              <p className="text-sm text-gray-600">Giảng viên: {examDetail?.created_by.full_name}</p>
             </div>
             {actionType === "rejected" && (
               <div className="space-y-2">
@@ -443,7 +462,7 @@ const ExamDetail = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsActionDialogOpen(false)} disabled={isLoadingAction}>
-              Hủy 
+              Hủy
             </Button>
             <Button
               onClick={confirmAction}

@@ -23,3 +23,9 @@ export const apiExportUser = async () =>
   instance.get(`/admin/users/export`, {
     responseType: 'arraybuffer', // Đổi từ 'blob' sang 'arraybuffer'
   });
+
+export const apiDeleteUser = async (id: string) => instance.delete(apiRoutes.admin.user + `/${id}` + `/delete`);
+
+export const apiBLockUser = async (id: string, is_active: boolean) => instance.put(apiRoutes.admin.user + `/${id}` + `/block`, { is_active });
+
+export const apiUpdateUser = async (id: string, data) => instance.put(apiRoutes.admin.user + `/${id}` + `/update`, data);

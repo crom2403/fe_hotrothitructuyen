@@ -17,6 +17,10 @@ import StatCard from '../common/StatCard';
 interface ExamResult {
   id: string;
   exam_name: string;
+  exam_type: string;
+  exam_allow_review: boolean;
+  exam_show_correct_answer: boolean;
+  exam_allow_review_point: boolean;
   exam_subject: string;
   created_at: string;
   duration_seconds: number;
@@ -25,6 +29,7 @@ interface ExamResult {
   correct_answers: number;
   score: number;
   exam_pass_point: number;
+  submitted_at: string;
 }
 
 const ExamResults = () => {
@@ -33,6 +38,8 @@ const ExamResults = () => {
   const [isExamResultOpen, setIsExamResultOpen] = useState<boolean>(false);
   const [examResultDetail, setExamResultDetail] = useState<StudentExamResult | null>(null);
   const [isExamResultDetailLoading, setIsExamResultDetailLoading] = useState<boolean>(false);
+  const [isTeacherMode, setIsTeacherMode] = useState<boolean>(false);
+
   const averageScore = examResults.reduce((sum, result) => sum + result.score, 0) / examResults.length;
   const totalExams = examResults.length;
   const excellentGrades = examResults.filter((result) => result.score >= 8.5).length;
@@ -57,9 +64,11 @@ const ExamResults = () => {
   };
 
   const handleViewExam = async (exam_attempt_id: string) => {
-    setIsExamResultDetailLoading(true);
     setIsExamResultOpen(true);
+    setIsExamResultDetailLoading(true);
     try {
+      const selectedExam = examResults.find((result) => result.id === exam_attempt_id);
+      setIsTeacherMode(selectedExam ? selectedExam.exam_show_correct_answer : false);
       const response = await apiGetDetailExamAttempt(exam_attempt_id);
       setExamResultDetail(response.data);
     } catch (error) {
@@ -69,7 +78,8 @@ const ExamResults = () => {
     } finally {
       setIsExamResultDetailLoading(false);
     }
-  }
+  };
+
 
   const getStudentGradeColor = (exam_pass_point: number, score: number) => {
     if (score >= exam_pass_point) {
@@ -85,6 +95,18 @@ const ExamResults = () => {
     if (score >= 5) return 'text-yellow-600';
     return 'text-red-600';
   };
+
+  const getExamType = (exam_type: string) => {
+    if (exam_type === "exercise") return "Kiểm tra";
+    if (exam_type === "final") return "Thi cuối kỳ";
+    return "Giữa kỳ";
+  }
+
+  const getExamTypeColor = (exam_type: string) => {
+    if (exam_type === "exercise") return "bg-blue-100 text-blue-800";
+    if (exam_type === "final") return "bg-red-100 text-red-800";
+    return "bg-yellow-100 text-yellow-800";
+  }
 
   return (
     isLoading ? <div className="flex justify-center items-center h-screen">
@@ -138,14 +160,19 @@ const ExamResults = () => {
                       <h3 className="text-lg font-semibold">{result.exam_name}</h3>
                       <p className="text-sm text-gray-600">{result.exam_subject}</p>
                     </div>
-                    <Badge className={getStudentGradeColor(result.exam_pass_point, result.score)}>{result.score > result.exam_pass_point ? 'Đậu' : 'Rớt'}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={`${getExamTypeColor(result.exam_type)}`}>{getExamType(result.exam_type)}</Badge>
+                      <Badge className={getStudentGradeColor(result.exam_pass_point, result.score)}>{result.score > result.exam_pass_point ? 'Đậu' : 'Rớt'}</Badge>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600">Điểm số</p>
-                      <p className={`text-2xl font-bold ${getPerformanceColor(Number(result.score.toFixed(2)))}`}>{result.score.toFixed(2)}</p>
-                    </div>
+                    {result.exam_allow_review_point &&
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">Điểm số</p>
+                        <p className={`text-2xl font-bold ${getPerformanceColor(Number(result.score.toFixed(2)))}`}>{result.score.toFixed(2)}</p>
+                      </div>
+                    }
 
                     <div className="space-y-2">
                       <p className="text-sm text-gray-600">Tỷ lệ đúng</p>
@@ -177,12 +204,14 @@ const ExamResults = () => {
                       <span>Hoàn thành: {new Date(result.created_at).toLocaleString('vi-VN')}</span>
                     </div>
 
-                    <Button variant="outline" size="sm"
-                      onClick={() => handleViewExam(result.id)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Xem chi tiết
-                    </Button>
+                    {result.exam_allow_review &&
+                      <Button variant="outline" size="sm"
+                        onClick={() => handleViewExam(result.id)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Xem chi tiết
+                      </Button>
+                    }
                   </div>
                 </div>
               ))}
@@ -201,7 +230,7 @@ const ExamResults = () => {
         )}
 
         <Dialog open={isExamResultOpen} onOpenChange={setIsExamResultOpen}>
-          <StudentExamResultDialog studentExamResult={examResultDetail || undefined} isLoading={isExamResultDetailLoading} isTeacher={false} />
+          <StudentExamResultDialog studentExamResult={examResultDetail || undefined} isLoading={isExamResultDetailLoading} isTeacher={isTeacherMode} />
         </Dialog>
       </div>
   );

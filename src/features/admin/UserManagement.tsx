@@ -1,7 +1,7 @@
 import UserFormDialog from '@/components/admin/user/UserFormDialog';
 import UserTable from '@/components/admin/user/UserTable';
-import { apiCreateUser, apiGetUsers } from '@/services/admin/user';
-import type { UserFormData, UserInfo, UserResponse } from '@/types/userType';
+import { apiBLockUser, apiCreateUser, apiGetUserDetail, apiGetUsers, apiUpdateUser } from '@/services/admin/user';
+import type { User, UserFormData, UserInfo, UserResponse } from '@/types/userType';
 import { useDebounce } from '@/utils/functions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { AxiosError } from 'axios';
@@ -39,8 +39,9 @@ const userSchema = z.object({
 
 const UserManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserInfo | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -89,20 +90,47 @@ const UserManagement = () => {
         ...data,
         date_of_birth: data.date_of_birth.toISOString().split('T')[0],
       };
-      const response = await apiCreateUser(formattedData);
-      if (response.status === 200) {
-        toast.success('Tạo người dùng thành công');
-        handleGetUsers();
-        setIsDialogOpen(false);
-        form.reset({
-          code: '',
-          full_name: '',
-          role_code: 'student',
-          phone_number: '',
-          date_of_birth: new Date(),
-          gender: 'male',
-          password: '',
-        });
+
+      if (editingUser) {
+        const updateData = {
+          code: formattedData.code,
+          full_name: formattedData.full_name,
+          role_code: formattedData.role_code,
+          phone_number: formattedData.phone_number,
+          date_of_birth: formattedData.date_of_birth,
+          gender: formattedData.gender,
+        };
+        const response = await apiUpdateUser(editingUser.id, updateData);
+        if (response.status === 200) {
+          toast.success('Cập nhật người dùng thành công');
+          handleGetUsers();
+          setIsDialogOpen(false);
+          form.reset({
+            code: '',
+            full_name: '',
+            role_code: 'student',
+            phone_number: '',
+            date_of_birth: new Date(),
+            gender: 'male',
+            password: '',
+          });
+        }
+      } else {
+        const response = await apiCreateUser(formattedData);
+        if (response.status === 200) {
+          toast.success('Tạo người dùng thành công');
+          handleGetUsers();
+          setIsDialogOpen(false);
+          form.reset({
+            code: '',
+            full_name: '',
+            role_code: 'student',
+            phone_number: '',
+            date_of_birth: new Date(),
+            gender: 'male',
+            password: '',
+          });
+        }
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
@@ -113,17 +141,31 @@ const UserManagement = () => {
     }
   };
 
-  const handleEdit = (user: UserInfo) => {
-    setEditingUser(user as any);
-    setIsDialogOpen(true);
-  };
-
-  const handleToggleStatus = async (userId: string) => {
-    console.log(userId);
-  };
-
-  const handleDelete = async (userId: string) => {
-    console.log(userId);
+  const handleEdit = async (user: UserInfo) => {
+    setIsLoadingEdit(true);
+    try {
+      const response = await apiGetUserDetail(user.id);
+      if (response.status === 200) {
+        const userData = response.data;
+        setEditingUser(userData);
+        form.reset({
+          code: userData.code,
+          full_name: userData.full_name,
+          role_code: userData.role.code as 'admin' | 'teacher' | 'student',
+          phone_number: userData.phone || '',
+          date_of_birth: userData.date_of_birth ? new Date(userData.date_of_birth) : new Date(),
+          gender: userData.gender as 'male' | 'female',
+          password: '123456',
+        });
+        setIsDialogOpen(true);
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingEdit(false);
+    }
   };
 
   const handlePageClick = (page: number) => {
@@ -157,10 +199,10 @@ const UserManagement = () => {
           page={page}
           totalPages={users?.metadata.last_page || 0}
           handleEdit={handleEdit}
-          handleToggleStatus={handleToggleStatus}
-          handleDelete={handleDelete}
           handlePageClick={handlePageClick}
           isLoading={isLoading}
+          handleGetUsers={handleGetUsers}
+          isLoadingEdit={isLoadingEdit}
         />
       </div>
     </div>

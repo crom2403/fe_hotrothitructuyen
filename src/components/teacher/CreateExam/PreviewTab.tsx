@@ -5,13 +5,16 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle } from "lucide-react";
 import useExamStore from "@/stores/examStore";
 import type { QuestionItem } from "@/types/questionType";
+import useUpdateExamStore from "@/stores/updateExamStore";
 
 interface PreviewTabProps {
   selectedQuestions: QuestionItem[];
+  mode: 'create' | 'update';
 }
 
-export function PreviewTab({ selectedQuestions }: PreviewTabProps) {
-  const { tab1Data, tab3Data, commonProps } = useExamStore();
+export function PreviewTab({ selectedQuestions, mode }: PreviewTabProps) {
+  const store = mode === 'create' ? useExamStore : useUpdateExamStore;
+  const { tab1Data, tab3Data, commonProps } = store();
 
   const getDifficultyDistribution = () => {
     const total = selectedQuestions.length;
