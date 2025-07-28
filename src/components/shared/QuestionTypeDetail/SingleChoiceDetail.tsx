@@ -10,11 +10,13 @@ const SingleChoiceDetail = ({ question }: SingleChoiceDetailProps) => {
   const correctAnswer = question?.answer_config.correct;
   const answers = question?.answers || [];
 
+  const orderAnswers = answers.sort((a, b) => a.order_index - b.order_index);
+
   return (
     <div className="space-y-2">
       <p className="font-semibold">Các phương án:</p>
       {
-        answers.map((answer, index) => (
+        orderAnswers.map((answer, index) => (
           <div key={answer.id} className={`p-3 border rounded-md ${answer.content.value === correctAnswer ? 'bg-green-50 border-green-500' : 'bg-white'}`}>
             <div className="flex justify-between items-center">
               <span className="font-medium">

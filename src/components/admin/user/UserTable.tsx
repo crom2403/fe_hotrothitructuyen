@@ -12,10 +12,12 @@ import Paginate from '../../common/Pagination';
 import { useState } from 'react';
 import { Dialog } from '../../ui/dialog';
 import UserDetail from './UserDetail';
-import { apiGetUserDetail } from '@/services/admin/user';
+import { apiBLockUser, apiDeleteUser, apiGetUserDetail } from '@/services/admin/user';
 import type { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import Loading from '@/components/common/Loading';
+import CommonDialog from '@/components/common/CommonDialog';
+import { AlertDialog } from '@/components/ui/alert-dialog';
 
 interface UserTableProps {
   users: UserInfo[];
@@ -26,16 +28,22 @@ interface UserTableProps {
   page: number;
   totalPages: number;
   handleEdit: (user: UserInfo) => void;
-  handleToggleStatus: (userId: string) => Promise<void>;
-  handleDelete: (userId: string) => Promise<void>;
   handlePageClick: (page: number) => void;
   isLoading: boolean;
+  handleGetUsers: () => void;
+  isLoadingEdit: boolean;
 }
 
-const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, totalPages, handleEdit, handleToggleStatus, handleDelete, handlePageClick, isLoading }: UserTableProps) => {
+const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter, page, totalPages, handleEdit, handlePageClick, isLoading, handleGetUsers, isLoadingEdit }: UserTableProps) => {
   const [isOpenDetailUser, setIsOpenDetailUser] = useState(false);
   const [userDetail, setUserDetail] = useState<User | null>(null);
   const [isLoadingUserDetail, setIsLoadingUserDetail] = useState(false);
+  const [isOpenDeleteUser, setIsOpenDeleteUser] = useState(false);
+  const [userId, setUserId] = useState<string>('');
+  const [isOpenToggleStatus, setIsOpenToggleStatus] = useState(false);
+  const [isActive, setIsActive] = useState(false);
+  const [isLoadingToggleStatus, setIsLoadingToggleStatus] = useState(false);
+  const [isLoadingDeleteUser, setIsLoadingDeleteUser] = useState(false);
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -64,6 +72,54 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
       toast.error(errorMessage);
     } finally {
       setIsLoadingUserDetail(false);
+    }
+  };
+
+  const handleOpenDeleteUser = (userId: string) => {
+    setIsOpenDeleteUser(true);
+    setUserId(userId);
+  };
+
+  const handleDelete = async (userId: string) => {
+    setIsLoadingDeleteUser(true);
+    try {
+      const response = await apiDeleteUser(userId);
+      if (response.status === 200) {
+        toast.success('Xóa người dùng thành công');
+        setIsOpenDeleteUser(false);
+        handleGetUsers();
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingDeleteUser(false);
+    }
+  };
+
+  const handleOpenToggleStatus = (userId: string) => {
+    setIsOpenToggleStatus(true);
+    setUserId(userId);
+    setIsActive(users.find((user) => user.id === userId)?.is_active || false);
+  };
+
+  const handleToggleStatus = async (userId: string) => {
+    setIsLoadingToggleStatus(true);
+    try {
+      const isActive = users.find((user) => user.id === userId)?.is_active;
+      const response = await apiBLockUser(userId, !isActive);
+      if (response.status === 200) {
+        toast.success('Khóa tài khoản thành công');
+        setIsOpenToggleStatus(false);
+        handleGetUsers();
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingToggleStatus(false);
     }
   };
 
@@ -138,11 +194,14 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
                             Xem chi tiết
                           </>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(user)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Chỉnh sửa
+                        <DropdownMenuItem onClick={() => handleEdit(user)} disabled={isLoadingEdit}>
+                          <>
+                            {isLoadingEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin text-primary" />}
+                            <Edit className="mr-2 h-4 w-4" />
+                            Chỉnh sửa
+                          </>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleToggleStatus(user.code)}>
+                        <DropdownMenuItem onClick={() => handleOpenToggleStatus(user.id)}>
                           {user.is_active ? (
                             <>
                               <Lock className="mr-2 h-4 w-4" />
@@ -156,7 +215,7 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
                           )}
                         </DropdownMenuItem>
                         {user.role_code !== 'admin' && (
-                          <DropdownMenuItem onClick={() => handleDelete(user.code)} className="text-red-600">
+                          <DropdownMenuItem onClick={() => handleOpenDeleteUser(user.id)} className="text-red-600">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Xóa
                           </DropdownMenuItem>
@@ -184,6 +243,26 @@ const UserTable = ({ users, searchTerm, setSearchTerm, roleFilter, setRoleFilter
           <UserDetail user={userDetail} isLoading={isLoadingUserDetail} />
         </Dialog>
       </CardContent>
+
+      <AlertDialog open={isOpenDeleteUser} onOpenChange={setIsOpenDeleteUser}>
+        <CommonDialog
+          title="xóa người dùng"
+          itemName="người dùng"
+          id={userId}
+          onDelete={handleDelete}
+          isLoading={isLoadingDeleteUser}
+        />
+      </AlertDialog>
+
+      <AlertDialog open={isOpenToggleStatus} onOpenChange={setIsOpenToggleStatus}>
+        <CommonDialog
+          title={isActive ? 'khóa tài khoản' : 'mở khóa tài khoản'}
+          itemName="người dùng"
+          id={userId}
+          onDelete={handleToggleStatus}
+          isLoading={isLoadingToggleStatus}
+        />
+      </AlertDialog>
     </Card>
   );
 };

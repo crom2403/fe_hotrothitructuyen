@@ -13,3 +13,5 @@ export const apiGetAllStudyGroup = async (page: number, q?: string, subject_id?:
 }
 
 export const apiDeleteStudyGroup = async (id: string) => instance.delete(apiRoutes.admin.study_group + `/${id}`)
+
+export const apiUpdateStudyGroup = async (id: string, data: object) => instance.put(apiRoutes.admin.study_group + `/${id}`, data)

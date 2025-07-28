@@ -1,69 +1,119 @@
+import Loading from '@/components/common/Loading';
+import StatCard from '@/components/common/StatCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { apiCreateExamAttempt, apiGetExamResultList, apiGetListExams } from '@/services/student/exam';
+import { apiGetDashboardStats } from '@/services/student/overview';
+import useAppStore from '@/stores/appStore';
+import path from '@/utils/path';
 import { BookOpen, TrendingUp, Clock, Trophy, Play, Eye } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { apiGetDetailExamAttempt } from '@/services/teacher/exam';
+import { Dialog } from '@/components/ui/dialog';
+import StudentExamResultDialog from '@/components/teacher/Exam/StudentExamResultDialog';
+import type { StudentExamResult } from '@/types/ExamStudyGroupType';
+
+interface OverviewProps {
+  totalExercises: number;
+  totalTests: number;
+  totalScore: number;
+  totalStudyGroups: number;
+}
+
+interface Exam {
+  id: string;
+  name: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  duration_minutes: string;
+  test_type: string;
+  exam_question_count: string;
+  subject_name: string;
+  exam_attempts: string[];
+}
+
+interface Subject {
+  id: string;
+  name: string;
+}
+
+interface DataReposne {
+  id: string;
+  name: string;
+  code: string;
+  semester: string;
+  academic_year: string;
+  exams: Exam[];
+}
+
+interface ExamResult {
+  id: string;
+  exam_name: string;
+  exam_subject: string;
+  created_at: string;
+  duration_seconds: number;
+  question_count: number;
+  answered_questions: number;
+  correct_answers: number;
+  score: number;
+  exam_pass_point: number;
+}
+
 
 const Overview = () => {
-  const stats = [
-    {
-      title: 'Bài thi đã hoàn thành',
-      value: '8',
-      description: 'Trong học kỳ này',
-      icon: Trophy,
-      color: 'text-blue-600',
-    },
-    {
-      title: 'Điểm trung bình',
-      value: '8.2',
-      description: '+0.5 so với kỳ trước',
-      icon: TrendingUp,
-      color: 'text-green-600',
-    },
-    {
-      title: 'Môn học đăng ký',
-      value: '6',
-      description: '24 tín chỉ',
-      icon: BookOpen,
-      color: 'text-purple-600',
-    },
-    {
-      title: 'Bài thi sắp tới',
-      value: '3',
-      description: 'Trong tuần này',
-      icon: Clock,
-      color: 'text-orange-600',
-    },
-  ];
+  const [stats, setStats] = useState<OverviewProps>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [studyGroupExams, setStudyGroupExams] = useState<DataReposne[]>([]);
+  const [loadingExamAttempts, setLoadingExamAttempts] = useState<Record<string, boolean>>({});
+  const [examResults, setExamResults] = useState<ExamResult[]>([]);
+  const [isExamResultDetailLoading, setIsExamResultDetailLoading] = useState(false);
+  const [isExamResultOpen, setIsExamResultOpen] = useState(false);
+  const [examResultDetail, setExamResultDetail] = useState<StudentExamResult | null>(null);
+  const navigate = useNavigate();
+  const { setExamId, setStudyGroupId } = useAppStore();
 
-  const upcomingExams = [
-    {
-      id: 1,
-      title: 'Kiểm tra giữa kỳ - Lập trình Web',
-      subject: 'Lập trình Web',
-      startTime: '2024-12-08 09:00',
-      duration: 90,
-      status: 'Sắp diễn ra',
-      canJoin: false,
-    },
-    {
-      id: 2,
-      title: 'Bài tập lớn - Cơ sở dữ liệu',
-      subject: 'Cơ sở dữ liệu',
-      startTime: '2024-12-07 14:00',
-      duration: 120,
-      status: 'Có thể vào thi',
-      canJoin: true,
-    },
-    {
-      id: 3,
-      title: 'Thực hành - Mạng máy tính',
-      subject: 'Mạng máy tính',
-      startTime: '2024-12-10 10:00',
-      duration: 60,
-      status: 'Sắp diễn ra',
-      canJoin: false,
-    },
-  ];
+  const handleGetListExams = async (currentPage: number = 1) => {
+    try {
+      setIsLoading(true);
+      const params: any = {
+        page: currentPage,
+        size: 3,
+      }
+
+      const response = await apiGetListExams(params);
+
+      if (response.data?.length > 0) {
+        setStudyGroupExams(response.data);
+      } else {
+        setStudyGroupExams([])
+      }
+    } catch (err: any) {
+      console.error('Lỗi khi lấy danh sách kỳ thi:', err);
+      setStudyGroupExams([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleGetListExams();
+  }, []);
+
+  const handleGetStatus = (start_time: Date, end_time: Date) => {
+    const now = new Date();
+    if (now < start_time) {
+      return 'pending';
+    } else if (now > start_time && now < end_time) {
+      return 'opening';
+    } else {
+      return 'closed';
+    }
+  };
 
   const recentResults = [
     {
@@ -97,9 +147,9 @@ const Overview = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Có thể vào thi':
+      case 'opening':
         return 'bg-green-100 text-green-800';
-      case 'Sắp diễn ra':
+      case 'pending':
         return 'bg-blue-100 text-blue-800';
       case 'Đã kết thúc':
         return 'bg-gray-100 text-gray-800';
@@ -127,96 +177,218 @@ const Overview = () => {
     });
   };
 
+  const handleGetStats = async () => {
+    setIsLoading(true);
+    try {
+      const res = await apiGetDashboardStats();
+      if (res.status === 200) {
+        setStats(res.data);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi khi lấy dữ liệu");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleGetExamResults = async () => {
+    setIsLoading(true);
+    try {
+      const response = await apiGetExamResultList();
+      setExamResults(response.data);
+      console.log(examResults)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    handleGetStats();
+    handleGetExamResults();
+  }, []);
+
+  const getTestTypeLabel = (test_type: string) => {
+    switch (test_type) {
+      case 'exercise':
+        return 'Bài tập';
+      case 'midterm':
+        return 'Kiểm tra giữa kỳ';
+      case 'final':
+        return 'Bài thi cuối kỳ';
+      default:
+        return 'Không xác định';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'Sắp diễn ra';
+      case 'opening':
+        return 'Đang diễn ra';
+      case 'closed':
+        return 'Đã kết thúc';
+      default:
+        return 'Không xác định';
+    }
+  };
+
+  const handleCreateExamAttempt = async (exam_id: string, study_group_id: string): Promise<void> => {
+    const key = `${exam_id}_${study_group_id}`;
+    setLoadingExamAttempts((prev) => ({ ...prev, [key]: true }));
+    try {
+      await apiCreateExamAttempt(exam_id, study_group_id);
+    } catch (error) {
+      console.error('Error creating exam attempt:', error);
+    } finally {
+      setLoadingExamAttempts((prev) => ({ ...prev, [key]: false }));
+    }
+  };
+
+  const handleJoinExamRoom = async (examId: string, studyGroupId: string) => {
+    await handleCreateExamAttempt(examId, studyGroupId);
+    setExamId(examId);
+    setStudyGroupId(studyGroupId);
+    navigate(path.STUDENT.EXAM_ROOM_STUDENT);
+  };
+
+  const getStudentGradeColor = (exam_pass_point: number, score: number) => {
+    if (score >= exam_pass_point) {
+      return 'bg-green-100 text-green-800';
+    } else {
+      return 'bg-red-100 text-red-800';
+    }
+  };
+
+  const getStudentStatusColor = (exam_pass_point: number, score: number) => {
+    if (score >= exam_pass_point) {
+      return 'bg-primary';
+    } else {
+      return 'bg-destructive';
+    }
+  };
+
+  const handleViewExam = async (exam_attempt_id: string) => {
+    setIsExamResultOpen(true);
+    setIsExamResultDetailLoading(true);
+    try {
+      const response = await apiGetDetailExamAttempt(exam_attempt_id);
+      setExamResultDetail(response.data);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsExamResultDetailLoading(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Trang chủ sinh viên</h1>
         <p className="text-gray-500">Theo dõi bài thi và kết quả học tập</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <div key={stat.title} className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold">{stat.title}</h3>
-                <p className="text-sm text-gray-500">{stat.description}</p>
-              </div>
-              <div className={`p-2 rounded-full ${stat.color}`}>
-                <stat.icon className="w-6 h-6" />
-              </div>
-            </div>
-            <div className="text-2xl font-bold">{stat.value}</div>
+      {
+        isLoading ? (
+          <div className="flex justify-center items-center h-screen col-span-full">
+            <Loading />
           </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Upcoming Exams */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Bài thi sắp tới</CardTitle>
-            <CardDescription>Danh sách bài thi bạn có thể tham gia</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {upcomingExams.map((exam) => (
-                <div key={exam.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{exam.title}</h4>
-                    <p className="text-sm text-gray-600">{exam.subject}</p>
-                    <p className="text-xs text-gray-500">
-                      {formatDateTime(exam.startTime)} • {exam.duration} phút
-                    </p>
-                  </div>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <Badge className={getStatusColor(exam.status)}>{exam.status}</Badge>
-                      {exam.canJoin && (
-                        <Button size="sm" className="bg-black">
-                          <Play className="mr-1 h-3 w-3" />
-                          Vào thi
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StatCard title="Số bài tập" value={stats?.totalExercises} description="Tổng số bài tập" icon={<TrendingUp className="w-4 h-4" />} color="text-blue-600" />
+              <StatCard title="Số bài thi" value={stats?.totalTests} description="Tổng số bài thi đã tham gia" icon={<Clock className="w-4 h-4" />} color="text-orange-600" />
+              <StatCard title="Số lớp học phần" value={stats?.totalStudyGroups} description="Lớp học phần đã đăng ký" icon={<Trophy className="w-4 h-4" />} color="text-green-600" />
+              <StatCard title="Điểm trung bình" value={stats?.totalScore.toFixed(2)} description="Tổng số điểm trung bình các bài thi" icon={<BookOpen className="w-4 h-4" />} color="text-purple-600" />
             </div>
-          </CardContent>
-        </Card>
-        {/* Recent Results */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Kết quả gần đây</CardTitle>
-            <CardDescription>Điểm số các bài thi đã hoàn thành</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {recentResults.map((result) => (
-                <div key={result.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{result.title}</h4>
-                    <p className="text-sm text-gray-600">{result.subject}</p>
-                    <p className="text-xs text-gray-500">Hoàn thành: {new Date(result.completedAt).toLocaleDateString('vi-VN')}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Upcoming Exams */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Bài thi sắp tới</CardTitle>
+                  <CardDescription>Danh sách bài thi bạn có thể tham gia</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {studyGroupExams?.map((studyGroup) => (
+                      studyGroup.exams?.slice(0, 3).map((exam) => (
+                        <div key={exam.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{exam.name} - {getTestTypeLabel(exam.test_type)}</h4>
+                            <p className="text-sm text-gray-600">{exam.subject_name}</p>
+                            <p className="text-xs text-gray-500">
+                              {formatDateTime(exam.start_time)} • {exam.duration_minutes} phút
+                            </p>
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <Badge className={getStatusColor(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)))}>
+                                {getStatusText(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)))}
+                              </Badge>
+                              {handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)) === 'opening' && exam.exam_attempts.length === 0 && (
+                                <Button size="sm" className="bg-primary text-white hover:bg-primary/90"
+                                  onClick={() => handleJoinExamRoom(exam.id, studyGroup.id)}
+                                >
+                                  <Play className="mr-1 h-3 w-3" />
+                                  Vào thi
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ))}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="text-right">
-                      <p className={`font-bold ${getScoreColor(result.score, result.maxScore)}`}>
-                        {result.score}/{result.maxScore}
-                      </p>
-                      <Badge variant={result.status === 'Đạt' ? 'default' : 'destructive'} className="bg-black rounded-full">
-                        {result.status}
-                      </Badge>
-                    </div>
-                    <Button variant="ghost" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                </CardContent>
+              </Card>
+              {/* Recent Results */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Kết quả gần đây</CardTitle>
+                  <CardDescription>Điểm số các bài thi đã hoàn thành</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {examResults.slice(0, 3).map((result) => (
+                      <div key={result.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{result.exam_name}</h4>
+                          <p className="text-sm text-gray-600">{result.exam_subject}</p>
+                          <p className="text-xs text-gray-500">Hoàn thành: {new Date(result.created_at).toLocaleDateString('vi-VN')}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="text-right">
+                            <p className={`font-bold ${getScoreColor(result.score, 10)}`}>
+                              {result.score === 10 || result.score === 0 ? result.score : result.score.toFixed(2)}/{10}
+                            </p>
+                            <Badge className={getStudentStatusColor(result.exam_pass_point, result.score)}>
+                              {getStudentGradeColor(result.exam_pass_point, result.score) === 'bg-green-100 text-green-800' ? 'Đạt' : 'Không đạt'}
+                            </Badge>
+                          </div>
+                          <Button variant="ghost" size="sm"
+                            onClick={() => handleViewExam(result.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </>
+        )}
+        
+      <Dialog open={isExamResultOpen} onOpenChange={setIsExamResultOpen}>
+        <StudentExamResultDialog studentExamResult={examResultDetail || undefined} isLoading={isExamResultDetailLoading} isTeacher={false} />
+      </Dialog>
     </div>
   );
 };

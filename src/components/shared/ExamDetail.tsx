@@ -1,12 +1,12 @@
-import { apiGetExamDetail } from '@/services/admin/exam';
+import { apiApproveExam, apiGetExamDetail } from '@/services/admin/exam';
 import type { QuestionItem } from '@/types/questionType';
 import type { AxiosError } from 'axios';
 import { useEffect, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import Loading from '../common/Loading';
 import { Badge } from '../ui/badge';
-import { AlertCircle, ArrowLeft, Calendar, CheckCircle, Clock, FileText, Target, User, XCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Calendar, CheckCircle, Clock, FileText, Loader2, Target, User, XCircle } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '../ui/breadcrumb';
 import path from '@/utils/path';
 import { Button } from '../ui/button';
@@ -18,8 +18,11 @@ import MultipleChoiceDetail from './QuestionTypeDetail/MultipleChoiceDetail';
 import MatchingDetail from './QuestionTypeDetail/MatchingDetail';
 import DragDropDetail from './QuestionTypeDetail/DragDropDetail';
 import VideoPopupDetail from './QuestionTypeDetail/VideoPopupDetail';
+import { DialogContent, DialogDescription, DialogTitle, DialogHeader, Dialog, DialogFooter } from '../ui/dialog';
+import { Textarea } from '../ui/textarea';
+import useAuthStore from '@/stores/authStore';
 
-interface ExamDetailResponse {
+export interface ExamDetailResponse {
   id: string;
   created_at: string;
   updated_at: string;
@@ -51,17 +54,21 @@ interface ExamDetailResponse {
   point_scale: {
     name: string;
   };
-  exam_questions: {
+  study_groups: {
     id: string;
-    question: QuestionItem;
+    name: string;
   }[];
+  questions: QuestionItem[];
   exam_type: {
     name: string;
+    code: string;
   };
 }
 
 const ExamDetail = () => {
   const { exam_id } = useParams();
+  const { currentUser } = useAuthStore();
+  const navigate = useNavigate();
   const location = useLocation();
   const exam = location.state?.exam;
   const [examDetail, setExamDetail] = useState<ExamDetailResponse | null>(null);
@@ -69,6 +76,7 @@ const ExamDetail = () => {
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<'approved' | 'rejected' | null>(null);
   const [actionNote, setActionNote] = useState('');
+  const [isLoadingAction, setIsLoadingAction] = useState(false);
 
   const handleGetExamDetail = async () => {
     if (!exam_id) return;
@@ -76,8 +84,8 @@ const ExamDetail = () => {
     try {
       const response = await apiGetExamDetail(exam_id);
       if (response.status === 200) {
-        console.log('Exam detail loaded:', response.data);
-        if (!response.data?.exam_questions?.length) {
+        // console.log('Exam detail loaded:', response.data);
+        if (!response.data?.questions?.length) {
           console.error('No exam questions found in response');
         }
         setExamDetail(response.data);
@@ -161,31 +169,30 @@ const ExamDetail = () => {
     }
   };
 
-  const renderQuestionType = (questionObj: { id: string; question: QuestionItem }, type: string) => {
-    if (!questionObj?.question) {
+  const renderQuestionType = (questionObj: QuestionItem, type: string) => {
+    if (!questionObj) {
       console.error('Question object is undefined:', questionObj);
       return <div>Không thể tải dữ liệu câu hỏi</div>;
     }
 
-    const question = questionObj.question;
     if (!type) {
-      console.error('Question type is undefined for question:', question);
+      console.error('Question type is undefined for question:', questionObj);
       return <div>Loại câu hỏi không xác định</div>;
     }
 
     switch (type) {
       case 'ordering':
-        return <OrderingDetail question={question} />;
+        return <OrderingDetail question={questionObj} />;
       case 'single_choice':
-        return <SingleChoiceDetail question={question} />;
+        return <SingleChoiceDetail question={questionObj} />;
       case 'multiple_select':
-        return <MultipleChoiceDetail question={question} />;
+        return <MultipleChoiceDetail question={questionObj} />;
       case 'matching':
-        return <MatchingDetail question={question} key={Date.now()} />;
+        return <MatchingDetail question={questionObj} key={Date.now()} />;
       case 'drag_drop':
-        return <DragDropDetail question={question} />;
+        return <DragDropDetail question={questionObj} />;
       case 'video_popup':
-        return <VideoPopupDetail question={question} />;
+        return <VideoPopupDetail question={questionObj} />;
       default:
         return <div>Loại câu hỏi không được hỗ trợ</div>;
     }
@@ -196,6 +203,30 @@ const ExamDetail = () => {
     setActionNote('');
     setIsActionDialogOpen(true);
   };
+
+  const confirmAction = async () => {
+    setIsLoadingAction(true)
+    try {
+      const data = {
+        approval_status: actionType === "approved" ? "approved" : "rejected",
+        ...(actionType === "rejected" && { reason_reject: actionNote })
+      }
+      const response = await apiApproveExam(exam_id, data)
+      if (response.status === 200) {
+        toast.success("Đã duyệt đề thi thành công")
+        navigate(path.ADMIN.EXAM)
+      } else {
+        toast.error("Đã có lỗi xảy ra")
+      }
+      setIsActionDialogOpen(false)
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoadingAction(false)
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -215,16 +246,21 @@ const ExamDetail = () => {
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-4">
-              <Link to={path.ADMIN.EXAM}>
+              {currentUser?.role_code === "admin" ? <Link to={path.ADMIN.EXAM}>
                 <Button variant="outline" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Quay lại
                 </Button>
-              </Link>
+              </Link> : <Link to={path.TEACHER.EXAM_MANAGEMENT}>
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Quay lại
+                </Button>
+              </Link>}
               {getStatusBadge(
-                exam?.approval_at === null
+                (exam?.approval_at === null || exam?.approval_status === "pending")
                   ? 'Chờ duyệt'
-                  : exam?.approval_at
+                  : exam?.approval_status === "approved"
                     ? 'Đã duyệt'
                     : 'Bị từ chối'
               )}
@@ -232,20 +268,27 @@ const ExamDetail = () => {
 
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{examDetail?.name || exam?.name}</h1>
             <p className="text-gray-600 mb-4">
-              {examDetail?.subject.name || exam?.subject.name}
+              {examDetail?.subject.name}
             </p>
 
             <div className="flex items-center gap-4 mb-4">
-              <Avatar className="w-12 h-12">
-                <AvatarImage src={exam?.created_by.avatar || '/placeholder.svg'} alt={exam?.created_by.full_name} />
-                <AvatarFallback>
-                  <User className="w-6 h-6" />
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="font-medium">{exam?.created_by.full_name}</p>
-                <p className="text-sm text-gray-600">{exam?.created_by.code}</p>
-              </div>
+              {
+                currentUser?.role_code === "admin" && (
+                  <>
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={exam?.created_by.avatar || '/placeholder.svg'} alt={exam?.created_by.full_name} />
+                      <AvatarFallback>
+                        <User className="w-6 h-6" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">{exam?.created_by.full_name}</p>
+                      <p className="text-sm text-gray-600">{exam?.created_by.code}</p>
+                    </div>
+                  </>
+                )
+              }
+
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -259,7 +302,7 @@ const ExamDetail = () => {
               </div>
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground" />
-                <span>Câu hỏi: {exam?.exam_questions.length}</span>
+                <span>Câu hỏi: {examDetail?.questions.length}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Target className="w-4 h-4 text-muted-foreground" />
@@ -272,7 +315,7 @@ const ExamDetail = () => {
             </div>
           </div>
 
-          {(exam?.approval_at === null || exam?.approval_at === null) && (
+          {currentUser?.role_code === "admin" && (exam?.approval_at === null || exam?.approval_at === null) && (
             <div className="flex gap-2 ml-4">
               <Button className="bg-green-600 hover:bg-green-700" onClick={() => handleAction('approved')}>
                 <CheckCircle className="w-4 h-4 mr-2" />
@@ -299,7 +342,7 @@ const ExamDetail = () => {
                 <CardTitle className="text-lg font-bold">Mô tả đề thi</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-700">{examDetail?.description || exam?.description}</p>
+                <p className="text-gray-700">{examDetail?.description}</p>
                 {examDetail?.instructions && (
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
                     <h4 className="font-medium text-blue-900 mb-2">Hướng dẫn làm bài:</h4>
@@ -311,12 +354,12 @@ const ExamDetail = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Danh sách câu hỏi ({examDetail?.exam_questions.length || exam?.exam_questions.length || 0} câu)</CardTitle>
+                <CardTitle>Danh sách câu hỏi ({examDetail?.questions.length || 0} câu)</CardTitle>
                 <CardDescription>Chi tiết các câu hỏi trong đề thi</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {(examDetail?.exam_questions || exam?.exam_questions || []).map((questionObj, index) => {
-                  if (!questionObj?.question?.question_type?.code) {
+                {(examDetail?.questions || []).map((questionObj, index) => {
+                  if (!questionObj?.question_type?.code) {
                     console.error('Invalid question object:', questionObj);
                     return (
                       <div key={questionObj.id || index} className="p-4 border border-red-200 rounded-md">
@@ -328,9 +371,9 @@ const ExamDetail = () => {
                     <div key={questionObj.id}>
                       <div className="flex items-center gap-2">
                         <p className="font-bold">Câu {index + 1}: </p>
-                        <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: questionObj?.question?.content || '' }} />
+                        <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: questionObj?.content || '' }} />
                       </div>
-                      {renderQuestionType(questionObj, questionObj.question.question_type?.code || '')}
+                      {renderQuestionType(questionObj, questionObj.question_type?.code || '')}
                     </div>
                   );
                 })}
@@ -355,34 +398,82 @@ const ExamDetail = () => {
                 <div className="flex justify-between">
                   <span>Trắc nghiệm 1 đáp án:</span>
                   <span className="font-semibold">
-                    {examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "single_choice").length} câu
+                    {examDetail?.questions.filter((q) => q.question_type?.code === "single_choice").length} câu
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Trắc nghiệm nhiều đáp án:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "multiple_select").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "multiple_select").length} câu</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Kéo thả:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "drag_drop").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "drag_drop").length} câu</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Nối cột:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "matching").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "matching").length} câu</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sắp xếp:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "ordering").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "ordering").length} câu</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Video có câu hỏi:</span>
-                  <span className="font-semibold">{examDetail?.exam_questions.filter((q) => q.question.question_type?.code === "video_popup").length} câu</span>
+                  <span className="font-semibold">{examDetail?.questions.filter((q) => q.question_type?.code === "video_popup").length} câu</span>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
       )}
+
+      <Dialog open={isActionDialogOpen} onOpenChange={setIsActionDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{actionType === "approved" ? "Duyệt đề thi" : "Từ chối đề thi"}</DialogTitle>
+            <DialogDescription>
+              {actionType === "approved"
+                ? "Bạn có chắc chắn muốn duyệt đề thi này?"
+                : "Vui lòng nhập lý do từ chối đề thi"}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="bg-gray-50 p-4 rounded-lg mb-4">
+              <h4 className="font-semibold">{examDetail?.name}</h4>
+              <p className="text-sm text-gray-600">
+                {examDetail?.subject.name}
+              </p>
+              <p className="text-sm text-gray-600">Giảng viên: {examDetail?.created_by.full_name}</p>
+            </div>
+            {actionType === "rejected" && (
+              <div className="space-y-2">
+                <label htmlFor="rejection-reason" className="text-sm font-medium">
+                  Lý do từ chối <span className="text-red-500">*</span>
+                </label>
+                <Textarea
+                  id="rejection-reason"
+                  placeholder="Nhập lý do từ chối đề thi..."
+                  value={actionNote}
+                  onChange={(e) => setActionNote(e.target.value)}
+                  rows={4}
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsActionDialogOpen(false)} disabled={isLoadingAction}>
+              Hủy
+            </Button>
+            <Button
+              onClick={confirmAction}
+              className={actionType === "approved" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
+              disabled={actionType === "rejected" && !actionNote.trim() || isLoadingAction}
+            >
+              {isLoadingAction ? <Loader2 className="w-4 h-4 text-center animate-spin" /> : actionType === "approved" ? "Xác nhận duyệt" : "Xác nhận từ chối"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -13,7 +13,7 @@ import type { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { apiGetUsers } from '@/services/admin/user';
 import type { UserResponse } from '@/types/userType';
-import { apiCreateStudyGroup, apiDeleteStudyGroup, apiGetAllStudyGroup } from '@/services/admin/studyGroup';
+import { apiCreateStudyGroup, apiDeleteStudyGroup, apiGetAllStudyGroup, apiUpdateStudyGroup } from '@/services/admin/studyGroup';
 import { useDebounce } from '@/utils/functions';
 
 const studyGroupSchema = z.object({
@@ -168,21 +168,44 @@ const StudyGroupManagement = () => {
   const handleSubmit = async (data: StudyGroupFormData) => {
     setIsLoadingSubmit(true);
     try {
-      const { academic_year, ...payload } = data;
-      const response = await apiCreateStudyGroup(payload);
-      if (response.status === 201) {
-        toast.success('Lớp học phần đã được tạo thành công');
-        handleGetStudyGroups();
-        setIsOpen(false);
-        form.reset({
-          name: '',
-          subject_id: '',
-          academic_year: '',
-          semester_id: '',
-          teacher_id: '',
-          max_students: 0,
-          description: '',
-        });
+      if (editingStudyGroup) {
+        const dataRequest = {
+          name: data.name,
+          max_students: data.max_students,
+          description: data.description,
+        }
+        const response = await apiUpdateStudyGroup(editingStudyGroup.study_group_id, dataRequest);
+        if (response.status === 200) {
+          toast.success('Lớp học phần đã được cập nhật thành công');
+          handleGetStudyGroups();
+          setIsOpen(false);
+          form.reset({
+            name: '',
+            subject_id: '',
+            academic_year: '',
+            semester_id: '',
+            teacher_id: '',
+            max_students: 0,
+            description: '',
+          });
+        }
+      } else {
+        const { academic_year, ...payload } = data;
+        const response = await apiCreateStudyGroup(payload);
+        if (response.status === 201) {
+          toast.success('Lớp học phần đã được tạo thành công');
+          handleGetStudyGroups();
+          setIsOpen(false);
+          form.reset({
+            name: '',
+            subject_id: '',
+            academic_year: '',
+            semester_id: '',
+            teacher_id: '',
+            max_students: 0,
+            description: '',
+          });
+        }
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
@@ -195,16 +218,19 @@ const StudyGroupManagement = () => {
 
   const handleEdit = (studyGroup: StudyGroupInfo) => {
     setEditingStudyGroup(studyGroup);
-    form.reset({
-      name: studyGroup.study_group_name,
-      subject_id: subjectResponse?.data.find((s) => s.name === studyGroup.subject_name)?.id || '',
-      academic_year: studyGroup.academic_year_code,
-      semester_id: semestersPerYear.find((s) => s.name === studyGroup.semester_name)?.id || '',
-      teacher_id: teachers?.data.find((t) => t.name === studyGroup.teacher_full_name)?.id || '',
-      max_students: studyGroup.study_group_max_students,
-      description: studyGroup.study_group_description || '',
+    handleGetSemesterPerYear(studyGroup.academic_year_id).then(() => {
+      setEditingStudyGroup(studyGroup);
+      form.reset({
+        name: studyGroup.study_group_name,
+        teacher_id: studyGroup.teacher_id,
+        subject_id: studyGroup.subject_id,
+        academic_year: studyGroup.academic_year_id,
+        semester_id: studyGroup.semester_id,
+        max_students: studyGroup.study_group_max_students,
+        description: studyGroup.study_group_description || '',
+      });
+      setIsOpen(true);
     });
-    setIsOpen(true);
   };
 
   const handleDelete = async (studyGroupId: string) => {

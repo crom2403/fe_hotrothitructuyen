@@ -74,7 +74,7 @@ const ExamResultManagement = () => {
 
   const getCompletionRate = (completed: number, total: number) => {
     if (total === 0) return 0;
-    return (completed / total) * 100;
+    return Math.round((completed / total) * 100);
   }
 
   return (
@@ -199,17 +199,21 @@ const ExamResultManagement = () => {
                             <Progress value={getCompletionRate(exam.attempt_count, exam.student_count)} />
                           </div>
 
-                          <div className="flex gap-2 pt-2">
-                            <Link to={path.TEACHER.EXAM_RESULT_DETAIL.replace(':exam_id', exam.id).replace(':study_group_id', exam.study_group_id)}
-                              state={{ exam }}
-                              className="flex-1"
-                            >
-                              <Button className="w-full" size="sm">
-                                <Eye className="w-4 h-4 mr-2" />
-                                Xem chi tiết
-                              </Button>
-                            </Link>
-                          </div>
+                          {
+                            exam.opening_status !== "pending" && (
+                              <div className="flex gap-2 pt-2">
+                                <Link to={path.TEACHER.EXAM_RESULT_DETAIL.replace(':exam_id', exam.id).replace(':study_group_id', exam.study_group_id)}
+                                  state={{ exam }}
+                                  className="flex-1"
+                                >
+                                  <Button className="w-full" size="sm">
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    Xem chi tiết
+                                  </Button>
+                                </Link>
+                              </div>
+                            )
+                          }
                         </CardContent>
                       </Card>
                     ))

@@ -1,4 +1,4 @@
-import type { UserFormData, UserInfo } from '@/types/userType';
+import type { User, UserFormData, UserInfo } from '@/types/userType';
 import type { UseFormReturn } from 'react-hook-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
 import { Button } from '../../ui/button';
@@ -17,8 +17,8 @@ interface UserFormDialogProps {
   form: UseFormReturn<UserFormData>;
   isDialogOpen: boolean;
   setIsDialogOpen: (open: boolean) => void;
-  editingUser: UserInfo | null;
-  setEditingUser: (user: UserInfo | null) => void;
+  editingUser: User | null;
+  setEditingUser: (user: User | null) => void;
   onSubmit: (data: UserFormData) => Promise<void>;
   isLoading: boolean;
 }
@@ -88,19 +88,41 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
     }
   };
 
+  useEffect(() => {
+    if (isDialogOpen && !editingUser) {
+      form.reset({
+        code: '',
+        full_name: '',
+        role_code: 'student',
+        phone_number: '',
+        date_of_birth: new Date(),
+        gender: 'male',
+        password: '',
+      });
+    }
+  }, [isDialogOpen, editingUser, form]);
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <div className="flex gap-2">
         <Button className="bg-green-700 hover:bg-green-700/80 cursor-pointer" onClick={handleExportExcel}>
           <FileUp className="h-4 w-4" />
-          Export
+          Xuất Excel
         </Button>
-        <DialogTrigger asChild>
+        <DialogTrigger>
           <Button
             className="bg-blue-700 hover:bg-blue-700/80 cursor-pointer"
             onClick={() => {
               setEditingUser(null);
-              form.reset();
+              form.reset({
+                code: '',
+                full_name: '',
+                role_code: 'student',
+                phone_number: '',
+                date_of_birth: new Date(),
+                gender: 'male',
+                password: '',
+              });
             }}
           >
             <Plus className="h-4 w-4" />
@@ -151,9 +173,10 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
                 name="password"
                 render={({ field }) => (
                   <FormItem>
+                    <FormLabel>Mật khẩu</FormLabel>
                     <FormControl>
                       <div className="flex items-center gap-4 relative">
-                        <Input type={showPassword ? 'text' : 'password'} className="w-full" placeholder="Mật khẩu" {...field} />
+                        <Input type={showPassword ? 'text' : 'password'} className="w-full" placeholder="Mật khẩu" {...field} disabled={!!editingUser} />
                         <Button type="button" variant="ghost" className="absolute right-0 top-0 h-full px-3 focus:ring-0 py-2 hover:bg-transparent" onClick={() => setShowPassword(!showPassword)}>
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
@@ -283,7 +306,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
           </form>
         </Form>
       </DialogContent>
-    </Dialog>
+    </Dialog >
   );
 };
 

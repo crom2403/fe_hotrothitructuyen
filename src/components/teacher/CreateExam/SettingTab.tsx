@@ -10,12 +10,14 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import useUpdateExamStore from "@/stores/updateExamStore";
 
 const formSchema = z.object({
   instruction: z.string().min(10, "Hướng dẫn phải có ít nhất 10 ký tự"),
 });
 
-export function SettingsTab() {
+export function SettingsTab({ mode }: { mode: 'create' | 'update' }) {
+  const store = mode === 'create' ? useExamStore : useUpdateExamStore;
   const {
     tab1Data,
     tab3Data,
@@ -25,7 +27,7 @@ export function SettingsTab() {
     setAllowReviewPoint,
     setShowCorrectAnswer,
     setInstruction,
-  } = useExamStore();
+  } = store();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

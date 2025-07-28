@@ -16,22 +16,26 @@ import DragDropDetail from "@/components/shared/QuestionTypeDetail/DragDropDetai
 import MatchingDetail from "@/components/shared/QuestionTypeDetail/MatchingDetail";
 import OrderingDetail from "@/components/shared/QuestionTypeDetail/OrderingDetail";
 import VideoPopupDetail from "@/components/shared/QuestionTypeDetail/VideoPopupDetail";
+import useUpdateExamStore from "@/stores/updateExamStore";
 
 interface ExamPreviewProps {
   selectedQuestions: QuestionItem[];
+  mode: 'create' | 'update';
 }
 
-const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
+const ExamPreview = ({ selectedQuestions, mode }: ExamPreviewProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { tab1Data, tab2Data, tab3Data, commonProps } = useExamStore();
+  const store = mode === 'create' ? useExamStore : useUpdateExamStore;
+  const { tab1Data, tab2Data, tab3Data, commonProps } = store();
 
   const getDifficultyDistribution = () => {
-    const total = selectedQuestions.length;
+    const questions = selectedQuestions || [];
+    const total = questions.length;
     if (total === 0) return { easy: 0, medium: 0, hard: 0 };
 
-    const easy = selectedQuestions.filter((q) => q.difficulty_level?.name === "Dễ").length;
-    const medium = selectedQuestions.filter((q) => q.difficulty_level?.name === "Trung bình").length;
-    const hard = selectedQuestions.filter((q) => q.difficulty_level?.name === "Khó").length;
+    const easy = questions.filter((q) => q.difficulty_level?.name === "Dễ").length;
+    const medium = questions.filter((q) => q.difficulty_level?.name === "Trung bình").length;
+    const hard = questions.filter((q) => q.difficulty_level?.name === "Khó").length;
 
     return {
       easy: Math.round((easy / total) * 100),
@@ -41,9 +45,6 @@ const ExamPreview = ({ selectedQuestions }: ExamPreviewProps) => {
   };
 
   const distribution = getDifficultyDistribution();
-  useEffect(() => {
-    console.log(commonProps.list_questions);
-  }, [commonProps.list_questions]);
 
   const renderQuestionDetail = (question: QuestionItem) => {
     switch (question.question_type.name) {

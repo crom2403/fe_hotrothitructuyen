@@ -26,7 +26,7 @@ interface SubjectTableProps {
   page: number;
   totalPages: number;
   handleEdit: (subject: Subject) => void;
-  handleDelete: (subjectId: string) => void;
+  handleDelete: (subjectId: string) => Promise<void>;
   handlePageClick: (page: number) => void;
   handleToggleStatus: (subjectId: string, is_active: boolean) => void;
 }
@@ -172,7 +172,7 @@ const SubjectTable = ({
         </Dialog>
 
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DeleteDialog title='xóa' itemName="môn học" id={selectedSubject?.id || ''} onDelete={() => handleDelete(selectedSubject?.id || '')} />
+          <DeleteDialog title="xóa" itemName="môn học" id={selectedSubject?.id || ''} onDelete={() => handleDelete(selectedSubject?.id || '')} />
         </AlertDialog>
       </CardContent>
     </Card>

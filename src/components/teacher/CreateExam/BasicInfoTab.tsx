@@ -19,8 +19,10 @@ import { Loader2, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useAuthStore from '@/stores/authStore';
+import useUpdateExamStore from '@/stores/updateExamStore';
 
-const BasicInfoTab = () => {
+const BasicInfoTab = ({ mode }: { mode: 'create' | 'update' }) => {
+  const store = mode === 'create' ? useExamStore : useUpdateExamStore;
   const {
     tab1Data,
     setTab1Name,
@@ -38,7 +40,7 @@ const BasicInfoTab = () => {
     setStudyGroupName,
     setSubjectName,
     setTab1MaxTabSwitch,
-  } = useExamStore();
+  } = store();
   const { currentUser } = useAuthStore();
   const [subjectsAssigned, setSubjectsAssigned] = useState<AssignedSubjectByTeacher[]>([]);
   const [pointScales, setPointScales] = useState<PointScale[]>([]);
@@ -63,24 +65,11 @@ const BasicInfoTab = () => {
 
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return;
 
-    const startDate = start.toISOString().split('T')[0];
-    const endDate = end.toISOString().split('T')[0];
-
-    // if (startDate !== endDate) {
-    //   setEndTimeError("Ngày bắt đầu và kết thúc phải cùng ngày");
-    //   setTab1Duration(0);
-    //   return;
-    // }
-
     if (end <= start) {
       setEndTimeError('Giờ kết thúc phải sau giờ bắt đầu');
       setTab1Duration(0);
       return;
     }
-
-    const diffMs = end.getTime() - start.getTime();
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    setTab1Duration(diffMinutes);
   };
 
   const handleStartTimeChange = (value: string) => {
@@ -126,10 +115,10 @@ const BasicInfoTab = () => {
 
   const handlePassPointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number(e.target.value);
-    if (validateInput(value, 'Điểm đậu', 100, setPassPointsError)) {
+    if (validateInput(value, 'Điểm đậu', 10, setPassPointsError)) {
       setTab1PassPoints(value);
     } else {
-      setPassPointsError('Điểm đậu không được vượt quá 100!');
+      setPassPointsError('Điểm đậu không được vượt quá 10!');
     }
   };
 
@@ -233,6 +222,7 @@ const BasicInfoTab = () => {
                 setTab1Subject(value);
                 setSubjectName(subjectsAssigned.find((subject) => subject.subject.id === value)?.subject.name || '');
               }}
+              disabled={mode === 'update'}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Chọn môn học" />
@@ -311,8 +301,10 @@ const BasicInfoTab = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="duration">Thời gian (phút)</Label>
-            <Input id="duration" type="number" disabled={true} value={tab1Data.duration_minutes} onChange={(e) => setTab1Duration(Number(e.target.value))} />
+            <Label htmlFor="duration">Thời gian làm bài (phút)</Label>
+            <Input id="duration" type="number" value={tab1Data.duration_minutes}
+              defaultValue={60}
+              onChange={(e) => setTab1Duration(Number(e.target.value))} />
           </div>
         </div>
 
@@ -335,6 +327,7 @@ const BasicInfoTab = () => {
                 setTab1PointScale(value);
                 setPointScaleName(pointScales.find((pointScale) => pointScale.id === value)?.name || '');
               }}
+              disabled={mode === 'update'}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Chọn thang điểm" />
@@ -364,7 +357,7 @@ const BasicInfoTab = () => {
                 <Label htmlFor="type">Loại đề</Label>
                 <InfoPopup text="Đề thi cuối kỳ và giữa kỳ sẽ do giảng viên mở để. Sinh viên cần phải vào đúng giờ để làm đề thi." _open={open} _setOpen={setOpen} />
               </div>
-              <Select value={tab1Data.type} onValueChange={(value) => setTab1Type(value as 'exercise' | 'midterm' | 'final')}>
+              <Select value={tab1Data.type} onValueChange={(value) => setTab1Type(value as 'exercise' | 'midterm' | 'final')} disabled={mode === 'update'}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Chọn loại đề thi" />
                 </SelectTrigger>

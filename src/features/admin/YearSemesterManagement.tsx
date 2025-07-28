@@ -162,7 +162,7 @@ const YearSemesterManagement = () => {
     setIsSemesterFormDialogOpen(true);
   };
 
-  const handleDelete = (semesterId: string) => {
+  const handleDelete = async (semesterId: string) => {
     console.log(semesterId);
   };
 
@@ -209,7 +209,7 @@ const YearSemesterManagement = () => {
           page={semesterResponse?.metadata.page || 1}
           totalPages={semesterResponse?.metadata.last_page || 1}
           handleEdit={handleEdit}
-          handleDelete={handleDelete}
+          handleDelete={async (semesterId: string) => handleDelete(semesterId)}
           handlePageClick={handlePageClick}
           handleSetCurrent={handleSetCurrent}
         />

@@ -50,7 +50,8 @@ const AppSidebar = () => {
           { id: 'questions', label: 'Quản lý câu hỏi', icon: Database, path: path.TEACHER.QUESTION_BANK },
           { id: 'create-exam', label: 'Tạo đề thi', icon: PenTool, path: path.TEACHER.EXAM },
           { id: 'classes', label: 'Lớp học phần', icon: GraduationCap, path: path.TEACHER.STUDY_GROUP },
-          { id: 'results', label: 'Danh sách bài thi', icon: BarChart3, path: path.TEACHER.EXAM_RESULT },
+          { id: 'exam-list', label: 'Quản lý đề thi', icon: ClipboardList, path: path.TEACHER.EXAM_MANAGEMENT },
+          { id: 'results', label: 'Thống kê & kết quả', icon: Trophy, path: path.TEACHER.EXAM_RESULT },
         ];
 
         const approvalItems: SubMenuItem[] = [];
@@ -61,7 +62,7 @@ const AppSidebar = () => {
           approvalItems.push({ id: 'approve-exams', label: 'Duyệt đề thi', path: path.TEACHER.APPROVE_EXAM });
         }
         if (approvalItems.length > 0) {
-          baseItems.splice(5, 0, { id: 'approval', label: 'Kiểm duyệt', icon: Shield, items: approvalItems });
+          baseItems.splice(6, 0, { id: 'approval', label: 'Kiểm duyệt', icon: Shield, items: approvalItems });
         }
 
         return baseItems;

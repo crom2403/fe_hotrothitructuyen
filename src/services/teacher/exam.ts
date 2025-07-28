@@ -1,7 +1,7 @@
 import apiRoutes from '../apiRoutes';
 import instance from '../instance';
 
-export const apiGetExamStudyGroupList = async (page: number, subject_id: string, exam_status: string, q: string, test_type: string) => {
+export const apiGetExamStudyGroupList = async (page: number, subject_id?: string, exam_status?: string, q?: string, test_type?: string) => {
   let query = apiRoutes.teacher.exam + `/teacher/study-group-exam?page=${page}`;
   if (subject_id && subject_id !== 'all') {
     query += `&subject_id=${subject_id}`;
@@ -31,3 +31,19 @@ export const apiExportAllExamAttemptToExcel = async (exam_id: string, study_grou
   });
 
 export const apiGetDetailExamAttempt = async (exam_attempt_id: string) => instance.get(`/exams/teacher/get-attempt/${exam_attempt_id}`);
+
+export const apiGetExamList = async (page: number, study_group_id?: string, q?: string, status?: string) => {
+  let query = apiRoutes.teacher.exam + `/teacher/get-exam-create-by-teacher?page=${page}`;
+  if (study_group_id && study_group_id !== 'all') {
+    query += `&study_group_id=${study_group_id}`;
+  }
+  if (q) {
+    query += `&q=${q}`;
+  }
+  if (status && status !== 'all') {
+    query += `&status=${status}`;
+  }
+  return instance.get(query);
+}
+
+export const apiUpdateExam = async (exam_id: string, data: any) => instance.put(apiRoutes.teacher.exam + `/teacher/${exam_id}/update`, data);

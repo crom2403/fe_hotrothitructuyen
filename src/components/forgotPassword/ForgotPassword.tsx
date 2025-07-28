@@ -47,7 +47,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="flex flex-col w-full h-screen items-center justify-center gap-7 bg-blue-900">
+    <div className="flex flex-col w-full h-screen items-center justify-center gap-7 bg-gray-50">
       <div className="flex flex-col items-center justify-center gap-2 bg-white rounded-lg p-5 shadow-lg">
         <div className="flex flex-col items-center justify-center gap-2 w-[320px]">
           <img src={Logo} alt="Logo STU" className="w-25 h-25" />

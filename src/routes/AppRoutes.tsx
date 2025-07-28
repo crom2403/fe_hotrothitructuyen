@@ -3,12 +3,13 @@ import { Routes, Route } from 'react-router-dom';
 import path from '../utils/path';
 import ProtectedRoute from './ProtectedRoute';
 import MainLayout from '@/components/layout/MainLayout';
-import Loading from '../../public/loading.gif';
+import Loading from '../../public/loading1.gif';
 import OTPConfirmation from '@/components/forgotPassword/OTPConfirmation';
 import PermissionRole from '@/features/admin/PermissionRole';
 import PermissionUser from '@/features/admin/PermissionUser';
 import AssignSubject from '@/features/admin/AssignSubject';
 import LoadingBar from '@/components/common/LoadingBar';
+import ExamManagement from '@/features/teacher/ExamManagement';
 
 // Lazy load components
 const Login = lazy(() => import('@/components/login/login'));
@@ -37,14 +38,18 @@ const ExamRoomTeacher = lazy(() => import('@/components/teacher/Exam/ExamRoomTea
 const ExamResultManagement = lazy(() => import('@/features/teacher/ExamResultManagement'));
 const ExamResultDetail = lazy(() => import('@/components/teacher/Exam/ExamResultDetail'));
 const AdminExamManagement = lazy(() => import('@/features/admin/ExamManagement'));
-const ExamDetail = lazy(() => import('@/components/shared/ExamDetail'));  
+const ExamDetail = lazy(() => import('@/components/shared/ExamDetail'));
+const ReviewQuestion = lazy(() => import('@/features/teacher/ReviewQuestion'));
+const TeacherExamManagement = lazy(() => import('@/features/teacher/ExamManagement'));
+const UpdateExam = lazy(() => import('@/components/teacher/Exam/UpdateExam'));
+const ResultSummary = lazy(() => import('@/components/student/Exam/ResultSummary'));
 
 const AppRoutes = () => {
   return (
     <Suspense
       fallback={
-        <div className="w-full bg-white h-screen flex items-center justify-center">
-          <img src={Loading} alt="loading..." className="w-32 md:w-52" />
+        <div className="w-full bg-[#f5f7f9] h-screen flex items-center justify-center">
+          <img src={Loading} alt="loading..." className="" />
         </div>
       }
     >
@@ -58,7 +63,8 @@ const AppRoutes = () => {
         <Route path={path.PUBLIC} element={<IEduLandingPage />} />
         <Route path={path.STUDENT.CREATE_STUDENT_SOCKET} element={<CreateStudentSocket />} />
         <Route path={path.TEACHER.EXAM_ROOM_TEACHER} element={<ExamRoomTeacher />} />
-
+        <Route path={path.STUDENT.RESULT_SUMMARY} element={<ResultSummary />} />
+        
         <Route
           path={path.STUDENT.EXAM_ROOM_STUDENT}
           element={
@@ -117,6 +123,14 @@ const AppRoutes = () => {
             }
           />
           <Route
+            path={path.TEACHER.EXAM_MANAGEMENT}
+            element={
+              <ProtectedRoute allowedRoles={['teacher']}>
+                <TeacherExamManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path={path.TEACHER.EXAM_RESULT}
             element={
               <ProtectedRoute allowedRoles={['teacher']}>
@@ -128,7 +142,7 @@ const AppRoutes = () => {
             path={path.TEACHER.EXAM_RESULT_DETAIL}
             element={
               <ProtectedRoute allowedRoles={['teacher']}>
-                <ExamResultDetail/>
+                <ExamResultDetail />
               </ProtectedRoute>
             }
           />
@@ -136,11 +150,18 @@ const AppRoutes = () => {
             path={path.TEACHER.APPROVE_QUESTION}
             element={
               <ProtectedRoute allowedRoles={['teacher']}>
-                <QuestionManagement/>
+                <ReviewQuestion />
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path={path.TEACHER.EXAM_UPDATE}
+            element={
+              <ProtectedRoute allowedRoles={['teacher']}>
+                <UpdateExam />
+              </ProtectedRoute>
+            }
+          />
           {/* Admin routes */}
           <Route
             path={path.ADMIN.OVERVIEW}

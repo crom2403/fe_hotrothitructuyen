@@ -6,71 +6,93 @@ import type { QuestionItem } from "@/types/questionType";
 import QuestionList from "./QuestionList";
 import useExamStore from "@/stores/examStore";
 import AutoMode from "./AutoMode";
-import { setQuestionsToCache } from "@/utils/questionCache";
+import type { AxiosError } from "axios";
+import { toast } from "sonner";
+import { apiGetRandomQuestions } from "@/services/teacher/createExam";
+import useUpdateExamStore from "@/stores/updateExamStore";
 
 interface QuestionTabProps {
   selectedSubjectId: string;
+  mode: 'create' | 'update';
 }
 
-const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
-  const [examMode, setExamMode] = useState<'manual' | 'auto'>('manual');
-  const [selectedQuestions, setSelectedQuestions] = useState<QuestionItem[]>([]);
-  const { tab2Data, setListQuestions, setListQuestionsFull, commonProps } = useExamStore();
+interface RandomQuestion {
+  data: QuestionItem[];
+}
+
+const QuestionsTab = ({ selectedSubjectId, mode }: QuestionTabProps) => {
+  const store = mode === 'create' ? useExamStore : useUpdateExamStore;
+  const { tab2Data, setListQuestions, setListQuestionsFull, commonProps } = store();
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (tab2Data.exam_type && tab2Data.exam_type !== examMode) {
-      setExamMode(tab2Data.exam_type as 'manual' | 'auto');
-    }
-  }, [tab2Data.exam_type, examMode]);
+  const examMode = tab2Data.exam_type as "manual" | "auto";
 
   useEffect(() => {
-    setSelectedQuestions(commonProps.list_questions);
-  }, [commonProps.list_questions]);
-
-
+    setListQuestions(
+      commonProps.list_questions.map((q, index) => ({
+        question_id: q.id,
+        order_index: index + 1,
+      })),
+    );
+    setListQuestionsFull(commonProps.list_questions);
+  }, [commonProps.list_questions, setListQuestions, setListQuestionsFull]);
 
   const addQuestionToExam = (question: QuestionItem) => {
-    if (!selectedQuestions.find((q) => q.id === question.id)) {
-      const updatedQuestions = [...selectedQuestions, question];
-      setSelectedQuestions(updatedQuestions);
+    if (!commonProps.list_questions.find((q) => q.id === question.id)) {
+      const updatedQuestions = [...commonProps.list_questions, question];
+      setListQuestionsFull(updatedQuestions);
       setListQuestions(
         updatedQuestions.map((q, index) => ({
           question_id: q.id,
           order_index: index + 1,
         })),
       );
-      setQuestionsToCache([question]);
-      setListQuestionsFull(
-        updatedQuestions
-      );
     }
   };
 
   const removeQuestionFromExam = (questionId: string) => {
-    const updatedQuestions = selectedQuestions.filter((q) => q.id !== questionId);
-    setSelectedQuestions(updatedQuestions);
+    const updatedQuestions = commonProps.list_questions.filter((q) => q.id !== questionId);
+    setListQuestionsFull(updatedQuestions);
     setListQuestions(
       updatedQuestions.map((q, index) => ({
         question_id: q.id,
         order_index: index + 1,
       })),
     );
-    setQuestionsToCache(updatedQuestions);
-    setListQuestionsFull(
-      updatedQuestions
-    );
   };
 
-  const generateAutoExam = () => {
+  const generateAutoExam = async () => {
     setIsLoading(true);
-    console.log('generateAutoExam');
-    setIsLoading(false);
+    try{
+      const response = await apiGetRandomQuestions(selectedSubjectId, tab2Data.difficulty.easy, tab2Data.difficulty.medium, tab2Data.difficulty.hard);
+      if (response.status === 200) {
+        if (response.status === 200) {
+          const questions = response.data || []; // Xử lý nếu data.data là undefined
+          console.log(questions);
+          if (!Array.isArray(questions)) {
+            throw new Error("Dữ liệu câu hỏi không hợp lệ từ API");
+          }
+          setListQuestionsFull(questions);
+          setListQuestions(
+            questions.map((q, index) => ({
+              question_id: q.id,
+              order_index: index + 1,
+            })),
+          );
+        }
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      {examMode === 'manual' && (
+      {examMode === "manual" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="flex flex-col gap-4">
             <Card>
@@ -79,16 +101,24 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
                 <CardDescription>Chọn cách thức tạo câu hỏi cho đề thi</CardDescription>
               </CardHeader>
               <CardContent>
-                <ExamModeSelector examMode={examMode} setExamMode={setExamMode} />
+                <ExamModeSelector mode={mode} examMode={examMode} setExamMode={(mode) => useExamStore.getState().setExamType(mode)} />
               </CardContent>
             </Card>
-            <QuestionList selectedQuestions={selectedQuestions} addQuestionToExam={addQuestionToExam} selectedSubjectId={selectedSubjectId} />
+            <QuestionList
+              selectedQuestions={commonProps.list_questions}
+              addQuestionToExam={addQuestionToExam}
+              selectedSubjectId={selectedSubjectId}
+            />
           </div>
-          <SelectedQuestions selectedQuestions={selectedQuestions} setSelectedQuestions={setSelectedQuestions} removeQuestionFromExam={removeQuestionFromExam} />
+          <SelectedQuestions
+            selectedQuestions={commonProps.list_questions}
+            setSelectedQuestions={(questions) => setListQuestionsFull(questions)}
+            removeQuestionFromExam={removeQuestionFromExam}
+          />
         </div>
       )}
 
-      {examMode === 'auto' && (
+      {examMode === "auto" && (
         <div className="grid grid-cols-1 gap-4">
           <div className="flex flex-col gap-4">
             <Card>
@@ -97,10 +127,15 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
                 <CardDescription>Chọn cách thức tạo câu hỏi cho đề thi</CardDescription>
               </CardHeader>
               <CardContent>
-                <ExamModeSelector examMode={examMode} setExamMode={setExamMode} />
+                <ExamModeSelector mode={mode} examMode={examMode} setExamMode={(mode) => useExamStore.getState().setExamType(mode)} />
               </CardContent>
             </Card>
             <AutoMode examMode={examMode} isLoading={isLoading} generateAutoExam={generateAutoExam} />
+            <SelectedQuestions
+              selectedQuestions={commonProps.list_questions}
+              setSelectedQuestions={(questions) => setListQuestionsFull(questions)}
+              removeQuestionFromExam={removeQuestionFromExam}
+            />
           </div>
         </div>
       )}
