@@ -22,8 +22,8 @@ interface QuestionTableProps {
   setStatusFilter: (status: string) => void;
   page: number;
   totalPages: number;
-  handleApprove: (questionId: string) => void;
-  handleReject: (questionId: string) => void;
+  handleApprove: (questionId: string) => Promise<void>;
+  handleReject: (questionId: string) => Promise<void>;
   handlePageClick: (page: number) => void;
 }
 
@@ -79,7 +79,7 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
   const handleRejectDialog = (questionId: string) => {
     setQuestionId(questionId);
     setOpenDialog(true);
-  }
+  };
 
   return (
     <Card>
@@ -188,7 +188,7 @@ const QuestionTable = ({ questions, statusFilter, isLoading, setStatusFilter, pa
       </Dialog>
 
       <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
-        <CommonDialog title='từ chối' itemName='câu hỏi' id={questionId || ''} onDelete={handleReject} />
+        <CommonDialog title="từ chối" itemName="câu hỏi" id={questionId || ''} onDelete={handleReject} />
       </AlertDialog>
     </Card>
   );

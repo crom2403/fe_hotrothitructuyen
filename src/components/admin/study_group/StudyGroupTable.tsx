@@ -28,7 +28,7 @@ interface StudyGroupTableProps {
   page: number;
   totalPages: number;
   handleEdit: (studyGroup: StudyGroupInfo) => void;
-  handleDelete: (studyGroupId: string) => void;
+  handleDelete: (studyGroupId: string) => Promise<void>;
   handlePageClick: (page: number) => void;
   handleToggleStatus: (studyGroupId: string, isActive: boolean) => void;
   copyInviteCode: (inviteCode: string) => void;
@@ -198,7 +198,7 @@ const StudyGroupTable = ({
       </CardContent>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DeleteDialog title='xóa' itemName="lớp học phần" id={selectedClass?.study_group_id || ''} onDelete={handleDelete} />
+        <DeleteDialog title="xóa" itemName="lớp học phần" id={selectedClass?.study_group_id || ''} onDelete={handleDelete} />
       </AlertDialog>
     </Card>
   );

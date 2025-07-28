@@ -25,7 +25,7 @@ interface YearSemesterTableProps {
   page: number;
   totalPages: number;
   handleEdit: (semester: Semester) => void;
-  handleDelete: (semesterId: string) => void;
+  handleDelete: (semesterId: string) => Promise<void>;
   handlePageClick: (page: number) => void;
   handleSetCurrent: (semesterId: string) => void;
 }
@@ -190,7 +190,7 @@ const YearSemesterTable = ({
       </CardContent>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DeleteDialog title='xóa' itemName="học kỳ" id={selectedSemester?.id || ''} onDelete={handleDelete} />
+        <DeleteDialog title="xóa" itemName="học kỳ" id={selectedSemester?.id || ''} onDelete={handleDelete} />
       </AlertDialog>
     </Card>
   );
