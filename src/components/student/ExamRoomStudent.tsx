@@ -171,6 +171,9 @@ export default function ExamRoomStudent() {
         if (examResponse?.data) {
           setExam(examResponse.data);
           setTimeLeft(examResponse.data.duration_minutes * 60);
+          if (examResponse.data.test_type === 'exercise') {
+            setExamOpened(true);
+          }
         } else {
           toast.error('Không tìm thấy thông tin kỳ thi');
           setIsValidSession(false);
@@ -186,7 +189,6 @@ export default function ExamRoomStudent() {
           navigate('/student/exam_list');
           return;
         }
-
       } catch (error) {
         console.error('Error fetching exam:', error);
         toast.error('Lỗi khi tải thông tin kỳ thi');
@@ -291,7 +293,7 @@ export default function ExamRoomStudent() {
       socket.emit('submitExam', {
         examId,
         studyGroupId,
-        studentId: currentUser?.id
+        studentId: currentUser?.id,
       });
       const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
       navigate(path1);
