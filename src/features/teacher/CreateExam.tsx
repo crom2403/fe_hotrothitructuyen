@@ -83,6 +83,7 @@ const CreateExam = () => {
         is_shuffled_answer: tab3Data.is_shuffled_answer,
         allow_review_point: tab3Data.allow_review_point,
         show_correct_answer: tab3Data.show_correct_answer,
+        allow_review: tab3Data.allow_review,
         questions: tab2Data.list_questions,
         difficulty: tab2Data.difficulty,
         study_groups: tab1Data.study_groups,
@@ -111,7 +112,7 @@ const CreateExam = () => {
           <p className="text-gray-500">Tạo đề thi từ ngân hàng câu hỏi hoặc tự động bằng AI</p>
         </div>
         <div className="space-x-2">
-          <ExamPreview selectedQuestions={commonProps.list_questions} />
+          <ExamPreview selectedQuestions={commonProps.list_questions} mode="create" />
           <Button onClick={handleSaveExam} className="bg-primary hover:bg-primary/90 cursor-pointer" disabled={isLoading}>
             {isLoading ? (
               <>
@@ -139,16 +140,16 @@ const CreateExam = () => {
           </TabsList>
 
           <TabsContent value="basic">
-            <BasicInfoTab />
+            <BasicInfoTab mode="create" />
           </TabsContent>
           <TabsContent value="questions">
-            <QuestionsTab selectedSubjectId={tab1Data.subject} />
+            <QuestionsTab selectedSubjectId={tab1Data.subject} mode="create" />
           </TabsContent>
           <TabsContent value="settings">
-            <SettingsTab />
+            <SettingsTab mode="create" />
           </TabsContent>
           <TabsContent value="preview">
-            <PreviewTab selectedQuestions={commonProps.list_questions} />
+            <PreviewTab selectedQuestions={commonProps.list_questions} mode="create" />
           </TabsContent>
         </Tabs>
       </div>

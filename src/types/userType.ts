@@ -11,6 +11,7 @@ export interface User {
   role: {
     id: string;
     name: string;
+    code: string;
   };
 }
 

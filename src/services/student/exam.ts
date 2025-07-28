@@ -24,3 +24,5 @@ export const apiGetExamAttemptId = async (exam_id: string, study_group_id: strin
 };
 
 export const apiGetExamResultList = async () => instance.get(BASE_URL + '/student/list-result-exam');
+
+export const apiGetResultSummary = async (exam_attempt_id: string) => instance.get(BASE_URL + '/student/view-result-test/' + exam_attempt_id);

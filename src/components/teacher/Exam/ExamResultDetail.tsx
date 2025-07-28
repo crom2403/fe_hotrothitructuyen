@@ -73,8 +73,8 @@ const ExamResultDetail = () => {
   };
 
   const handleViewExam = async (exam_attempt_id: string) => {
-    setIsStudentExamResultLoading(true);
     setIsStudentExamResultOpen(true);
+    setIsStudentExamResultLoading(true);
     try {
       const response = await apiGetDetailExamAttempt(exam_attempt_id);
       console.log(response.data);

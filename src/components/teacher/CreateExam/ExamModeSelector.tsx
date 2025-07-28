@@ -1,14 +1,17 @@
 import { Button } from '@/components/ui/button';
 import useExamStore from '@/stores/examStore';
+import useUpdateExamStore from '@/stores/updateExamStore';
 import { FileText, Shuffle } from 'lucide-react';
 
 interface ExamModeSelectorProps {
   examMode: 'manual' | 'auto';
   setExamMode: (mode: 'manual' | 'auto') => void;
+  mode: 'create' | 'update';
 }
 
-const ExamModeSelector = ({ examMode, setExamMode }: ExamModeSelectorProps) => {
-  const { setExamType } = useExamStore();
+const ExamModeSelector = ({ examMode, setExamMode, mode }: ExamModeSelectorProps) => {
+  const store = mode === 'create' ? useExamStore : useUpdateExamStore;
+  const { setExamType } = store();
 
   const handleModeChange = (mode: 'manual' | 'auto') => {
     setExamMode(mode);

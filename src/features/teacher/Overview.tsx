@@ -26,7 +26,7 @@ interface StatResponse {
 }
 
 const Overview = () => {
-  const { setQuestionTypes, setDifficultyLevels, setSubjects, setAcademicYears } = useAppStore();
+  const { setQuestionTypes, setDifficultyLevels, setSubjects, setAcademicYears, setExamId, setStudyGroupId } = useAppStore();
   const navigate = useNavigate()
   const [stats, setStats] = useState<StatResponse>();
   const [isLoading, setIsLoading] = useState(false);
@@ -93,37 +93,6 @@ const Overview = () => {
     handleGetExamList();
   }, []);
 
-  // const stats = [
-  //   {
-  //     title: 'Câu hỏi trong NHCH',
-  //     value: 245,
-  //     description: '15 câu mới tuần này',
-  //     icon: FileText,
-  //     color: 'text-blue-600',
-  //   },
-  //   {
-  //     title: 'Đề thi đã tạo',
-  //     value: 12,
-  //     description: '3 đề thi đang hoạt động',
-  //     icon: Clock,
-  //     color: 'text-green-600',
-  //   },
-  //   {
-  //     title: 'Sinh viên tham gia',
-  //     value: 156,
-  //     description: 'Trong tất cả lớp học',
-  //     icon: Users,
-  //     color: 'text-purple-600',
-  //   },
-  //   {
-  //     title: 'Điểm trung bình',
-  //     value: 7.8,
-  //     description: '+0.3 so với kỳ trước',
-  //     icon: BarChart3,
-  //     color: 'text-orange-600',
-  //   },
-  // ];
-
   const quickActions = [
     {
       title: 'Tạo câu hỏi mới',
@@ -151,10 +120,11 @@ const Overview = () => {
     },
   ];
 
-  const normalizeStatus = (status: string): 'Đang diễn ra' | 'Sắp diễn ra' | 'Đã kết thúc' => {
-    if (status.toLowerCase().includes('đang')) return 'Đang diễn ra';
-    if (status.toLowerCase().includes('sắp')) return 'Sắp diễn ra';
-    return 'Đã kết thúc';
+  const normalizeStatus = (status: string) => {
+    if(status === 'open') return 'Đang diễn ra'
+    if(status === 'pending') return 'Sắp diễn ra'
+    if(status === 'closed') return 'Đã kết thúc'
+    return 'Chưa xác định'
   };
 
   const handleQuickAction = (action: string) => {
@@ -171,6 +141,12 @@ const Overview = () => {
       navigate(path.TEACHER.STUDY_GROUP)
     }
   };
+
+  const handleJoinRoom = (examId: string, studyGroupId: string) => {
+    setExamId(examId);
+    setStudyGroupId(studyGroupId);
+    navigate(path.TEACHER.EXAM_ROOM_TEACHER);
+  }
 
   return (
     <div className="space-y-6">
@@ -204,7 +180,17 @@ const Overview = () => {
             <CardContent>
               <div className="space-y-4">
                 {examList?.data.slice(0,3).map((exam) => (
-                  <RecentExamCard key={exam.id} id={exam.id} title={exam.name} subject={exam.subject_name} student={exam.student_count} status={normalizeStatus(exam.opening_status)} endTime={exam.end_time} />
+                  <RecentExamCard 
+                    key={exam.id} 
+                    id={exam.id} 
+                    title={exam.name} 
+                    subject={exam.subject_name} 
+                    student={exam.student_count} 
+                    status={normalizeStatus(exam.opening_status)} 
+                    endTime={exam.end_time}
+                    test_type={exam.test_type}
+                    handleJoinRoom={() => handleJoinRoom(exam.id, exam.study_group_id)}
+                  />
                 ))}
               </div>
             </CardContent>

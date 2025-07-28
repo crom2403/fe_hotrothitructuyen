@@ -286,14 +286,17 @@ export default function ExamRoomStudent() {
 
     // const data = JSON.stringify(, null, 2);
     const res = await apiSubmitExam(exam_attempt_id, submissionData);
-    if (res.status === 200) {
+    if (res.status === 200 && exam_attempt_id && exam.allow_review_point === true) {
       toast.success('Nộp bài thi thành công');
       socket.emit('submitExam', {
         examId,
         studyGroupId,
         studentId: currentUser?.id
       });
-      navigate('/student/exam_list');
+      const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
+      navigate(path1);
+    } else {
+      navigate(path.STUDENT.EXAM_LIST);
     }
     console.log('res', res);
   };

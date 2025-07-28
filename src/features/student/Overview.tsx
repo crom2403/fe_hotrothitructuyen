@@ -274,8 +274,8 @@ const Overview = () => {
   };
 
   const handleViewExam = async (exam_attempt_id: string) => {
-    setIsExamResultDetailLoading(true);
     setIsExamResultOpen(true);
+    setIsExamResultDetailLoading(true);
     try {
       const response = await apiGetDetailExamAttempt(exam_attempt_id);
       setExamResultDetail(response.data);
@@ -331,7 +331,7 @@ const Overview = () => {
                               <Badge className={getStatusColor(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)))}>
                                 {getStatusText(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)))}
                               </Badge>
-                              {handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)) === 'opening' && (
+                              {handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)) === 'opening' && exam.exam_attempts.length === 0 && (
                                 <Button size="sm" className="bg-black"
                                   onClick={() => handleJoinExamRoom(exam.id, studyGroup.id)}
                                 >

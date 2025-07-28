@@ -9,17 +9,20 @@ import AutoMode from "./AutoMode";
 import type { AxiosError } from "axios";
 import { toast } from "sonner";
 import { apiGetRandomQuestions } from "@/services/teacher/createExam";
+import useUpdateExamStore from "@/stores/updateExamStore";
 
 interface QuestionTabProps {
   selectedSubjectId: string;
+  mode: 'create' | 'update';
 }
 
 interface RandomQuestion {
   data: QuestionItem[];
 }
 
-const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
-  const { tab2Data, setListQuestions, setListQuestionsFull, commonProps } = useExamStore();
+const QuestionsTab = ({ selectedSubjectId, mode }: QuestionTabProps) => {
+  const store = mode === 'create' ? useExamStore : useUpdateExamStore;
+  const { tab2Data, setListQuestions, setListQuestionsFull, commonProps } = store();
   const [isLoading, setIsLoading] = useState(false);
 
   const examMode = tab2Data.exam_type as "manual" | "auto";
@@ -98,7 +101,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
                 <CardDescription>Chọn cách thức tạo câu hỏi cho đề thi</CardDescription>
               </CardHeader>
               <CardContent>
-                <ExamModeSelector examMode={examMode} setExamMode={(mode) => useExamStore.getState().setExamType(mode)} />
+                <ExamModeSelector mode={mode} examMode={examMode} setExamMode={(mode) => useExamStore.getState().setExamType(mode)} />
               </CardContent>
             </Card>
             <QuestionList
@@ -124,7 +127,7 @@ const QuestionsTab = ({ selectedSubjectId }: QuestionTabProps) => {
                 <CardDescription>Chọn cách thức tạo câu hỏi cho đề thi</CardDescription>
               </CardHeader>
               <CardContent>
-                <ExamModeSelector examMode={examMode} setExamMode={(mode) => useExamStore.getState().setExamType(mode)} />
+                <ExamModeSelector mode={mode} examMode={examMode} setExamMode={(mode) => useExamStore.getState().setExamType(mode)} />
               </CardContent>
             </Card>
             <AutoMode examMode={examMode} isLoading={isLoading} generateAutoExam={generateAutoExam} />
