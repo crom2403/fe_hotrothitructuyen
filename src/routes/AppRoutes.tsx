@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import path from '../utils/path';
 import ProtectedRoute from './ProtectedRoute';
 import MainLayout from '@/components/layout/MainLayout';
-import Loading from '../../public/loading1.gif';
+import Loading from '../../public/images/svg/logo-mini-2.svg';
 import OTPConfirmation from '@/components/forgotPassword/OTPConfirmation';
 import PermissionRole from '@/features/admin/PermissionRole';
 import PermissionUser from '@/features/admin/PermissionUser';
@@ -49,7 +49,7 @@ const AppRoutes = () => {
     <Suspense
       fallback={
         <div className="w-full bg-[#f5f7f9] h-screen flex items-center justify-center">
-          <img src={Loading} alt="loading..." className="" />
+          <img src={Loading} alt="loading..." className="w-12 animate-ping" />
         </div>
       }
     >
@@ -64,7 +64,7 @@ const AppRoutes = () => {
         <Route path={path.STUDENT.CREATE_STUDENT_SOCKET} element={<CreateStudentSocket />} />
         <Route path={path.TEACHER.EXAM_ROOM_TEACHER} element={<ExamRoomTeacher />} />
         <Route path={path.STUDENT.RESULT_SUMMARY} element={<ResultSummary />} />
-        
+
         <Route
           path={path.STUDENT.EXAM_ROOM_STUDENT}
           element={
