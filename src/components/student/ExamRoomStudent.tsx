@@ -385,7 +385,7 @@ export default function ExamRoomStudent() {
   return (
     <div className="max-w-6xl mx-auto space-y-6 p-4">
       {isSubmitting && (
-        <div className="fixed inset-0 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 bg-opacity-50 flex justify-center items-center z-50">
           <Loading />
         </div>
       )}

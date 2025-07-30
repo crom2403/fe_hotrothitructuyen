@@ -16,36 +16,6 @@ import type { QuestionItem } from '@/types/questionType';
 import { apiGetResultSummary } from '@/services/student/exam';
 import Loading from '@/components/common/Loading';
 
-const examResult = {
-  examInfo: {
-    title: 'Kiểm tra giữa kỳ - Toán học lớp 10',
-    subject: 'Toán học',
-    grade: 'Lớp 10',
-    teacher: 'Nguyễn Văn A',
-    examDate: '2024-01-26',
-    examTime: '14:00',
-    duration: 90, // phút
-  },
-  studentInfo: {
-    name: 'Trần Thị B',
-    studentId: 'SV001',
-    class: '10A1',
-  },
-  result: {
-    score: 8.5,
-    maxScore: 10,
-    passed: true,
-    passScore: 5.0,
-    timeSpent: 75, // phút
-    totalQuestions: 30,
-    answeredQuestions: 28,
-    correctAnswers: 25,
-    wrongAnswers: 3,
-    skippedQuestions: 2,
-    submittedAt: '2024-01-26T15:15:00',
-  },
-};
-
 interface ResultSummary {
   exam_name: string;
   exam_id: string;
@@ -69,7 +39,6 @@ interface ResultSummary {
 }
 
 const ResultSummary = () => {
-  // const { examInfo, studentInfo, result } = examResult
   const navigate = useNavigate();
   const { exam_attempt_id } = useParams();
   const [isExamResultOpen, setIsExamResultOpen] = useState(false);
