@@ -28,13 +28,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
   Cell,
-  LineChart,
-  Line,
   AreaChart,
   Area,
 } from "recharts";
@@ -107,10 +104,6 @@ const ExamResultDetail = () => {
     }
   };
 
-  useEffect(() => {
-    console.log(exam_id, ' - ', study_group_id);
-    handleGetExamDetail();
-  }, []);
 
   const handleGetExamDetail = async () => {
     setIsLoading(true);
@@ -125,6 +118,21 @@ const ExamResultDetail = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'instant'
+      });
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    handleGetExamDetail();
+  }, []);
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -285,8 +293,8 @@ const ExamResultDetail = () => {
             <StatCard title="Tỷ lệ hoàn thành" value={`${completionRate}%`} description={`Sinh viên đã thi`} icon={<Clock className="w-4 h-4" />} color="text-yellow-500" />
           </div>
 
-          <Tabs defaultValue="charts" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs defaultValue="charts" className="space-y-3">
+            <TabsList className="grid w-full grid-cols-2 mb-3">
               <TabsTrigger value="charts" className="flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
                 Thống kê & Biểu đồ

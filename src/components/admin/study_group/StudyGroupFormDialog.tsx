@@ -186,7 +186,7 @@ const StudyGroupFormDialog = ({
                     <FormItem>
                       <FormLabel>Giáo viên</FormLabel>
                       <Popover open={openTeacher} onOpenChange={setOpenTeacher}>
-                        <PopoverTrigger asChild>
+                        <PopoverTrigger>
                           <Button
                             disabled={!!editingStudyGroup}
                             type="button"

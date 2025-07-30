@@ -111,15 +111,60 @@ const useUpdateExamStore = create<UpdateExamStore>((set, get) => ({
     allow_review_point: true,
     show_correct_answer: false,
     instruction: `
-      <p>Chào bạn, trước khi bắt đầu bài thi, vui lòng đọc kỹ các hướng dẫn và nội quy sau:</p>
+      <p><strong style="font-size: 18px;">📌 Chào bạn, trước khi bắt đầu bài thi, vui lòng đọc kỹ các hướng dẫn và nội quy sau:</strong></p>
+
       <ul>
-        <li>Thời gian làm bài: [xx] phút | Số câu hỏi: [xx] câu | Hình thức: Trắc nghiệm online.</li>
-        <li>Khi hết giờ, hệ thống tự động nộp bài. Bạn cũng có thể chủ động nộp bài khi hoàn thành.</li>
-        <li>Không được thoát trang, tải lại trình duyệt, hoặc sử dụng phần mềm hỗ trợ/tham khảo khác.</li>
-        <li>Mọi hành vi gian lận, thi hộ, hoặc sao chép bài làm sẽ bị hủy kết quả và xử lý theo quy định.</li>
-        <li>Đảm bảo thiết bị hoạt động tốt, kết nối internet ổn định và không bị làm phiền khi đang thi.</li>
+        <li>
+          <p style="font-size: 16px;">
+            ⏱️ <strong>Thời gian làm bài:</strong>
+            <span style="color: red; font-size: 20px; font-weight: bold;">[xx] phút</span> |
+            <strong>Số câu hỏi:</strong>
+            <span style="color: red; font-size: 20px; font-weight: bold;">[xx] câu</span> |
+            <strong>Hình thức:</strong> Trắc nghiệm online.
+          </p>
+        </li>
+
+        <li>
+          <p style="font-size: 16px;">
+            🕒 Khi hết giờ, hệ thống
+            <span style="color: red; font-weight: bold;">tự động nộp bài</span>. Bạn cũng có thể
+            <strong>chủ động nộp bài</strong> khi đã hoàn thành.
+          </p>
+        </li>
+
+        <li>
+          <p style="color: red; font-size: 20px; font-weight: bold; text-align: center;">
+            ⚠️ KHÔNG ĐƯỢC thoát trang, tải lại trình duyệt, hoặc sử dụng phần mềm hỗ trợ/tham khảo khác.
+          </p>
+        </li>
+
+        <li>
+          <p style="font-size: 16px;">
+            ❌ Nếu thoát trang quá
+            <span style="color: red; font-weight: bold; font-size: 18px;">[xx] lần</span>, hệ thống sẽ
+            <span style="color: red; font-weight: bold;">tự động nộp bài</span> và
+            <strong>không được thi lại</strong>.
+          </p>
+        </li>
+
+        <li>
+          <p style="color: red; font-size: 18px; font-weight: bold;">
+            🚫 MỌI HÀNH VI GIAN LẬN như thi hộ, sao chép bài làm sẽ bị hủy kết quả và xử lý theo quy định.
+          </p>
+        </li>
+
+        <li>
+          <p style="font-size: 16px;">
+            ✅ <strong>Đảm bảo thiết bị hoạt động tốt, kết nối internet ổn định và không bị làm phiền khi đang thi.</strong>
+          </p>
+        </li>
       </ul>
-      <p>👉 Bấm "Bắt đầu làm bài" để bắt đầu phần thi. Chúc bạn làm bài tốt!</p>
+
+      <p style="text-align: center; font-size: 18px;">
+        👉 Khi đã sẵn sàng, hãy bấm <span style="color: red; font-weight: bold;">"Bắt đầu làm bài"</span> để bắt đầu phần thi.
+      </p>
+
+      <p style="text-align: center; font-size: 18px; font-weight: bold;">🎯 Chúc bạn làm bài thật tốt!</p>
     `,
   },
   commonProps: {
@@ -199,15 +244,60 @@ const useUpdateExamStore = create<UpdateExamStore>((set, get) => ({
         allow_review_point: true,
         show_correct_answer: false,
         instruction: `
-          <p>Chào bạn, trước khi bắt đầu bài thi, vui lòng đọc kỹ các hướng dẫn và nội quy sau:</p>
+          <p><strong style="font-size: 18px;">📌 Chào bạn, trước khi bắt đầu bài thi, vui lòng đọc kỹ các hướng dẫn và nội quy sau:</strong></p>
+
           <ul>
-            <li>Thời gian làm bài: [xx] phút | Số câu hỏi: [xx] câu | Hình thức: Trắc nghiệm online.</li>
-            <li>Khi hết giờ, hệ thống tự động nộp bài. Bạn cũng có thể chủ động nộp bài khi hoàn thành.</li>
-            <li>Không được thoát trang, tải lại trình duyệt, hoặc sử dụng phần mềm hỗ trợ/tham khảo khác.</li>
-            <li>Mọi hành vi gian lận, thi hộ, hoặc sao chép bài làm sẽ bị hủy kết quả và xử lý theo quy định.</li>
-            <li>Đảm bảo thiết bị hoạt động tốt, kết nối internet ổn định và không bị làm phiền khi đang thi.</li>
+            <li>
+              <p style="font-size: 16px;">
+                ⏱️ <strong>Thời gian làm bài:</strong>
+                <span style="color: red; font-size: 20px; font-weight: bold;">[xx] phút</span> |
+                <strong>Số câu hỏi:</strong>
+                <span style="color: red; font-size: 20px; font-weight: bold;">[xx] câu</span> |
+                <strong>Hình thức:</strong> Trắc nghiệm online.
+              </p>
+            </li>
+
+            <li>
+              <p style="font-size: 16px;">
+                🕒 Khi hết giờ, hệ thống
+                <span style="color: red; font-weight: bold;">tự động nộp bài</span>. Bạn cũng có thể
+                <strong>chủ động nộp bài</strong> khi đã hoàn thành.
+              </p>
+            </li>
+
+            <li>
+              <p style="color: red; font-size: 20px; font-weight: bold; text-align: center;">
+                ⚠️ KHÔNG ĐƯỢC thoát trang, tải lại trình duyệt, hoặc sử dụng phần mềm hỗ trợ/tham khảo khác.
+              </p>
+            </li>
+
+            <li>
+              <p style="font-size: 16px;">
+                ❌ Nếu thoát trang quá
+                <span style="color: red; font-weight: bold; font-size: 18px;">[xx] lần</span>, hệ thống sẽ
+                <span style="color: red; font-weight: bold;">tự động nộp bài</span> và
+                <strong>không được thi lại</strong>.
+              </p>
+            </li>
+
+            <li>
+              <p style="color: red; font-size: 18px; font-weight: bold;">
+                🚫 MỌI HÀNH VI GIAN LẬN như thi hộ, sao chép bài làm sẽ bị hủy kết quả và xử lý theo quy định.
+              </p>
+            </li>
+
+            <li>
+              <p style="font-size: 16px;">
+                ✅ <strong>Đảm bảo thiết bị hoạt động tốt, kết nối internet ổn định và không bị làm phiền khi đang thi.</strong>
+              </p>
+            </li>
           </ul>
-          <p>👉 Bấm "Bắt đầu làm bài" để bắt đầu phần thi. Chúc bạn làm bài tốt!</p>
+
+          <p style="text-align: center; font-size: 18px;">
+            👉 Khi đã sẵn sàng, hãy bấm <span style="color: red; font-weight: bold;">"Bắt đầu làm bài"</span> để bắt đầu phần thi.
+          </p>
+
+          <p style="text-align: center; font-size: 18px; font-weight: bold;">🎯 Chúc bạn làm bài thật tốt!</p>
         `,
       },
       commonProps: {

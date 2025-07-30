@@ -327,7 +327,7 @@ const ExamManagement = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              {examStatus === "opening" && (
+                              {examStatus === "opening" && exam.test_type !== "exercise" && exam.approval_status === "approved" && (
                                 <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleEnterExamRoom(exam.id, exam.study_group_id)}>
                                   <Play className="w-4 h-4 mr-1" />
                                   Vào phòng

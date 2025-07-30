@@ -11,8 +11,11 @@ import ExamPreview from '@/components/teacher/CreateExam/ExamPreview';
 import { toast } from 'sonner';
 import type { AxiosError } from 'axios';
 import { apiCreateExam } from '@/services/teacher/createExam';
+import { useNavigate } from 'react-router-dom';
+import path from '@/utils/path';
 
 const CreateExam = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   const { tab1Data, tab2Data, tab3Data, resetExamData, commonProps } = useExamStore();
@@ -32,14 +35,6 @@ const CreateExam = () => {
       toast.error('Thời gian không hợp lệ!');
       return false;
     }
-
-    // const startDateOnly = startDate.toISOString().split('T')[0];
-    // const endDateOnly = endDate.toISOString().split('T')[0];
-
-    // if (startDateOnly !== endDateOnly) {
-    //   toast.error("Ngày bắt đầu và kết thúc phải cùng ngày!");
-    //   return false;
-    // }
 
     if (endDate <= startDate) {
       toast.error('Giờ kết thúc phải sau giờ bắt đầu!');
@@ -94,6 +89,7 @@ const CreateExam = () => {
       if (response.status === 201) {
         toast.success('Tạo đề thi thành công');
         resetExamData();
+        navigate(path.TEACHER.EXAM_MANAGEMENT);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;

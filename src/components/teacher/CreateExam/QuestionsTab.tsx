@@ -83,7 +83,7 @@ const QuestionsTab = ({ selectedSubjectId, mode }: QuestionTabProps) => {
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
-      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      const errorMessage = axiosError.response?.data?.message[0] || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
