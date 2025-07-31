@@ -93,17 +93,26 @@ export default function ExamRoomStudent() {
 
     socketInstance.on('openExam', () => {
       setExamOpened(true);
+      socket.emit('tabIn', {
+        examId,
+        studyGroupId,
+        studentId: currentUser?.id,
+        status: 'taking_exam',
+      });
       toast.success('Đề thi đã được mở! Bạn có thể bắt đầu làm bài.');
     });
 
     socketInstance.on('pauseExam', () => {
       setExamOpened(false);
       toast.info('Đề thi đã bị tạm dừng.');
-    });
 
-    // socketInstance.on('submitExam', (data: { studentId: string }) => {
-    //   console.log(data);
-    // });
+      socketInstance.emit('tabIn', {
+        examId,
+        studyGroupId,
+        studentId: currentUser?.id,
+        status: 'waiting',
+      });
+    });
 
     socketInstance.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
@@ -145,12 +154,22 @@ export default function ExamRoomStudent() {
           return newCount;
         });
       } else {
-        socket.emit('tabIn', {
-          examId,
-          studyGroupId,
-          studentId: currentUser?.id,
-          status: 'taking_exam',
-        });
+        console.log('Vào đây', examOpened);
+        if (examOpened) {
+          socket.emit('tabIn', {
+            examId,
+            studyGroupId,
+            studentId: currentUser?.id,
+            status: 'taking_exam',
+          });
+        } else {
+          socket.emit('tabIn', {
+            examId,
+            studyGroupId,
+            studentId: currentUser?.id,
+            status: 'waiting',
+          });
+        }
       }
     };
 
@@ -316,6 +335,7 @@ export default function ExamRoomStudent() {
     } finally {
       setIsSubmitting(false);
       setIsSubmitted(true);
+      handleClearExamStore();
     }
     // console.log('res', res);
   };
