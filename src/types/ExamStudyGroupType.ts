@@ -14,6 +14,7 @@ export interface ExamStudyGroup {
   average_score: number;
   opening_status: string;
   pass_points: number;
+  processing_percent: number
 }
 
 export interface ExamStudyGroupResponse {
