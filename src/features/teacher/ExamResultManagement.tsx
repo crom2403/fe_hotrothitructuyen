@@ -72,10 +72,10 @@ const ExamResultManagement = () => {
     }
   }
 
-  const getCompletionRate = (completed: number, total: number) => {
-    if (total === 0) return 0;
-    return Math.round((completed / total) * 100);
-  }
+  // const getCompletionRate = (completed: number, total: number) => {
+  //   if (total === 0) return 0;
+  //   return Math.round((completed / total) * 100);
+  // }
 
   return (
     <div className="space-y-6">
@@ -194,9 +194,9 @@ const ExamResultManagement = () => {
                           <div className="space-y-2">
                             <div className="flex justify-between text-sm">
                               <span>Tỷ lệ hoàn thành</span>
-                              <span>{getCompletionRate(exam.attempt_count, exam.student_count)}%</span>
+                              <span>{exam.processing_percent}%</span>
                             </div>
-                            <Progress value={getCompletionRate(exam.attempt_count, exam.student_count)} />
+                            <Progress value={exam.processing_percent} />
                           </div>
 
                           {
