@@ -263,11 +263,11 @@ const StudyGroupManagement = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 md:w-full w-[380px] overflow-x-scroll">
+      <div className="flex md:items-center items-start justify-between md:flex-row flex-col">
         <div>
           <h1 className="text-2xl font-bold">Quản lý lớp học phần</h1>
-          <p className="text-gray-500">Tạo và quản lý các lớp học phần trong hệ thống</p>
+          <p>Tạo và quản lý các lớp học phần trong hệ thống</p>
         </div>
         <StudyGroupFormDialog
           form={form as any}

@@ -2,7 +2,7 @@ import AssignSubjectTable from "@/components/admin/assign_subject/AssignSubjectT
 
 const AssignSubject = () => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:w-full w-[380px] overflow-x-scroll">
       <div>
         <h1 className="text-2xl font-bold">Phân công môn học</h1>
         <p className="text-gray-500">Quản lý việc giảng dạy môn học cho giảng viên</p>

@@ -175,13 +175,13 @@ const YearSemesterManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 md:w-full w-[380px] overflow-x-scroll">
+      <div className="flex items-center justify-between md:flex-row flex-col">
         <div>
           <h1 className="text-2xl font-bold">Quản lý năm học & học kỳ</h1>
           <p>Quản lý thời gian học tập trong chương trình đào tạo</p>
         </div>
-        <div className="flex gap-2">
+        <div className="md:w-fit w-full flex gap-2 md:justify-end justify-start md:mt-0 mt-2">
           <YearFormDialog form={yearForm as any} isDialogOpen={isYearFormDialogOpen} setIsDialogOpen={setIsYearFormDialogOpen} onSubmit={handleYearFormSubmit} isLoading={isLoading} />
           <SemesterFormDialog
             form={semesterForm as any}
