@@ -57,7 +57,7 @@ const QuestionBank = () => {
 
   return (
     <div className="space-y-6 md:w-full w-[380px] overflow-x-scroll">
-      <div className="flex items-center justify-between md:flex-row flex-col">
+      <div className="flex md:items-center items-start justify-between md:flex-row flex-col">
         <div>
           <h1 className="text-2xl font-bold">Quản lý các câu hỏi của bạn</h1>
           <p className="text-gray-500">Quản lý và tạo các câu hỏi cho bài thi</p>
