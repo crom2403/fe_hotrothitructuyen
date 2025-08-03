@@ -180,7 +180,7 @@ function VideoPopupQuestion({ question, answers, onAnswerChange }: VideoPopupQue
 
   return (
     <div className="space-y-4">
-      <div className="relative bg-black rounded-lg overflow-hidden shadow-2xl">
+      <div className="relative bg-primary rounded-lg overflow-hidden shadow-2xl">
         <video ref={videoRef} className="w-full aspect-video" src={question.answer_config.url} onVolumeChange={(e) => setVolume((e.target as HTMLVideoElement).volume)}>
           Your browser does not support the video tag.
         </video>
@@ -194,7 +194,7 @@ function VideoPopupQuestion({ question, answers, onAnswerChange }: VideoPopupQue
           </div>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-primary/90 via-primary/60 to-transparent p-4">
           <div className="relative mb-4">
             <div className="w-full h-3 bg-gray-600 rounded-full overflow-hidden cursor-pointer hover:h-4 transition-all duration-200" onClick={handleProgressClick}>
               <div className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-100 relative" style={{ width: `${getProgressPercentage()}%` }}>
@@ -261,7 +261,7 @@ function VideoPopupQuestion({ question, answers, onAnswerChange }: VideoPopupQue
               <div className="text-sm font-mono">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </div>
-              <div className="text-sm bg-black/50 px-3 py-1 rounded-full">
+              <div className="text-sm bg-primary/50 px-3 py-1 rounded-full">
                 <span className="text-green-400">{Object.keys(answers).length}</span>
                 <span className="text-gray-400">/{question.answer_config.popup_times?.length}</span>
                 <span className="text-xs ml-1">câu hỏi</span>

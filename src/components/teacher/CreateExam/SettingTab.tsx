@@ -123,7 +123,7 @@ export function SettingsTab({ mode }: { mode: 'create' | 'update' }) {
                   </div>
                 )}
               />
-              <Button type="submit" className="bg-black text-white hover:bg-black/80 float-right">
+              <Button type="submit" className="bg-primary text-white hover:bg-primary/80 float-right">
                 Lưu hướng dẫn
               </Button>
             </form>

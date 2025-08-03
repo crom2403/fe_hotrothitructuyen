@@ -30,11 +30,11 @@ const ChooseAvatarDialog = ({ open, onOpenChange, setIsLoadingUpdateAvatar }: { 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="min-w-md min-h-lg">
+      <DialogContent className="md:min-w-md md:min-h-lg">
         <DialogHeader>
           <DialogTitle>Chọn ảnh đại diện cho tài khoản của bạn</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-5 gap-6">
+        <div className="grid md:grid-cols-5 grid-cols-4 gap-6">
           {filteredListAvatar.map((avatar) => (
             <AvatarItem key={avatar.id} avatar={avatar} handleUpdateAvatar={handleUpdateAvatar} />
           ))}

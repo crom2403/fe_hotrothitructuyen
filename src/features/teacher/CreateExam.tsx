@@ -57,7 +57,7 @@ const CreateExam = () => {
       toast.error('Số câu hỏi không khớp!');
       return;
     }
-  
+
     setIsLoading(true);
     try {
       const examData = {
@@ -102,14 +102,16 @@ const CreateExam = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex md:justify-between md:items-center flex-col md:flex-row">
         <div>
           <h1 className="text-2xl font-bold">Tạo đề thi</h1>
           <p className="text-gray-500">Tạo đề thi từ ngân hàng câu hỏi hoặc tự động bằng AI</p>
         </div>
-        <div className="space-x-2">
-          <ExamPreview selectedQuestions={commonProps.list_questions} mode="create" />
-          <Button onClick={handleSaveExam} className="bg-primary hover:bg-primary/90 cursor-pointer" disabled={isLoading}>
+        <div className="space-x-2 md:mt-0 mt-2 flex items-center justify-between">
+          <div className="w-1/2">
+            <ExamPreview selectedQuestions={commonProps.list_questions} mode="create" />
+          </div>
+          <Button onClick={handleSaveExam} className="bg-primary hover:bg-primary/90 cursor-pointer w-1/2 md:w-auto" disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -126,7 +128,7 @@ const CreateExam = () => {
       </div>
       <div>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full md:h-auto h-[100px] md:grid-cols-4 grid-cols-2 p-1 border md:border-none">
             <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
             <TabsTrigger value="questions" disabled={!isSubjectSelected}>
               Chọn câu hỏi

@@ -183,7 +183,7 @@ const Profile = () => {
                   <CardContent>
                     <Form {...profileForm}>
                       <form className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
                           <FormField
                             control={profileForm.control}
                             name="name"
@@ -214,7 +214,7 @@ const Profile = () => {
                           />
                         </div>
                         <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid md:grid-cols-2 grid-cols-1 gap-4">
                             <FormField
                               control={profileForm.control}
                               name="phone"
@@ -288,17 +288,6 @@ const Profile = () => {
                             )}
                           </div>
                         </div>
-
-                        {/* <Button type="submit" className="bg-black" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Đang cập nhật...
-                      </>
-                    ) : (
-                      "Cập nhật thông tin"
-                    )}
-                  </Button> */}
                       </form>
                     </Form>
                   </CardContent>
