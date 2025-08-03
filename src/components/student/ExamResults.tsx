@@ -159,7 +159,7 @@ const ExamResults = () => {
             <CardDescription>Danh sách kết quả các bài thi đã hoàn thành</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ gridAutoRows: 'minmax(300px, auto)' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4" style={{ gridAutoRows: 'minmax(255px, auto)' }}>
               {examResults.map((result) => (
                 <div key={result.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow flex flex-col justify-between h-full">
                   <div>
