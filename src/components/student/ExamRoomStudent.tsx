@@ -36,7 +36,7 @@ import useCommonStore from '@/stores/commonStore';
 export default function ExamRoomStudent() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
-  const { examId, studyGroupId, setExamId, setStudyGroupId } = useAppStore();
+  const { examId, studyGroupId } = useAppStore();
   const { exam_attempt_id, setExamAttemptId } = useCommonStore();
 
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -400,9 +400,9 @@ export default function ExamRoomStudent() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 p-4">
+    <div className="max-w-6xl mx-auto space-y-6 p-4 h-screen">
       {isSubmitting && (
-        <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 bg-opacity-50 flex justify-center items-center h-screen z-50">
           <Loading />
         </div>
       )}

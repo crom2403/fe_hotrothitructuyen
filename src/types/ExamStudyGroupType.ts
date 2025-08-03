@@ -59,6 +59,6 @@ export interface StudentExamResult {
   duration_seconds: number;
   tab_switch_count: number;
   score: number;
-  total_answered_questions: number;
+  total_questions: number;
   questions: Question[];
 }

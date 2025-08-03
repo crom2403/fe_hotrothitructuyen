@@ -198,29 +198,35 @@ const ExamResultDetail = () => {
   ];
 
   const timeDistribution = [
-    { range: "0-30 phút", count: examResult.filter((r) => r.exam_attempt_score !== null && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 30).length },
+    { range: "0-30 phút", count: examResult.filter((r) => r.exam_attempt_score !== null && Math.floor((r.exam_attempt_duration_seconds ?? 0) / 60) <= 30).length },
     {
       range: "31-45 phút",
       count: examResult.filter(
-        (r) => r.exam_attempt_score !== null && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) > 30 && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 45
+        (r) => r.exam_attempt_score !== null && Math.floor((r.exam_attempt_duration_seconds ?? 0) / 60) > 30 && Math.floor((r.exam_attempt_duration_seconds ?? 0) / 60) <= 45
       ).length,
     },
     {
       range: "46-60 phút",
       count: examResult.filter(
-        (r) => r.exam_attempt_score !== null && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) > 45 && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 60
+        (r) => r.exam_attempt_score !== null && Math.floor((r.exam_attempt_duration_seconds ?? 0) / 60) > 45 && Math.floor((r.exam_attempt_duration_seconds ?? 0) / 60) <= 60
       ).length,
     },
   ];
 
   const scoreDistribution = [
-    { range: "0-2", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 0 && r.exam_attempt_score < 2).length }, 
-    { range: "2-4", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 2 && r.exam_attempt_score < 4).length }, 
-    { range: "4-5.5", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 4 && r.exam_attempt_score < 5.5).length }, 
-    { range: "5.5-7", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 5.5 && r.exam_attempt_score < 7).length }, 
-    { range: "7-8.5", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 7 && r.exam_attempt_score < 8.5).length }, 
-    { range: "8.5-10", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 8.5 && r.exam_attempt_score <= 10).length }, 
+    { range: "0-2", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 0 && r.exam_attempt_score < 2).length },
+    { range: "2-4", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 2 && r.exam_attempt_score < 4).length },
+    { range: "4-5.5", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 4 && r.exam_attempt_score < 5.5).length },
+    { range: "5.5-7", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 5.5 && r.exam_attempt_score < 7).length },
+    { range: "7-8.5", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 7 && r.exam_attempt_score < 8.5).length },
+    { range: "8.5-10", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 8.5 && r.exam_attempt_score <= 10).length },
   ];
+
+  const handleSecondToMinute = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes} phút ${remainingSeconds} giây`;
+  };
 
   return (
     <>
@@ -444,7 +450,7 @@ const ExamResultDetail = () => {
                             <TableCell>{result.student_full_name}</TableCell>
                             <TableCell className="text-center font-semibold">{result.exam_attempt_score > 0 ? result.exam_attempt_score.toFixed(2) : 0}</TableCell>
                             <TableCell className="text-center">{getScoreBadge(result.exam_attempt_score)}</TableCell>
-                            <TableCell className="text-center">{result.exam_attempt_duration_seconds ? result.exam_attempt_duration_seconds : '-'}</TableCell>
+                            <TableCell className="text-center">{result.exam_attempt_duration_seconds ? handleSecondToMinute(result.exam_attempt_duration_seconds) : '-'}</TableCell>
                             <TableCell className="text-center">{result.exam_attempt_submitted_at ? formatDate(result.exam_attempt_submitted_at, 'dd/MM/yyyy HH:mm:ss') : '-'}</TableCell>
                             <TableCell className="text-center">
                               <Badge variant={result.exam_attempt_submitted_at === null ? 'secondary' : 'default'}>{result.exam_attempt_submitted_at === null ? 'Chưa thi' : 'Đã thi'}</Badge>

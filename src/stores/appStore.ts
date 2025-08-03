@@ -21,6 +21,8 @@ interface AppStore {
   setExamId: (examId: string) => void;
   studyGroupId: string;
   setStudyGroupId: (studyGroupId: string) => void;
+  durationMinutes?: number;
+  setDurationMinutes?: (durationMinutes: number) => void;
 }
 
 const useAppStore = create<AppStore>()(
@@ -56,6 +58,10 @@ const useAppStore = create<AppStore>()(
       setStudyGroupId: (studyGroupId: string) => {
         set({ studyGroupId });
       },
+      durationMinutes: 0,
+      setDurationMinutes: (durationMinutes: number) => {
+        set({ durationMinutes });
+      }
     }),
     {
       name: 'app-storage',
