@@ -73,7 +73,7 @@ const PermissionRole = () => {
   }, [selectedRole]);
 
   return (
-    <div>
+    <div className="space-y-6 md:w-full w-[380px] overflow-x-scroll">
       <Card>
         <Select value={selectedRole?.id || ''} onValueChange={(value) => setSelectedRole(roles.find((role) => role.id === value) || null)}>
           <div className="flex items-center justify-between px-6">
