@@ -31,7 +31,7 @@ const AppSidebar = () => {
 
   const getMenuItems = (): MenuItem[] => {
     switch (currentUser?.role_code as string) {
-      case 'admin':
+      case 'admin': {
         return [
           { id: 'dashboard', label: 'Tổng quan', icon: Home, path: path.ADMIN.OVERVIEW },
           { id: 'users', label: 'Quản lý người dùng', icon: Users, path: path.ADMIN.USER },
@@ -44,7 +44,8 @@ const AppSidebar = () => {
           { id: 'permission_role', label: 'Phân quyền vai trò', icon: Shield, path: path.ADMIN.PERMISSTION_ROLE },
           { id: 'permission_user', label: 'Phân quyền người dùng', icon: ShieldUser, path: path.ADMIN.PERMISSTION_USER },
         ];
-      case 'teacher':
+      }
+      case 'teacher': {
         const baseItems: MenuItem[] = [
           { id: 'dashboard', label: 'Tổng quan', icon: Home, path: path.TEACHER.OVERVIEW },
           { id: 'questions', label: 'Quản lý câu hỏi', icon: Database, path: path.TEACHER.QUESTION_BANK },
@@ -66,15 +67,18 @@ const AppSidebar = () => {
         }
 
         return baseItems;
-      case 'student':
+      }
+      case 'student': {
         return [
           { id: 'dashboard', label: 'Tổng quan', icon: Home, path: path.STUDENT.OVERVIEW },
           { id: 'classes', label: 'Lớp học phần', icon: GraduationCap, path: path.STUDENT.STUDY_GROUP },
           { id: 'exam-list', label: 'Danh sách bài thi', icon: ClipboardList, path: path.STUDENT.EXAM_LIST },
           { id: 'exam-results', label: 'Kết quả', icon: Trophy, path: path.STUDENT.EXAM_RESULTS },
         ];
-      default:
+      }
+      default: {
         return [];
+      }
     }
   };
 
@@ -88,7 +92,7 @@ const AppSidebar = () => {
   };
 
   return (
-    <Sidebar collapsible="icon" className="w-[255px] bg-white border-r border-gray-200">
+    <Sidebar collapsible="icon" className="max-w-[255px] bg-white border-r border-gray-200">
       <SidebarHeader className="bg-white px-4 py-3 border-b border-gray-200">
         <div className="flex items-center gap-3 relative">
           {openSidebar ? (
@@ -136,8 +140,8 @@ const AppSidebar = () => {
                       className={`rounded-lg transition-all duration-200 ${isParentActive ? 'bg-blue-50 text-blue-700 font-medium' : 'hover:bg-gray-50 hover:text-gray-900'}`}
                     >
                       <div className="flex items-center justify-between w-full ">
-                        <div className="flex items-center gap-3">
-                          <Icon className={`w-5 h-5 ${isParentActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                        <div className={`flex items-center gap-3 ${openSidebar && 'px-0.5' }`}>
+                          <Icon className={`w-5 h-5 ${isParentActive ? 'text-blue-600' : 'text-gray-500'} ${!openSidebar ? 'w-7 h-7' : ''}`} />
                           <span>{item.label}</span>
                         </div>
                         <ChevronRight className={`w-4 h-4 transition-transform ${isApprovalOpen || isParentActive ? 'rotate-90 text-blue-600' : 'text-gray-400'}`} />
