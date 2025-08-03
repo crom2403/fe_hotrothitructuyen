@@ -173,9 +173,9 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="space-y-6 md:w-full w-[380px] overflow-x-scroll">
+      <div className="flex items-center justify-between md:flex-row flex-col">
+        <div className="">
           <h1 className="text-2xl font-bold">Quản lý người dùng</h1>
           <p className="text-gray-500">Quản lý tài khoản sinh viên, giáo viên và quản trị viên</p>
         </div>

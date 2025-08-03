@@ -131,8 +131,8 @@ const SubjectManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 md:w-full w-[380px] overflow-x-scroll">
+      <div className="flex items-center justify-between md:flex-row flex-col">
         <div>
           <h1 className="text-2xl font-bold">Quản lý môn học</h1>
           <p>Quản lý danh sách môn học trong chương trình đào tạo</p>

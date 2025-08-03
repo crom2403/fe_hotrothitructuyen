@@ -36,18 +36,21 @@ const SubjectFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingSubject
         }
       }}
     >
-      <DialogTrigger asChild>
-        <Button
-          className="bg-primary hover:bg-primary/90 cursor-pointer"
-          onClick={() => {
-            setEditingSubject(null);
-            form.reset();
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Thêm môn học
-        </Button>
-      </DialogTrigger>
+      <div className="md:w-fit w-full flex gap-2 md:justify-end justify-start md:mt-0 mt-2">
+        <DialogTrigger asChild>
+          <Button
+            className="bg-primary hover:bg-primary/90 cursor-pointer"
+            onClick={() => {
+              setEditingSubject(null);
+              form.reset();
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm môn học
+          </Button>
+        </DialogTrigger>
+      </div>
+
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{editingSubject ? 'Chỉnh sửa môn học' : 'Thêm môn học mới'}</DialogTitle>
