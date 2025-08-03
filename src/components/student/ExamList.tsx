@@ -95,7 +95,7 @@ const ExamList = () => {
     }
   };
 
-  const handleCreateExamAttempt = async (exam_id: string, study_group_id: string): Promise<void> => {
+  const handleCreateExamAttempt = async (exam_id: string, study_group_id: string, ): Promise<void> => {
     const key = `${exam_id}_${study_group_id}`;
     setLoadingExamAttempts((prev) => ({ ...prev, [key]: true }));
     try {

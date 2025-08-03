@@ -157,7 +157,7 @@ const ReviewQuestion = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:w-full w-[380px] overflow-x-scroll">
       <div>
         <h1 className="text-2xl font-bold">Duyệt các câu hỏi</h1>
         <p className="text-sm text-gray-500">Kiểm duyệt các câu hỏi được tạo bởi các giáo viên khác</p>

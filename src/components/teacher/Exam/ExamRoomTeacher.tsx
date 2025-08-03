@@ -39,8 +39,7 @@ interface ExamStats {
 }
 
 export default function ExamRoomTeacher() {
-  const { examId, studyGroupId } = useAppStore();
-  // const { examId, studyGroupId } = { examId: '6275f090-144c-4f97-b447-d0dc2d65cd16', studyGroupId: '29bc0455-ba05-4f1f-9ca6-81042ccbf86a' };
+  const { examId, studyGroupId, durationMinutes } = useAppStore();
 
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
@@ -205,6 +204,21 @@ export default function ExamRoomTeacher() {
     navigate(path.TEACHER.EXAM_RESULT);
   };
 
+  const getStatusTitle = (status: string) => {
+    switch (status) {
+      case 'taking_exam':
+        return 'Đang thi';
+      case 'out_of_exam':
+        return 'Rời khỏi phòng';
+      case 'waiting':
+        return 'Chờ thi';
+      case 'submitted':
+        return 'Đã nộp bài';
+      default:
+        return 'Không xác định';
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
@@ -226,7 +240,7 @@ export default function ExamRoomTeacher() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white">
         <div className="container mx-auto px-2 py-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap">
             <div className="flex items-center space-x-4">
               <div className="relative">
                 <GraduationCap className="h-12 w-12 text-blue-200" />
@@ -252,6 +266,7 @@ export default function ExamRoomTeacher() {
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1">
                 <div className="text-xs text-blue-200">Thời gian thi</div>
+                <div className="font-semibold text-xs">{durationMinutes} phút</div>
               </div>
             </div>
           </div>
@@ -311,7 +326,7 @@ export default function ExamRoomTeacher() {
           </Button>
         </div>
 
-        <div className="flex gap-2 py-4">
+        <div className="flex gap-2 py-4 md:flex-row flex-col">
           <div className="flex-1/4 border border-gray-200 rounded-md p-4 bg-white">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
@@ -347,7 +362,7 @@ export default function ExamRoomTeacher() {
               </div>
             ) : viewMode === 'grid' ? (
               <div className="flex min-h-[480px] flex-col items-center gap-8">
-                <FlipReveal className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4" keys={[statusFilter]} showClass="flex" hideClass="hidden">
+                <FlipReveal className="grid grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4" keys={[statusFilter]} showClass="flex" hideClass="hidden">
                   {filteredStudents.map((student) => (
                     <FlipRevealItem flipKey={student.studentId} key={student.studentId}>
                       <div className="flex items-center justify-center w-[100px] h-[100px] border rounded-md shadow bg-white">
@@ -370,7 +385,7 @@ export default function ExamRoomTeacher() {
                               <span className="font-semibold">Họ và tên:</span> {student.name}
                             </p>
                             <p>
-                              <span className="font-semibold">Trạng thái:</span> {student.status}
+                              <span className="font-semibold">Trạng thái:</span> {getStatusTitle(student.status)}
                             </p>
                             <p>
                               <span className="font-semibold">Số tab mở:</span> {student.tab_count}
@@ -420,9 +435,8 @@ export default function ExamRoomTeacher() {
                                   <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white">{student.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div
-                                  className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                                    student.status === 'taking_exam' ? 'bg-emerald-500' : student.status === 'submitted' ? 'bg-blue-500' : student.status === 'waiting' ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
+                                  className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${student.status === 'taking_exam' ? 'bg-emerald-500' : student.status === 'submitted' ? 'bg-blue-500' : student.status === 'waiting' ? 'bg-amber-500' : 'bg-red-500'
+                                    }`}
                                 />
                               </div>
                               <div className="flex-1">
@@ -433,13 +447,12 @@ export default function ExamRoomTeacher() {
                                 {renderStatusBadge(student.status)}
                                 {student.suspicious_activity && student.suspicious_activity > 0 && (
                                   <AlertTriangle
-                                    className={`w-5 h-5 ${
-                                      getSuspiciousActivityLevel(student.suspicious_activity) === 'high'
+                                    className={`w-5 h-5 ${getSuspiciousActivityLevel(student.suspicious_activity) === 'high'
                                         ? 'text-red-500'
                                         : getSuspiciousActivityLevel(student.suspicious_activity) === 'medium'
-                                        ? 'text-amber-500'
-                                        : 'text-orange-500'
-                                    }`}
+                                          ? 'text-amber-500'
+                                          : 'text-orange-500'
+                                      }`}
                                   />
                                 )}
                               </div>

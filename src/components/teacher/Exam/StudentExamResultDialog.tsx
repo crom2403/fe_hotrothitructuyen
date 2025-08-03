@@ -52,7 +52,7 @@ const StudentExamResultDialog = ({ studentExamResult, isLoading, isTeacher = fal
                 <p>Thời gian nộp: {new Date(studentExamResult.submitted_at).toLocaleString("vi-VN")}</p>
                 <p>Số lần chuyển tab: {studentExamResult.tab_switch_count}</p>
                 <p>
-                  Số câu đúng: {studentExamResult.questions.filter((q) => q.is_correct).length} / {studentExamResult.questions.length}
+                  Số câu đúng: {studentExamResult.questions.filter((q) => q.is_correct).length} / {studentExamResult.total_questions}
                 </p>
               </div>
             </div>

@@ -21,12 +21,13 @@ interface ExamListDialogProps {
 }
 
 const ExamListDialog = ({ exams, open, setOpen, isLoading, page, totalPages, handlePageChange }: ExamListDialogProps) => {
-  const { setExamId, setStudyGroupId } = useAppStore();
+  const { setExamId, setStudyGroupId, setDurationMinutes } = useAppStore();
   const navigate = useNavigate();
 
-  const handleEnterExamRoom = (examId: string, studyGroupId: string) => {
+  const handleEnterExamRoom = (examId: string, studyGroupId: string, duration: number) => {
     setExamId(examId);
     setStudyGroupId(studyGroupId);
+    setDurationMinutes(duration);
     navigate(path.TEACHER.EXAM_ROOM_TEACHER);
   };
 
@@ -89,7 +90,7 @@ const ExamListDialog = ({ exams, open, setOpen, isLoading, page, totalPages, han
                                 type="button"
                                 variant="outline"
                                 className="bg-green-500 text-white hover:bg-green-600 hover:text-white"
-                                onClick={() => handleEnterExamRoom(exam.id, exam.study_group_id)}
+                                onClick={() => handleEnterExamRoom(exam.id, exam.study_group_id, exam.duration_minutes)}
                               >
                                 Vào phòng thi
                               </Button>

@@ -254,6 +254,7 @@ const Overview = () => {
     await handleCreateExamAttempt(examId, studyGroupId);
     setExamId(examId);
     setStudyGroupId(studyGroupId);
+
     navigate(path.STUDENT.EXAM_ROOM_STUDENT);
   };
 
