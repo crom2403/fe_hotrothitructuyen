@@ -15,36 +15,7 @@ import path from '@/utils/path';
 import type { QuestionItem } from '@/types/questionType';
 import { apiGetResultSummary } from '@/services/student/exam';
 import Loading from '@/components/common/Loading';
-
-const examResult = {
-  examInfo: {
-    title: 'Kiểm tra giữa kỳ - Toán học lớp 10',
-    subject: 'Toán học',
-    grade: 'Lớp 10',
-    teacher: 'Nguyễn Văn A',
-    examDate: '2024-01-26',
-    examTime: '14:00',
-    duration: 90, // phút
-  },
-  studentInfo: {
-    name: 'Trần Thị B',
-    studentId: 'SV001',
-    class: '10A1',
-  },
-  result: {
-    score: 8.5,
-    maxScore: 10,
-    passed: true,
-    passScore: 5.0,
-    timeSpent: 75, // phút
-    totalQuestions: 30,
-    answeredQuestions: 28,
-    correctAnswers: 25,
-    wrongAnswers: 3,
-    skippedQuestions: 2,
-    submittedAt: '2024-01-26T15:15:00',
-  },
-};
+import useAppStore from '@/stores/appStore';
 
 interface ResultSummary {
   exam_name: string;
@@ -64,19 +35,25 @@ interface ResultSummary {
   duration_seconds: number;
   tab_switch_count: number;
   score: number;
-  total_questions: number;
+  total_answered_questions: number;
   questions: QuestionItem[];
 }
 
 const ResultSummary = () => {
-  // const { examInfo, studentInfo, result } = examResult
   const navigate = useNavigate();
+  const { setExamId, setStudyGroupId, setDurationMinutes } = useAppStore();
   const { exam_attempt_id } = useParams();
   const [isExamResultOpen, setIsExamResultOpen] = useState(false);
   const [examResultDetail, setExamResultDetail] = useState<StudentExamResult | null>(null);
   const [isExamResultDetailLoading, setIsExamResultDetailLoading] = useState(false);
   const [examResult, setExamResult] = useState<ResultSummary | null>(null);
   const [isExamResultLoading, setIsExamResultLoading] = useState(false);
+
+  const handleClearExamResult = () => {
+    setExamId('');
+    setStudyGroupId('');
+    setDurationMinutes(0);
+  }
 
   const handleGetExamResult = async () => {
     setIsExamResultLoading(true);
@@ -138,7 +115,7 @@ const ResultSummary = () => {
     }
   };
 
-  const skippedQuestions = examResult?.exam_total_questions - examResult?.total_questions;
+  const skippedQuestions = examResult?.exam_total_questions - examResult?.total_answered_questions
 
   const handleSecondToMinute = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -226,7 +203,7 @@ const ResultSummary = () => {
                     <FileText className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-medium">Câu đã làm</span>
                   </div>
-                  <span className="font-semibold text-green-600">{examResult?.total_questions} câu</span>
+                  <span className="font-semibold text-green-600">{examResult?.total_answered_questions} câu</span>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -287,7 +264,10 @@ const ResultSummary = () => {
                 Xem chi tiết bài làm
               </Button>
             )}
-            <Button className="flex items-center gap-2" onClick={() => navigate(path.STUDENT.OVERVIEW)}>
+            <Button className="flex items-center gap-2" onClick={() => {
+              handleClearExamResult()
+              navigate(path.STUDENT.OVERVIEW)
+            }}>
               <Home className="w-4 h-4" />
               Về trang chủ
             </Button>

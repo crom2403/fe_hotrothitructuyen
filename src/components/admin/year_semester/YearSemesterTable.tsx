@@ -72,16 +72,6 @@ const YearSemesterTable = ({
       </CardHeader>
       <CardContent>
         <div className="flex items-center space-x-4 mb-4 justify-end">
-          {/* <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              type="text"
-              placeholder="Tìm kiếm theo tên hoặc mã học kỳ"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div> */}
           <Select value={yearFilter} onValueChange={setYearFilter}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="Lọc theo năm học" />
@@ -137,11 +127,9 @@ const YearSemesterTable = ({
                   </TableCell>
                   <TableCell>{semester.academic_year_code}</TableCell>
                   <TableCell>
-                    <div className="text-sm">
                       <div>
                         {formatDate(semester.start_date)} - {formatDate(semester.end_date)}
                       </div>
-                    </div>
                   </TableCell>
                   <TableCell>
                     {semester.is_current === 1 && (

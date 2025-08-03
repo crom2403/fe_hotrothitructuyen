@@ -1,72 +1,62 @@
-import QuillEditor from "@/components/common/QuillEditor";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormField } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import useExamStore from "@/stores/examStore";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import useUpdateExamStore from "@/stores/updateExamStore";
+import QuillEditor from '@/components/common/QuillEditor';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormField } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import useExamStore from '@/stores/examStore';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import useUpdateExamStore from '@/stores/updateExamStore';
+import { instruction_example } from '@/utils/instruction';
 
 const formSchema = z.object({
-  instruction: z.string().min(10, "Hướng dẫn phải có ít nhất 10 ký tự"),
+  instruction: z.string().min(10, 'Hướng dẫn phải có ít nhất 10 ký tự'),
 });
 
 export function SettingsTab({ mode }: { mode: 'create' | 'update' }) {
   const store = mode === 'create' ? useExamStore : useUpdateExamStore;
-  const {
-    tab1Data,
-    tab3Data,
-    setIsShuffledQuestions,
-    setIsShuffledAnswer,
-    setAllowReview,
-    setAllowReviewPoint,
-    setShowCorrectAnswer,
-    setInstruction,
-  } = store();
+  const { tab1Data, tab3Data, setIsShuffledQuestions, setIsShuffledAnswer, setAllowReview, setAllowReviewPoint, setShowCorrectAnswer, setInstruction } = store();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      instruction: tab3Data.instruction || `
-        <p>Chào bạn, trước khi bắt đầu bài thi, vui lòng đọc kỹ các hướng dẫn và nội quy sau:</p>
-        <ul>
-          <li>Thời gian làm bài: [xx] phút | Số câu hỏi: [xx] câu | Hình thức: Trắc nghiệm online.</li>
-          <li>Khi hết giờ, hệ thống tự động nộp bài. Bạn cũng có thể chủ động nộp bài khi hoàn thành.</li>
-          <li>Không được thoát trang, tải lại trình duyệt, hoặc sử dụng phần mềm hỗ trợ/tham khảo khác.</li>
-          <li>Mọi hành vi gian lận, thi hộ, hoặc sao chép bài làm sẽ bị hủy kết quả và xử lý theo quy định.</li>
-          <li>Đảm bảo thiết bị hoạt động tốt, kết nối internet ổn định và không bị làm phiền khi đang thi.</li>
-        </ul>
-        <p>👉 Bấm "Bắt đầu làm bài" để bắt đầu phần thi. Chúc bạn làm bài tốt!</p>
-      `,
+      instruction: tab3Data.instruction || instruction_example,
     },
   });
 
-  // Cập nhật nội dung động khi tab1Data thay đổi
+  // Cập nhật nội dung động khi component mount và khi tab1Data thay đổi
   useEffect(() => {
     const updateInstruction = (content: string) => {
-      const duration = tab1Data.duration_minutes || "[xx]";
-      const totalQuestions = tab1Data.total_questions || "[xx]";
-      return content
-        .replace("[xx] phút", `${duration} phút`)
-        .replace("[xx] câu", `${totalQuestions} câu`);
+      const duration = tab1Data.duration_minutes || '[xx]';
+      const totalQuestions = tab1Data.total_questions || '[xx]';
+      const maxTabSwitch = tab1Data.max_tab_switch || '[xx]';
+
+      let updatedContent = content
+        .replace(/\[xx\] phút/g, `${duration} phút`)
+        .replace(/\[xx\] câu/g, `${totalQuestions} câu`)
+        .replace(/\[xx\] lần/g, `${maxTabSwitch} lần`);
+
+      return updatedContent;
     };
 
-    const currentInstruction = form.getValues("instruction");
+    // Lấy instruction từ store nếu có, nếu không thì lấy từ form
+    const currentInstruction = tab3Data.instruction || form.getValues('instruction');
     const updatedInstruction = updateInstruction(currentInstruction);
-    if (currentInstruction !== updatedInstruction) {
-      form.setValue("instruction", updatedInstruction);
-      setInstruction(updatedInstruction); // Cập nhật store nếu có thay đổi
+
+    // Cập nhật cả form và store
+    form.setValue('instruction', updatedInstruction);
+    if (tab3Data.instruction !== updatedInstruction) {
+      setInstruction(updatedInstruction);
     }
-  }, [tab1Data.duration_minutes, tab1Data.total_questions, form, setInstruction]);
+  }, [tab1Data.duration_minutes, tab1Data.total_questions, tab1Data.max_tab_switch, form, setInstruction, tab3Data.instruction]);
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     setInstruction(values.instruction);
-    toast.success("Cập nhật hướng dẫn thành công");
+    toast.success('Cập nhật hướng dẫn thành công');
   };
 
   return (
@@ -129,16 +119,11 @@ export function SettingsTab({ mode }: { mode: 'create' | 'update' }) {
                 name="instruction"
                 render={({ field }) => (
                   <div className="space-y-2">
-                    <QuillEditor
-                      form={form}
-                      name={field.name}
-                      label=""
-                      placeholder="Nhập nội dung quy định thi..."
-                    />
+                    <QuillEditor form={form} name={field.name} label="" placeholder="Nhập nội dung quy định thi..." />
                   </div>
                 )}
               />
-              <Button type="submit" className="bg-black text-white hover:bg-black/80 float-right">
+              <Button type="submit" className="bg-primary text-white hover:bg-primary/80 float-right">
                 Lưu hướng dẫn
               </Button>
             </form>

@@ -79,13 +79,13 @@ const QuestionTable = ({
         <CardDescription>Tổng cộng {questions.length} câu hỏi</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="relative flex-1">
+        <div className="flex md:flex-row flex-col md:items-center items-start md:gap-0 gap-2 space-x-4 mb-4">
+          <div className="relative flex-1 md:w-1/2 w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input placeholder="Tìm kiếm câu hỏi..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
           <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="md:w-48 w-full">
               <SelectValue placeholder="Môn học" />
             </SelectTrigger>
             <SelectContent>
@@ -98,7 +98,7 @@ const QuestionTable = ({
             </SelectContent>
           </Select>
           <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="md:w-48 w-full">
               <SelectValue placeholder="Độ khó" />
             </SelectTrigger>
             <SelectContent>
@@ -111,7 +111,7 @@ const QuestionTable = ({
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="md:w-48 w-full">
               <SelectValue placeholder="Loại câu hỏi" />
             </SelectTrigger>
             <SelectContent>

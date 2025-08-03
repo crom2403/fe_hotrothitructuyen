@@ -46,7 +46,7 @@ interface Exam {
 }
 
 const ExamManagement = () => {
-  const { setExamId, setStudyGroupId } = useAppStore();
+  const { setExamId, setStudyGroupId, setDurationMinutes } = useAppStore();
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [studyGroupFilter, setStudyGroupFilter] = useState("all")
@@ -194,9 +194,10 @@ const ExamManagement = () => {
     navigate(path1, { state: { exam } });
   };
 
-  const handleEnterExamRoom = (examId: string, studyGroupId: string) => {
+  const handleEnterExamRoom = (examId: string, studyGroupId: string, duration) => {
     setExamId(examId);
     setStudyGroupId(studyGroupId);
+    setDurationMinutes(duration);
     navigate(path.TEACHER.EXAM_ROOM_TEACHER);
   };
 
@@ -206,7 +207,7 @@ const ExamManagement = () => {
   };
 
   return (
-    <div className="space-y-6 mx-auto">
+    <div className="space-y-6 mx-auto md:w-full w-[380px] overflow-x-scroll">
       <div>
         <h1 className="text-3xl font-bold">Quản lý đề thi</h1>
         <p className="text-muted-foreground">Quản lý các đề thi bạn đã tạo</p>
@@ -327,8 +328,8 @@ const ExamManagement = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              {examStatus === "opening" && (
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleEnterExamRoom(exam.id, exam.study_group_id)}>
+                              {examStatus === "opening" && exam.test_type !== "exercise" && exam.approval_status === "approved" && (
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleEnterExamRoom(exam.id, exam.study_group_id, exam.duration_minutes)}>
                                   <Play className="w-4 h-4 mr-1" />
                                   Vào phòng
                                 </Button>

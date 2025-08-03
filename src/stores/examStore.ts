@@ -1,6 +1,7 @@
-import type { QuestionItem } from "@/types/questionType";
-import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import type { QuestionItem } from '@/types/questionType';
+import { instruction_example } from '@/utils/instruction';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export interface ExamTab1 {
   name: string;
@@ -13,12 +14,12 @@ export interface ExamTab1 {
   total_questions: number;
   pass_points: number;
   point_scale: string;
-  type: "exercise" | "midterm" | "final";
+  type: 'exercise' | 'midterm' | 'final';
   max_tab_switch: number;
 }
 
 export interface ExamTab2 {
-  exam_type: "manual" | "auto";
+  exam_type: 'manual' | 'auto';
   list_questions: { question_id: string; order_index: number }[] | [];
   difficulty: {
     easy: number;
@@ -59,10 +60,10 @@ interface ExamStore {
   setTab1TotalQuestions: (count: number) => void;
   setTab1PassPoints: (points: number) => void;
   setTab1PointScale: (scale: string) => void;
-  setTab1Type: (type: "exercise" | "midterm" | "final") => void;
+  setTab1Type: (type: 'exercise' | 'midterm' | 'final') => void;
   setTab1MaxTabSwitch: (max_tab_switch: number) => void;
 
-  setExamType: (type: "manual" | "auto") => void;
+  setExamType: (type: 'manual' | 'auto') => void;
   setListQuestions: (questions: { question_id: string; order_index: number }[]) => void;
   setDifficulty: (difficulty: { easy: number; medium: number; hard: number }) => void;
 
@@ -85,21 +86,21 @@ const useExamStore = create<ExamStore>()(
   persist(
     (set, get) => ({
       tab1Data: {
-        name: "",
-        subject: "",
+        name: '',
+        subject: '',
         study_groups: [],
-        description: "",
-        start_time: "",
-        end_time: "",
+        description: '',
+        start_time: '',
+        end_time: '',
         duration_minutes: 60,
         total_questions: 0,
         pass_points: 5,
-        point_scale: "",
-        type: "exercise",
+        point_scale: '',
+        type: 'exercise',
         max_tab_switch: 3,
       },
       tab2Data: {
-        exam_type: "manual",
+        exam_type: 'manual',
         list_questions: [],
         difficulty: {
           easy: 0,
@@ -113,22 +114,12 @@ const useExamStore = create<ExamStore>()(
         allow_review: true,
         allow_review_point: true,
         show_correct_answer: false,
-        instruction: `
-          <p>Chào bạn, trước khi bắt đầu bài thi, vui lòng đọc kỹ các hướng dẫn và nội quy sau:</p>
-          <ul>
-            <li>Thời gian làm bài: [xx] phút | Số câu hỏi: [xx] câu | Hình thức: Trắc nghiệm online.</li>
-            <li>Khi hết giờ, hệ thống tự động nộp bài. Bạn cũng có thể chủ động nộp bài khi hoàn thành.</li>
-            <li>Không được thoát trang, tải lại trình duyệt, hoặc sử dụng phần mềm hỗ trợ/tham khảo khác.</li>
-            <li>Mọi hành vi gian lận, thi hộ, hoặc sao chép bài làm sẽ bị hủy kết quả và xử lý theo quy định.</li>
-            <li>Đảm bảo thiết bị hoạt động tốt, kết nối internet ổn định và không bị làm phiền khi đang thi.</li>
-          </ul>
-          <p>👉 Bấm "Bắt đầu làm bài" để bắt đầu phần thi. Chúc bạn làm bài tốt!</p>
-        `,
+        instruction: instruction_example,
       },
       commonProps: {
-        point_scale_name: "",
-        subject_name: "",
-        study_group_name: "",
+        point_scale_name: '',
+        subject_name: '',
+        study_group_name: '',
         list_questions: [],
       },
       setTab1Name: (name) => set({ tab1Data: { ...get().tab1Data, name } }),
@@ -173,21 +164,21 @@ const useExamStore = create<ExamStore>()(
       resetExamData: () =>
         set({
           tab1Data: {
-            name: "",
-            subject: "",
+            name: '',
+            subject: '',
             study_groups: [],
-            description: "",
-            start_time: "",
-            end_time: "",
+            description: '',
+            start_time: '',
+            end_time: '',
             duration_minutes: 60,
             total_questions: 0,
             pass_points: 5,
-            point_scale: "",
-            type: "exercise",
+            point_scale: '',
+            type: 'exercise',
             max_tab_switch: 3,
           },
           tab2Data: {
-            exam_type: "manual",
+            exam_type: 'manual',
             list_questions: [],
             difficulty: {
               easy: 0,
@@ -201,31 +192,21 @@ const useExamStore = create<ExamStore>()(
             allow_review: true,
             allow_review_point: true,
             show_correct_answer: false,
-            instruction: `
-              <p>Chào bạn, trước khi bắt đầu bài thi, vui lòng đọc kỹ các hướng dẫn và nội quy sau:</p>
-              <ul>
-                <li>Thời gian làm bài: [xx] phút | Số câu hỏi: [xx] câu | Hình thức: Trắc nghiệm online.</li>
-                <li>Khi hết giờ, hệ thống tự động nộp bài. Bạn cũng có thể chủ động nộp bài khi hoàn thành.</li>
-                <li>Không được thoát trang, tải lại trình duyệt, hoặc sử dụng phần mềm hỗ trợ/tham khảo khác.</li>
-                <li>Mọi hành vi gian lận, thi hộ, hoặc sao chép bài làm sẽ bị hủy kết quả và xử lý theo quy định.</li>
-                <li>Đảm bảo thiết bị hoạt động tốt, kết nối internet ổn định và không bị làm phiền khi đang thi.</li>
-              </ul>
-              <p>👉 Bấm "Bắt đầu làm bài" để bắt đầu phần thi. Chúc bạn làm bài tốt!</p>
-            `,
+            instruction: instruction_example,
           },
           commonProps: {
-            point_scale_name: "",
-            subject_name: "",
-            study_group_name: "",
+            point_scale_name: '',
+            subject_name: '',
+            study_group_name: '',
             list_questions: [],
           },
         }),
     }),
     {
-      name: "exam-storage",
+      name: 'exam-storage',
       storage: createJSONStorage(() => localStorage),
-    }
-  )
+    },
+  ),
 );
 
 export default useExamStore;

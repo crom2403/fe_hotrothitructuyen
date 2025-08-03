@@ -89,7 +89,7 @@ const SubjectTable = ({
             <Input type="text" placeholder="Tìm kiếm môn học" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[210px]">
+            <SelectTrigger className="md:w-[210px] w-[120px]">
               <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
             <SelectContent>

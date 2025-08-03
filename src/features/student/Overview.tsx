@@ -34,7 +34,11 @@ interface Exam {
   test_type: string;
   exam_question_count: string;
   subject_name: string;
-  exam_attempts: string[];
+  exam_attempts: {
+    id: string;
+    handle_status: string;
+    student_id: string;
+  }[];
 }
 
 interface Subject {
@@ -64,10 +68,9 @@ interface ExamResult {
   exam_pass_point: number;
 }
 
-
 const Overview = () => {
-  const [stats, setStats] = useState<OverviewProps>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [stats, setStats] = useState<OverviewProps>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [studyGroupExams, setStudyGroupExams] = useState<DataReposne[]>([]);
   const [loadingExamAttempts, setLoadingExamAttempts] = useState<Record<string, boolean>>({});
   const [examResults, setExamResults] = useState<ExamResult[]>([]);
@@ -83,14 +86,14 @@ const Overview = () => {
       const params: any = {
         page: currentPage,
         size: 3,
-      }
+      };
 
       const response = await apiGetListExams(params);
 
       if (response.data?.length > 0) {
         setStudyGroupExams(response.data);
       } else {
-        setStudyGroupExams([])
+        setStudyGroupExams([]);
       }
     } catch (err: any) {
       console.error('Lỗi khi lấy danh sách kỳ thi:', err);
@@ -186,18 +189,18 @@ const Overview = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Lỗi khi lấy dữ liệu");
+      toast.error('Lỗi khi lấy dữ liệu');
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const handleGetExamResults = async () => {
     setIsLoading(true);
     try {
       const response = await apiGetExamResultList();
       setExamResults(response.data);
-      console.log(examResults)
+      console.log(examResults);
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
@@ -286,7 +289,7 @@ const Overview = () => {
     } finally {
       setIsExamResultDetailLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -294,30 +297,32 @@ const Overview = () => {
         <h1 className="text-2xl font-bold">Trang chủ sinh viên</h1>
         <p className="text-gray-500">Theo dõi bài thi và kết quả học tập</p>
       </div>
-      {
-        isLoading ? (
-          <div className="flex justify-center items-center h-screen col-span-full">
-            <Loading />
+      {isLoading ? (
+        <div className="flex justify-center items-center h-screen col-span-full">
+          <Loading />
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard title="Số bài tập" value={stats?.totalExercises} description="Tổng số bài tập" icon={<TrendingUp className="w-4 h-4" />} color="text-blue-600" />
+            <StatCard title="Số bài thi" value={stats?.totalTests} description="Tổng số bài thi đã tham gia" icon={<Clock className="w-4 h-4" />} color="text-orange-600" />
+            <StatCard title="Số lớp học phần" value={stats?.totalStudyGroups} description="Lớp học phần đã đăng ký" icon={<Trophy className="w-4 h-4" />} color="text-green-600" />
+            <StatCard title="Điểm trung bình" value={stats?.totalScore.toFixed(2)} description="Tổng số điểm trung bình các bài thi" icon={<BookOpen className="w-4 h-4" />} color="text-purple-600" />
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatCard title="Số bài tập" value={stats?.totalExercises} description="Tổng số bài tập" icon={<TrendingUp className="w-4 h-4" />} color="text-blue-600" />
-              <StatCard title="Số bài thi" value={stats?.totalTests} description="Tổng số bài thi đã tham gia" icon={<Clock className="w-4 h-4" />} color="text-orange-600" />
-              <StatCard title="Số lớp học phần" value={stats?.totalStudyGroups} description="Lớp học phần đã đăng ký" icon={<Trophy className="w-4 h-4" />} color="text-green-600" />
-              <StatCard title="Điểm trung bình" value={stats?.totalScore.toFixed(2)} description="Tổng số điểm trung bình các bài thi" icon={<BookOpen className="w-4 h-4" />} color="text-purple-600" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Upcoming Exams */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Bài thi sắp tới</CardTitle>
-                  <CardDescription>Danh sách bài thi bạn có thể tham gia</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {studyGroupExams?.map((studyGroup) => (
-                      studyGroup.exams?.slice(0, 3).map((exam) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Upcoming Exams */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Bài thi sắp tới</CardTitle>
+                <CardDescription>Danh sách bài thi bạn có thể tham gia</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {studyGroupExams?.map((studyGroup) =>
+                    studyGroup.exams?.slice(0, 3).map((exam) => {
+                      const examStatus = handleGetStatus(new Date(exam.start_time), new Date(exam.end_time));
+                      const hasSubmittedAttempt = exam.exam_attempts.length > 0 && exam.exam_attempts.some((attempt) => attempt.handle_status === 'submitted');
+                      return (
                         <div key={exam.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
                           <div className="flex-1">
                             <h4 className="font-medium">{exam.name} - {getTestTypeLabel(exam.test_type)}</h4>
@@ -328,12 +333,15 @@ const Overview = () => {
                           </div>
                           <div>
                             <div className="flex items-center space-x-2">
-                              <Badge className={getStatusColor(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)))}>
-                                {getStatusText(handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)))}
+                              <Badge className={getStatusColor(examStatus)}>
+                                {getStatusText(examStatus)}
                               </Badge>
-                              {handleGetStatus(new Date(exam.start_time), new Date(exam.end_time)) === 'opening' && exam.exam_attempts.length === 0 && (
-                                <Button size="sm" className="bg-primary text-white hover:bg-primary/90"
+                              {examStatus === 'opening' && !hasSubmittedAttempt && (
+                                <Button
+                                  size="sm"
+                                  className="bg-primary text-white hover:bg-primary/90"
                                   onClick={() => handleJoinExamRoom(exam.id, studyGroup.id)}
+                                  disabled={loadingExamAttempts[`${exam.id}_${studyGroup.id}`]}
                                 >
                                   <Play className="mr-1 h-3 w-3" />
                                   Vào thi
@@ -342,50 +350,49 @@ const Overview = () => {
                             </div>
                           </div>
                         </div>
-                      ))
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              {/* Recent Results */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Kết quả gần đây</CardTitle>
-                  <CardDescription>Điểm số các bài thi đã hoàn thành</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {examResults.slice(0, 3).map((result) => (
-                      <div key={result.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
-                        <div className="flex-1">
-                          <h4 className="font-medium">{result.exam_name}</h4>
-                          <p className="text-sm text-gray-600">{result.exam_subject}</p>
-                          <p className="text-xs text-gray-500">Hoàn thành: {new Date(result.created_at).toLocaleDateString('vi-VN')}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="text-right">
-                            <p className={`font-bold ${getScoreColor(result.score, 10)}`}>
-                              {result.score === 10 || result.score === 0 ? result.score : result.score.toFixed(2)}/{10}
-                            </p>
-                            <Badge className={getStudentStatusColor(result.exam_pass_point, result.score)}>
-                              {getStudentGradeColor(result.exam_pass_point, result.score) === 'bg-green-100 text-green-800' ? 'Đạt' : 'Không đạt'}
-                            </Badge>
-                          </div>
-                          <Button variant="ghost" size="sm"
-                            onClick={() => handleViewExam(result.id)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            {/* Recent Results */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Kết quả gần đây</CardTitle>
+                <CardDescription>Điểm số các bài thi đã hoàn thành</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {examResults.slice(0, 3).map((result) => (
+                    <div key={result.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
+                      <div className="flex-1">
+                        <h4 className="font-medium">{result.exam_name}</h4>
+                        <p className="text-sm text-gray-600">{result.exam_subject}</p>
+                        <p className="text-xs text-gray-500">Hoàn thành: {new Date(result.created_at).toLocaleDateString('vi-VN')}</p>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        )}
-        
+                      <div className="flex items-center space-x-2">
+                        <div className="text-right">
+                          <p className={`font-bold ${getScoreColor(result.score, 10)}`}>
+                            {result.score === 10 || result.score === 0 ? result.score : result.score.toFixed(2)}/{10}
+                          </p>
+                          <Badge className={getStudentStatusColor(result.exam_pass_point, result.score)}>
+                            {getStudentGradeColor(result.exam_pass_point, result.score) === 'bg-green-100 text-green-800' ? 'Đạt' : 'Không đạt'}
+                          </Badge>
+                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => handleViewExam(result.id)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
+
       <Dialog open={isExamResultOpen} onOpenChange={setIsExamResultOpen}>
         <StudentExamResultDialog studentExamResult={examResultDetail || undefined} isLoading={isExamResultDetailLoading} isTeacher={false} />
       </Dialog>

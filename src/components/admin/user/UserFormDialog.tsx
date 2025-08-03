@@ -104,7 +104,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <div className="flex gap-2">
+      <div className="md:w-fit w-full flex gap-2 md:justify-end justify-start md:mt-0 mt-2">
         <Button className="bg-green-700 hover:bg-green-700/80 cursor-pointer" onClick={handleExportExcel}>
           <FileUp className="h-4 w-4" />
           Xuất Excel
@@ -306,7 +306,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
           </form>
         </Form>
       </DialogContent>
-    </Dialog >
+    </Dialog>
   );
 };
 

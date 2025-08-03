@@ -13,7 +13,7 @@ import { apiApproveExam, apiGetExamDashBoard, apiGetExamList } from "@/services/
 import useAppStore from "@/stores/appStore"
 import path from "@/utils/path"
 import type { AxiosError } from "axios"
-import { AlertCircle, BookOpen, Calendar, CheckCircle, Clock, Eye, FileText, Filter, Loader2, MessageSquare, Search, User, XCircle } from "lucide-react"
+import { AlertCircle, BookOpen, Calendar, CheckCircle, Clock, Eye, FileText, Filter, Loader2, MessageSquare, MoreVertical, Search, User, XCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
@@ -76,6 +76,7 @@ const ExamManagement = () => {
   const [actionNote, setActionNote] = useState("")
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false)
   const [isLoadingAction, setIsLoadingAction] = useState(false)
+  const [isActionPopupOpen, setIsActionPopupOpen] = useState(false)
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -149,7 +150,7 @@ const ExamManagement = () => {
     try {
       const data = {
         approval_status: actionType === "approved" ? "approved" : "rejected",
-      ...(actionType === "rejected" && { reason_reject: actionNote })
+        ...(actionType === "rejected" && { reason_reject: actionNote })
       }
       const response = await apiApproveExam(selectedExam?.id, data)
       if (response.status === 200) {
@@ -178,7 +179,7 @@ const ExamManagement = () => {
   }, [page, searchTerm, statusFilter, subjectFilter])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 md:w-full w-[380px] overflow-x-scroll">
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex flex-col justify-between items-start">
           <h1 className="text-3xl font-bold text-gray-900">Quản lý đề thi</h1>
@@ -340,35 +341,49 @@ const ExamManagement = () => {
                             </div>
 
                             <div className="flex flex-col gap-2 ml-4">
-                              <Link to={`${path.EXAM_DETAIL.replace(':exam_id', exam.id)}`}
-                                state={{ exam: exam }}
-                              >
-                                <Button variant="outline" size="sm" className="w-full bg-transparent">
-                                  <Eye className="w-4 h-4 mr-2" />
-                                  Xem chi tiết
+                              {/* Ẩn các nút trên mobile (dưới md) và hiển thị nút MoreVertical */}
+                              <div className="md:hidden">
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => {
+                                    setSelectedExam(exam)
+                                    setIsActionPopupOpen(true)
+                                  }}
+                                >
+                                  <MoreVertical className="w-4 h-4" />
                                 </Button>
-                              </Link>
-                              {exam.approval_at === null && (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    className="bg-green-600 hover:bg-green-700 w-full"
-                                    onClick={() => handleAction(exam, "approved")}
-                                  >
-                                    <CheckCircle className="w-4 h-4 mr-2" />
-                                    Duyệt
+                              </div>
+                              {/* Hiển thị các nút trên web (trên md) */}
+                              <div className="hidden md:flex md:flex-col gap-2">
+                                <Link to={`${path.EXAM_DETAIL.replace(':exam_id', exam.id)}`} state={{ exam: exam }}>
+                                  <Button variant="outline" size="sm" className="w-full bg-transparent">
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    Xem chi tiết
                                   </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    className="w-full"
-                                    onClick={() => handleAction(exam, "rejected")}
-                                  >
-                                    <XCircle className="w-4 h-4 mr-2" />
-                                    Từ chối
-                                  </Button>
-                                </>
-                              )}
+                                </Link>
+                                {exam.approval_at === null && (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      className="bg-green-600 hover:bg-green-700 w-full"
+                                      onClick={() => handleAction(exam, "approved")}
+                                    >
+                                      <CheckCircle className="w-4 h-4 mr-2" />
+                                      Duyệt
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="w-full"
+                                      onClick={() => handleAction(exam, "rejected")}
+                                    >
+                                      <XCircle className="w-4 h-4 mr-2" />
+                                      Từ chối
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </CardContent>
@@ -392,6 +407,57 @@ const ExamManagement = () => {
                 />
               </CardFooter>
             </Card>
+
+            {/* Popup hành động trên mobile */}
+            <Dialog open={isActionPopupOpen} onOpenChange={setIsActionPopupOpen}>
+              <DialogContent className="sm:max-w-[300px]">
+                <DialogHeader>
+                  <DialogTitle>Hành động</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-2 py-4">
+                  {selectedExam && (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          setIsActionPopupOpen(false)
+                          window.location.href = `${path.EXAM_DETAIL.replace(':exam_id', selectedExam.id)}?exam=${encodeURIComponent(JSON.stringify(selectedExam))}` // Điều hướng thủ công
+                        }}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Xem chi tiết
+                      </Button>
+                      {selectedExam.approval_at === null && (
+                        <>
+                          <Button
+                            className="w-full bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              handleAction(selectedExam, "approved")
+                              setIsActionPopupOpen(false)
+                            }}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Duyệt
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            className="w-full"
+                            onClick={() => {
+                              handleAction(selectedExam, "rejected")
+                              setIsActionPopupOpen(false)
+                            }}
+                          >
+                            <XCircle className="w-4 h-4 mr-2" />
+                            Từ chối
+                          </Button>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              </DialogContent>
+            </Dialog>
 
             <Dialog open={isActionDialogOpen} onOpenChange={setIsActionDialogOpen}>
               <DialogContent className="sm:max-w-[500px]">

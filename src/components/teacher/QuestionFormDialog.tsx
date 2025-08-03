@@ -523,7 +523,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
           <div className="flex justify-between">
             <div>
               <DialogTitle>{editingQuestion ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
-              <DialogDescription>{editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng (ngày: 06/07/2025, 11:41 AM)'}</DialogDescription>
+              <DialogDescription>{editingQuestion ? 'Cập nhật thông tin câu hỏi' : 'Tạo câu hỏi mới cho ngân hàng'}</DialogDescription>
             </div>
             <div>
               {form.getValues('subject_id') && (
@@ -621,7 +621,7 @@ const QuestionFormDialog = ({ isDialogOpen, setIsDialogOpen, editingQuestion, se
                 )}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 mb-15 md:mb-7">
               <FormField
                 control={form.control}
                 name="content"

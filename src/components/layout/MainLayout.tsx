@@ -1,7 +1,7 @@
-import MainProvider from '../provider/MainProvider'
-import AppSidebar from './AppSidebar'
-import Header from './Header'
-import { Outlet } from 'react-router-dom'
+import MainProvider from '../provider/MainProvider';
+import AppSidebar from './AppSidebar';
+import Header from './Header';
+import { Outlet } from 'react-router-dom';
 
 const MainLayout = () => {
   return (
@@ -10,13 +10,13 @@ const MainLayout = () => {
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           <Header />
-          <main className="flex-1 overflow-y-auto bg-gray-50 px-12 py-8">
+          <main className="flex-1 overflow-y-auto bg-gray-50 px-4 py-2 md:px-12 md:py-8 ">
             <Outlet />
           </main>
         </div>
       </div>
     </MainProvider>
-  )
-}
+  );
+};
 
-export default MainLayout
+export default MainLayout;

@@ -170,8 +170,8 @@ const PermissionUser: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="w-full flex gap-2">
+    <div className="container mx-auto p-4 md:w-full w-[380px] overflow-x-scroll">
+      <div className="w-full flex gap-2 flex-col md:flex-row">
         <Card className="w-[350px] p-4 flex flex-col justify-between">
           <div>
             <Input placeholder="Tìm kiếm..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="text-sm mb-4" />

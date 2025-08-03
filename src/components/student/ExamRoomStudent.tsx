@@ -36,7 +36,7 @@ import useCommonStore from '@/stores/commonStore';
 export default function ExamRoomStudent() {
   const navigate = useNavigate();
   const { currentUser } = useAuthStore();
-  const { examId, studyGroupId, setExamId, setStudyGroupId } = useAppStore();
+  const { examId, studyGroupId } = useAppStore();
   const { exam_attempt_id, setExamAttemptId } = useCommonStore();
 
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -51,11 +51,6 @@ export default function ExamRoomStudent() {
   const [examOpened, setExamOpened] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isValidSession, setIsValidSession] = useState(true);
-
-  const handleClearExamStore = () => {
-    setExamId(null);
-    setStudyGroupId(null);
-  };
 
   // Kiểm tra điều kiện hợp lệ và điều hướng nếu cần
   useEffect(() => {
@@ -93,17 +88,26 @@ export default function ExamRoomStudent() {
 
     socketInstance.on('openExam', () => {
       setExamOpened(true);
+      socket.emit('tabIn', {
+        examId,
+        studyGroupId,
+        studentId: currentUser?.id,
+        status: 'taking_exam',
+      });
       toast.success('Đề thi đã được mở! Bạn có thể bắt đầu làm bài.');
     });
 
     socketInstance.on('pauseExam', () => {
       setExamOpened(false);
       toast.info('Đề thi đã bị tạm dừng.');
-    });
 
-    // socketInstance.on('submitExam', (data: { studentId: string }) => {
-    //   console.log(data);
-    // });
+      socketInstance.emit('tabIn', {
+        examId,
+        studyGroupId,
+        studentId: currentUser?.id,
+        status: 'waiting',
+      });
+    });
 
     socketInstance.on('connect_error', (error) => {
       console.error('Socket connection error:', error);
@@ -145,12 +149,22 @@ export default function ExamRoomStudent() {
           return newCount;
         });
       } else {
-        socket.emit('tabIn', {
-          examId,
-          studyGroupId,
-          studentId: currentUser?.id,
-          status: 'taking_exam',
-        });
+        console.log('Vào đây', examOpened);
+        if (examOpened) {
+          socket.emit('tabIn', {
+            examId,
+            studyGroupId,
+            studentId: currentUser?.id,
+            status: 'taking_exam',
+          });
+        } else {
+          socket.emit('tabIn', {
+            examId,
+            studyGroupId,
+            studentId: currentUser?.id,
+            status: 'waiting',
+          });
+        }
       }
     };
 
@@ -188,7 +202,10 @@ export default function ExamRoomStudent() {
         }
 
         if (attemptResponse?.data) {
-          setExamAttemptId(attemptResponse.data.id);
+          setExamAttemptId(attemptResponse?.data?.id);
+          if (attemptResponse?.data?.handle_status === 'submitted') {
+            navigate('/student/exam_list');
+          }
         } else {
           toast.error('Không tìm thấy ID bài thi');
           setIsValidSession(false);
@@ -383,9 +400,9 @@ export default function ExamRoomStudent() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 p-4">
+    <div className="max-w-6xl mx-auto space-y-6 p-4 h-screen">
       {isSubmitting && (
-        <div className="fixed inset-0 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 bg-opacity-50 flex justify-center items-center h-screen z-50">
           <Loading />
         </div>
       )}
@@ -397,7 +414,7 @@ export default function ExamRoomStudent() {
               <CardTitle>{exam.name}</CardTitle>
               <CardDescription>{exam.subject.name}</CardDescription>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center md:gap-4 gap-1 flex-col-reverse md:flex-row">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-red-500" />
                 <span className={`font-mono text-lg ${timeLeft < 300 ? 'text-red-500' : 'text-gray-700'}`}>{formatTime(timeLeft)}</span>
@@ -429,7 +446,7 @@ export default function ExamRoomStudent() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="lg:grid lg:grid-cols-4 gap-6 flex flex-col-reverse">
         <Card className="lg:col-span-3">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -575,7 +592,7 @@ export default function ExamRoomStudent() {
                 </Button>
               ))}
             </div>
-            <div className="mt-4 space-y-2 text-xs">
+            <div className="mt-4 space-y-2 text-xs grid grid-cols-2 md:grid-cols-1">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-primary rounded"></div>
                 <span>Câu hiện tại</span>

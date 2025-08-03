@@ -11,17 +11,15 @@ interface RichTextEditorProps<TFormData extends object> {
   placeholder?: string;
 }
 
-
 const QuillEditor = <TFormData extends object>({ form, name, label, placeholder }: RichTextEditorProps<TFormData>) => {
-  const { setValue, getValues } = form;
+  const { setValue, watch } = form;
 
-  // Cấu hình toolbar của React Quill
   const modules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
       ["bold", "italic", "underline", "strike"],
       [{ list: "ordered" }, { list: "bullet" }],
-      ["link", "image"],
+      [{ color: [] }, { background: [] }],
       ["clean"],
     ],
   };
@@ -34,17 +32,21 @@ const QuillEditor = <TFormData extends object>({ form, name, label, placeholder 
     "strike",
     "list",
     "bullet",
+    "color",
+    "background",
     "link",
     "image",
   ];
 
+  // Theo dõi giá trị của trường
+  const value = watch(name);
+
   // Đồng bộ giá trị ban đầu từ form
   useEffect(() => {
-    const value = getValues(name);
     if (value) {
-      setValue(name, value);
+      setValue(name, value, { shouldValidate: true });
     }
-  }, [name, getValues, setValue]);
+  }, [name, value, setValue]);
 
   return (
     <FormItem>
@@ -52,8 +54,8 @@ const QuillEditor = <TFormData extends object>({ form, name, label, placeholder 
       <FormControl>
         <ReactQuill
           theme="snow"
-          value={getValues(name) as string}
-          onChange={(value) => setValue(name, value as any, { shouldValidate: true })}
+          value={value as string || ""}
+          onChange={(content) => setValue(name, content as any, { shouldValidate: true })}
           modules={modules}
           formats={formats}
           placeholder={placeholder}
@@ -63,6 +65,6 @@ const QuillEditor = <TFormData extends object>({ form, name, label, placeholder 
       <FormMessage />
     </FormItem>
   );
-}
+};
 
-export default QuillEditor
+export default QuillEditor;

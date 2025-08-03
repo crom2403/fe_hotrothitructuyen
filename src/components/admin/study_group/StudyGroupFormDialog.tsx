@@ -102,26 +102,28 @@ const StudyGroupFormDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        <Button
-          className="bg-primary hover:bg-primary/90 cursor-pointer"
-          onClick={() => {
-            setEditingStudyGroup(null);
-            form.reset({
-              name: '',
-              subject_id: '',
-              academic_year: '',
-              semester_id: '',
-              teacher_id: '',
-              max_students: 0,
-              description: '',
-            });
-          }}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Thêm lớp học phần
-        </Button>
-      </DialogTrigger>
+      <div className='md:w-fit w-full flex gap-2 md:justify-end justify-start md:mt-0 mt-2'>
+        <DialogTrigger asChild>
+          <Button
+            className="bg-primary hover:bg-primary/90 cursor-pointer"
+            onClick={() => {
+              setEditingStudyGroup(null);
+              form.reset({
+                name: '',
+                subject_id: '',
+                academic_year: '',
+                semester_id: '',
+                teacher_id: '',
+                max_students: 0,
+                description: '',
+              });
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Thêm lớp học phần
+          </Button>
+        </DialogTrigger>
+      </div>
       <DialogContent className="min-w-4xl">
         <DialogHeader>
           <DialogTitle>{editingStudyGroup ? 'Chỉnh sửa lớp học phần' : 'Thêm lớp học phần mới'}</DialogTitle>
@@ -186,7 +188,7 @@ const StudyGroupFormDialog = ({
                     <FormItem>
                       <FormLabel>Giáo viên</FormLabel>
                       <Popover open={openTeacher} onOpenChange={setOpenTeacher}>
-                        <PopoverTrigger asChild>
+                        <PopoverTrigger>
                           <Button
                             disabled={!!editingStudyGroup}
                             type="button"
