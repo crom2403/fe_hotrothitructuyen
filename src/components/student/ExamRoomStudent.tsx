@@ -52,11 +52,6 @@ export default function ExamRoomStudent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isValidSession, setIsValidSession] = useState(true);
 
-  const handleClearExamStore = () => {
-    setExamId(null);
-    setStudyGroupId(null);
-  };
-
   // Kiểm tra điều kiện hợp lệ và điều hướng nếu cần
   useEffect(() => {
     if (!examId || !studyGroupId || !currentUser?.id) {
@@ -335,7 +330,6 @@ export default function ExamRoomStudent() {
     } finally {
       setIsSubmitting(false);
       setIsSubmitted(true);
-      handleClearExamStore();
     }
     // console.log('res', res);
   };
@@ -417,7 +411,7 @@ export default function ExamRoomStudent() {
               <CardTitle>{exam.name}</CardTitle>
               <CardDescription>{exam.subject.name}</CardDescription>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center md:gap-4 gap-1 flex-col-reverse md:flex-row">
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-red-500" />
                 <span className={`font-mono text-lg ${timeLeft < 300 ? 'text-red-500' : 'text-gray-700'}`}>{formatTime(timeLeft)}</span>
@@ -449,7 +443,7 @@ export default function ExamRoomStudent() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="lg:grid lg:grid-cols-4 gap-6 flex flex-col-reverse">
         <Card className="lg:col-span-3">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -595,7 +589,7 @@ export default function ExamRoomStudent() {
                 </Button>
               ))}
             </div>
-            <div className="mt-4 space-y-2 text-xs">
+            <div className="mt-4 space-y-2 text-xs grid grid-cols-2 md:grid-cols-1">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-primary rounded"></div>
                 <span>Câu hiện tại</span>
