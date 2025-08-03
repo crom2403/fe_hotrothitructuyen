@@ -206,7 +206,7 @@ const ExamManagement = () => {
   };
 
   return (
-    <div className="space-y-6 mx-auto">
+    <div className="space-y-6 mx-auto md:w-full w-[380px] overflow-x-scroll">
       <div>
         <h1 className="text-3xl font-bold">Quản lý đề thi</h1>
         <p className="text-muted-foreground">Quản lý các đề thi bạn đã tạo</p>

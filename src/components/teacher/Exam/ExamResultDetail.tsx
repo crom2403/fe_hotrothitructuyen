@@ -181,50 +181,46 @@ const ExamResultDetail = () => {
   const totalStudents = examResult.length;
   const completedStudents = examResult.filter((r) => r.exam_attempt_submitted_at !== null).length;
   const averageScore = examResult.length > 0 ? (examResult.reduce((sum, r) => sum + (r.exam_attempt_score || 0), 0) / examResult.length).toFixed(2) : 0;
-  const passRate = examResult.length > 0 ? ((examResult.filter((r) => (r.exam_attempt_score || 0) >= exam.pass_points).length / examResult.length) * 100).toFixed(0) : 0;
+  const passRate = examResult.length > 0 ? ((examResult.filter((r) => r.exam_attempt_score !== null && (r.exam_attempt_score >= exam.pass_points)).length / examResult.length) * 100).toFixed(0) : 0; // Chỉ tính khi score khác null
   const completionRate = totalStudents > 0 ? ((completedStudents / totalStudents) * 100).toFixed(0) : 0;
 
   const passFailData = [
-    { name: "Đậu", value: examResult.filter((r) => r.exam_attempt_score >= exam.pass_points).length, fill: "#22c55e" },
-    { name: "Rớt", value: examResult.filter((r) => r.exam_attempt_score < exam.pass_points).length, fill: "#ef4444" },
-    // { name: "Chưa thi", value: examResult.filter((r) => r.exam_attempt_submitted_at === null).length, fill: "#6b7280" },
-  ]
+    { name: "Đậu", value: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= exam.pass_points).length, fill: "#22c55e" },
+    { name: "Rớt", value: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score < exam.pass_points).length, fill: "#ef4444" },
+    { name: "Chưa thi", value: examResult.filter((r) => r.exam_attempt_score === null).length, fill: "#6b7280" },
+  ];
 
   const gradeDistribution = [
-    { grade: "Xuất sắc", count: examResult.filter((r) => r.exam_attempt_score >= 8.5).length },
-    { grade: "Khá", count: examResult.filter((r) => r.exam_attempt_score >= 7 && r.exam_attempt_score < 8.5).length },
-    { grade: "Trung bình", count: examResult.filter((r) => r.exam_attempt_score >= 5.5 && r.exam_attempt_score < 7).length },
-    { grade: "Yếu", count: examResult.filter((r) => r.exam_attempt_score > 0 && r.exam_attempt_score < 5.5).length },
-  ]
+    { grade: "Xuất sắc", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 8.5).length },
+    { grade: "Khá", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 7 && r.exam_attempt_score < 8.5).length },
+    { grade: "Trung bình", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 5 && r.exam_attempt_score < 7).length },
+    { grade: "Yếu", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score > 0 && r.exam_attempt_score < 5).length },
+  ];
 
   const timeDistribution = [
-    { range: "0-30 phút", count: examResult.filter((r) => Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 30).length },
+    { range: "0-30 phút", count: examResult.filter((r) => r.exam_attempt_score !== null && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 30).length },
     {
       range: "31-45 phút",
       count: examResult.filter(
-        (r) =>
-          Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) > 30 &&
-          Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 45
+        (r) => r.exam_attempt_score !== null && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) > 30 && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 45
       ).length,
     },
     {
       range: "46-60 phút",
       count: examResult.filter(
-        (r) =>
-          Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) > 45 &&
-          Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 60
+        (r) => r.exam_attempt_score !== null && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) > 45 && Number.parseInt((r.exam_attempt_duration_seconds ?? 0).toString()) <= 60
       ).length,
     },
   ];
 
   const scoreDistribution = [
-    { range: "0-2", count: examResult.filter((r) => r.exam_attempt_score >= 0 && r.exam_attempt_score < 2).length },
-    { range: "2-4", count: examResult.filter((r) => r.exam_attempt_score >= 2 && r.exam_attempt_score < 4).length },
-    { range: "4-5.5", count: examResult.filter((r) => r.exam_attempt_score >= 4 && r.exam_attempt_score < 5.5).length },
-    { range: "5.5-7", count: examResult.filter((r) => r.exam_attempt_score >= 5.5 && r.exam_attempt_score < 7).length },
-    { range: "7-8.5", count: examResult.filter((r) => r.exam_attempt_score >= 7 && r.exam_attempt_score < 8.5).length },
-    { range: "8.5-10", count: examResult.filter((r) => r.exam_attempt_score >= 8.5 && r.exam_attempt_score <= 10).length },
-  ]
+    { range: "0-2", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 0 && r.exam_attempt_score < 2).length }, 
+    { range: "2-4", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 2 && r.exam_attempt_score < 4).length }, 
+    { range: "4-5.5", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 4 && r.exam_attempt_score < 5.5).length }, 
+    { range: "5.5-7", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 5.5 && r.exam_attempt_score < 7).length }, 
+    { range: "7-8.5", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 7 && r.exam_attempt_score < 8.5).length }, 
+    { range: "8.5-10", count: examResult.filter((r) => r.exam_attempt_score !== null && r.exam_attempt_score >= 8.5 && r.exam_attempt_score <= 10).length }, 
+  ];
 
   return (
     <>
@@ -233,7 +229,7 @@ const ExamResultDetail = () => {
           <Loading />
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 md:w-full w-[380px] overflow-x-scroll">
           <div>
             <Breadcrumb>
               <BreadcrumbList>
@@ -249,7 +245,7 @@ const ExamResultDetail = () => {
           </div>
 
           <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start md:flex-row flex-col gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <Link to={path.TEACHER.EXAM_RESULT}>
