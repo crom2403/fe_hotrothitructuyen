@@ -202,7 +202,10 @@ export default function ExamRoomStudent() {
         }
 
         if (attemptResponse?.data) {
-          setExamAttemptId(attemptResponse.data.id);
+          setExamAttemptId(attemptResponse?.data?.id);
+          if (attemptResponse?.data?.handle_status === 'submitted') {
+            navigate('/student/exam_list');
+          }
         } else {
           toast.error('Không tìm thấy ID bài thi');
           setIsValidSession(false);
