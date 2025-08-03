@@ -8,9 +8,12 @@ import { Badge } from '../../ui/badge';
 import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from '../../ui/dropdown-menu';
 import { useState } from 'react';
 import { AlertDialog } from '../../ui/alert-dialog';
-import DeleteDialog from '../../common/CommonDialog';
 import Paginate from '../../common/Pagination';
 import Loading from '@/components/common/Loading';
+import CommonDialog from '../../common/CommonDialog';
+import { apiDeleteSemester } from '@/services/admin/yearSemester';
+import { toast } from 'sonner';
+import type { AxiosError } from 'axios';
 
 interface YearSemesterTableProps {
   semesters: Semester[];
@@ -20,14 +23,11 @@ interface YearSemesterTableProps {
   setSearchTerm: (searchTerm: string) => void;
   yearFilter: string;
   setYearFilter: (yearFilter: string) => void;
-  statusFilter: string;
-  setStatusFilter: (statusFilter: string) => void;
   page: number;
   totalPages: number;
   handleEdit: (semester: Semester) => void;
-  handleDelete: (semesterId: string) => Promise<void>;
   handlePageClick: (page: number) => void;
-  handleSetCurrent: (semesterId: string) => void;
+  handleGetSemesters: () => void;
 }
 
 const YearSemesterTable = ({
@@ -37,22 +37,19 @@ const YearSemesterTable = ({
   searchTerm,
   yearFilter,
   setYearFilter,
-  statusFilter,
-  setStatusFilter,
   page,
   totalPages,
-  handleDelete,
   handlePageClick,
-  handleSetCurrent,
+  handleGetSemesters
 }: YearSemesterTableProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedSemester, setSelectedSemester] = useState<Semester | null>(null);
+    const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 
   const filteredSemesters = semesters.filter((semester) => {
     const matchesSearch = semester.name.toLowerCase().includes(searchTerm.toLowerCase()) || semester.code.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesYear = yearFilter === 'all' || semester.academic_year_code.toLowerCase().includes(yearFilter.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || (statusFilter === 'active' ? semester.is_current : !semester.is_current);
-    return matchesSearch && matchesYear && matchesStatus;
+    return matchesSearch && matchesYear;
   });
 
   const formatDate = (dateString: string) => {
@@ -62,6 +59,26 @@ const YearSemesterTable = ({
   const openDeleteDialog = (semester: Semester) => {
     setSelectedSemester(semester);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async (semesterId: string) => {
+    setIsDeleteLoading(true);
+    try {
+      const response = await apiDeleteSemester(semesterId);
+      if (response.status === 200) {
+        toast.success('Xóa học kỳ thành công');
+        setIsDeleteDialogOpen(false);
+        handleGetSemesters();
+      } else {
+        toast.error(response.data.message || 'Xóa học kỳ thất bại');
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsDeleteLoading(false);
+    }
   };
 
   return (
@@ -83,16 +100,6 @@ const YearSemesterTable = ({
                   {year.code}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Trạng thái" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              <SelectItem value="active">Hiện tại</SelectItem>
-              <SelectItem value="inactive">Không hiện tại</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -122,17 +129,17 @@ const YearSemesterTable = ({
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {semester.name}
-                      {semester.is_current === 1 && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
+                      {semester.is_current === true && <Star className="h-4 w-4 text-yellow-500 fill-current" />}
                     </div>
                   </TableCell>
                   <TableCell>{semester.academic_year_code}</TableCell>
                   <TableCell>
-                      <div>
-                        {formatDate(semester.start_date)} - {formatDate(semester.end_date)}
-                      </div>
+                    <div>
+                      {formatDate(semester.start_date)} - {formatDate(semester.end_date)}
+                    </div>
                   </TableCell>
                   <TableCell>
-                    {semester.is_current === 1 && (
+                    {semester.is_current === true && (
                       <Badge variant="outline" className="text-yellow-600 border-yellow-600">
                         Hiện tại
                       </Badge>
@@ -146,18 +153,8 @@ const YearSemesterTable = ({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {/* <DropdownMenuItem onClick={() => handleEdit(semester)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Chỉnh sửa
-                        </DropdownMenuItem> */}
-                        {!semester.is_current && (
-                          <DropdownMenuItem onClick={() => handleSetCurrent(semester.id)}>
-                            <Star className="mr-2 h-4 w-4" />
-                            Đặt làm hiện tại
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem onClick={() => openDeleteDialog(semester)} className="text-red-600" disabled={semester.is_current === 1}>
-                          <Trash2 className="mr-2 h-4 w-4" />
+                        <DropdownMenuItem onClick={() => openDeleteDialog(semester)} className="text-red-600" disabled={semester.is_current === true}>
+                          <Trash2 className="mr-2 h-4 w-4 text-red" />
                           Xóa
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -178,7 +175,13 @@ const YearSemesterTable = ({
       </CardContent>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DeleteDialog title="xóa" itemName="học kỳ" id={selectedSemester?.id || ''} onDelete={handleDelete} />
+        <CommonDialog
+          title="xóa học kỳ"
+          itemName={selectedSemester?.name || ''}
+          id={selectedSemester?.id || ''}
+          onDelete={handleDelete}
+          isLoading={isDeleteLoading}
+        />
       </AlertDialog>
     </Card>
   );

@@ -1,10 +1,11 @@
 import SubjectFormDialog from '@/components/admin/subject/SubjectFormDialog';
 import SubjectTable from '@/components/admin/subject/SubjectTable';
-import { apiCreateSubject, apiDeleteSubject, apiGetSubjects, apiToggleStatusSubject } from '@/services/admin/subject';
+import { apiCreateSubject, apiDeleteSubject, apiGetSubjects, apiToggleStatusSubject, apiUpdateSubject } from '@/services/admin/subject';
 import type { Subject, SubjectFormData, SubjectResponse } from '@/types/subjectType';
 import { useDebounce } from '@/utils/functions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { AxiosError } from 'axios';
+import { da, th } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -57,14 +58,41 @@ const SubjectManagement = () => {
   const handleSubmit = async (data: SubjectFormData) => {
     setIsLoadingSumbit(true);
     try {
-      const response = await apiCreateSubject(data);
-      if (response.status === 201) {
-        toast.success('Thêm môn học thành công');
-        setIsDialogOpen(false);
-        form.reset();
-        handleGetSubjects();
+      if (editingSubject) {
+        const dataRequest = {
+          name: data.name,
+          description: data.description,
+          theory_hours: data.theory_hours,
+          practice_hours: data.practice_hours,
+          credits: data.credits,
+        }
+        const response = await apiUpdateSubject(editingSubject.id, dataRequest);
+        if (response.status === 200) {
+          toast.success('Cập nhật môn học thành công');
+          setIsDialogOpen(false);
+          form.reset({
+            code: '',
+            name: '',
+            credits: 0,
+            theory_hours: 0,
+            practice_hours: 0,
+            description: '',
+          });
+          setEditingSubject(null);
+          handleGetSubjects();
+        } else {
+          toast.error(response.data.message || 'Cập nhật môn học thất bại');
+        }
       } else {
-        toast.error(response.data.message || 'Thêm môn học thất bại');
+        const response = await apiCreateSubject(data);
+        if (response.status === 201) {
+          toast.success('Thêm môn học thành công');
+          setIsDialogOpen(false);
+          form.reset();
+          handleGetSubjects();
+        } else {
+          toast.error(response.data.message || 'Thêm môn học thất bại');
+        }
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;

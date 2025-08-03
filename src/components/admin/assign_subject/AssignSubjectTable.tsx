@@ -26,7 +26,7 @@ const AssignSubjectTable = () => {
   const [page, setPage] = useState(1);
   const [assignedSubjects, setAssignedSubjects] = useState<AssignedSubjectResponse | null>(null);
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 800);
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const handleGetSubjects = async () => {
     setIsLoadingSubject(true);

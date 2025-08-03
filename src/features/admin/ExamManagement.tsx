@@ -319,7 +319,6 @@ const ExamManagement = () => {
                                     )}
                                     {exam.reason_reject && (
                                       <span className="ml-4">
-                                        {/* Từ chối lúc: {new Date(exam.approval_at).toLocaleString("vi-VN")} bởi {exam.approved_by.full_name} */}
                                         Từ chối bởi {exam.approved_by.full_name}
                                       </span>
                                     )}
@@ -479,7 +478,7 @@ const ExamManagement = () => {
                       <p className="text-sm text-gray-600">Giảng viên: {selectedExam.created_by.full_name}</p>
                     </div>
                     {actionType === "rejected" && (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <label htmlFor="rejection-reason" className="text-sm font-medium">
                           Lý do từ chối <span className="text-red-500">*</span>
                         </label>
@@ -489,6 +488,7 @@ const ExamManagement = () => {
                           value={actionNote}
                           onChange={(e) => setActionNote(e.target.value)}
                           rows={4}
+                          className="resize-none mt-1.5"
                         />
                       </div>
                     )}

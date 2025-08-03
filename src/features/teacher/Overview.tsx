@@ -30,6 +30,7 @@ const Overview = () => {
   const navigate = useNavigate()
   const [stats, setStats] = useState<StatResponse>();
   const [isLoading, setIsLoading] = useState(false);
+  const [isExamLoading, setIsExamLoading] = useState(false);
   const [examList, setExamList] = useState<ExamStudyGroupResponse | null>(null)
   const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false)
 
@@ -72,7 +73,7 @@ const Overview = () => {
   }
 
   const handleGetExamList = async () => {
-    setIsLoading(true)
+    setIsExamLoading(true)
     try {
       const response = await apiGetExamStudyGroupList(1, "", "", "", "")
       if (response.status === 200) {
@@ -83,7 +84,7 @@ const Overview = () => {
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsExamLoading(false)
     }
   }
 
@@ -179,19 +180,29 @@ const Overview = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {examList?.data.slice(0,3).map((exam) => (
-                  <RecentExamCard 
-                    key={exam.id} 
-                    id={exam.id} 
-                    title={exam.name} 
-                    subject={exam.subject_name} 
-                    student={exam.student_count} 
-                    status={normalizeStatus(exam.opening_status)} 
-                    endTime={exam.end_time}
-                    test_type={exam.test_type}
-                    handleJoinRoom={() => handleJoinRoom(exam.id, exam.study_group_id)}
-                  />
-                ))}
+                {isExamLoading ? (
+                  <div className="flex justify-center items-center">
+                    <Loading />
+                  </div>
+                ) : examList?.data.length === 0 ? (
+                  <p className="text-gray-500 text-center">Không có bài thi nào</p>
+                ) : (
+                  <div className="space-y-4">
+                    {examList?.data.slice(0, 3).map((exam) => (
+                      <RecentExamCard 
+                        key={exam.id} 
+                        id={exam.id} 
+                        title={exam.name} 
+                        subject={exam.subject_name} 
+                        student={exam.student_count} 
+                        status={normalizeStatus(exam.opening_status)} 
+                        endTime={exam.end_time}
+                        test_type={exam.test_type}
+                        handleJoinRoom={() => handleJoinRoom(exam.id, exam.study_group_id)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

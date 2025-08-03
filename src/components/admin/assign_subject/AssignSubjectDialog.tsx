@@ -12,6 +12,7 @@ import { Loader2, Search, UserPlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import type { AssignedSubjectResponse } from '@/types/subjectType';
+import { useDebounce } from '@/utils/functions';
 
 interface AssignSubjectDialogProps {
   open: boolean;
@@ -32,6 +33,9 @@ const AssignSubjectDialog = ({ open, onOpenChange, getAssignSubject, assignedSub
   const [selectedTeacher, setSelectedTeacher] = useState<UserInfo | null>(null);
   const [selectedSubjects, setSelectedSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const teacherSearchDebounced = useDebounce(searchTeacher, 500);
+  const subjectSearchDebounced = useDebounce(searchSubject, 500);
 
   const handleSelectTeacher = (teacher: UserInfo) => {
     setSelectedTeacher(teacher);
@@ -55,7 +59,7 @@ const AssignSubjectDialog = ({ open, onOpenChange, getAssignSubject, assignedSub
   const handleGetTeachers = async () => {
     setIsLoadingTeachers(true);
     try {
-      const response = await apiGetUsers(1, 'teacher', searchTeacher, 100);
+      const response = await apiGetUsers(1, 'teacher', teacherSearchDebounced, 100);
       setTeachers(response.data);
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
@@ -69,7 +73,7 @@ const AssignSubjectDialog = ({ open, onOpenChange, getAssignSubject, assignedSub
   const handleGetSubjects = async () => {
     setIsLoadingSubjects(true);
     try {
-      const response = await apiGetSubjects(1, 'active', searchSubject, 100);
+      const response = await apiGetSubjects(1, 'active', subjectSearchDebounced, 100);
       setSubjects(response.data);
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string; error: string }>;
@@ -83,7 +87,7 @@ const AssignSubjectDialog = ({ open, onOpenChange, getAssignSubject, assignedSub
   useEffect(() => {
     handleGetTeachers();
     handleGetSubjects();
-  }, [searchTeacher, searchSubject]);
+  }, [teacherSearchDebounced, subjectSearchDebounced]);
 
   const handleToggleSubject = (subject: Subject) => {
     setSelectedSubjects((prev) => {
@@ -160,8 +164,8 @@ const AssignSubjectDialog = ({ open, onOpenChange, getAssignSubject, assignedSub
                 </div>
                 <div className="max-h-[300px] overflow-y-auto">
                   {isLoadingTeachers ? (
-                    <div className="flex items-center justify-center h-full">
-                      <Loader2 className="w-7 h-7 animate-spin" />
+                    <div className="flex items-center justify-center h-full p-3">
+                      <Loader2 className="w-7 h-7 animate-spin text-primary" />
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -206,8 +210,8 @@ const AssignSubjectDialog = ({ open, onOpenChange, getAssignSubject, assignedSub
                   </div>
                   <div className="max-h-[300px] overflow-y-auto">
                     {isLoadingSubjects ? (
-                      <div className="flex items-center justify-center h-full">
-                        <Loader2 className="w-7 h-7 animate-spin" />
+                      <div className="flex items-center justify-center h-full p-3">
+                        <Loader2 className="w-7 h-7 animate-spin text-primary" />
                       </div>
                     ) : (
                       <ScrollArea className="h-40 w-full">

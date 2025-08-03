@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 
@@ -18,12 +19,12 @@ const RecentExamCard = ({ id, title, subject, student, status, endTime, test_typ
         <h4 className="text-lg font-bold">{title}</h4>
         <p className="text-sm text-gray-500">{subject}</p>
         <p className="text-xs text-gray-500">
-          {student} sinh viên • {endTime}
+          {student} sinh viên • {format(endTime, "dd/MM/yyyy HH:mm")}
         </p>
       </div>
       <div>
         {status === "Đang diễn ra" && (
-          <div className="flex items-center">
+          <div className="flex items-end md:items-center flex-col md:flex-row gap-1 ">
             <Badge className="bg-green-200 text-green-800 rounded-2xl">Đang diễn ra</Badge>
             {(test_type === "final" || test_type === "midterm") && (
               <Button 

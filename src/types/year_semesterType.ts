@@ -19,7 +19,7 @@ export interface Semester {
   academic_year_code: string;
   start_date: string;
   end_date: string;
-  is_current: number;
+  is_current: boolean;
 }
 
 export interface SemesterForm {

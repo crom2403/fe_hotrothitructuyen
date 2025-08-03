@@ -24,7 +24,7 @@ export const apiDeleteSubject = async (id: string) => instance.delete(apiRoutes.
 
 export const apiToggleStatusSubject = async (id: string, is_active: boolean) => instance.put(apiRoutes.admin.subject + `/${id}/active`, { is_active });
 
-// export const apiUpdateSubject = async (id: string, data: SubjectFormData) => instance.put(`/subject/${id}`, data)
+export const apiUpdateSubject = async (id: string, data: object) => instance.put(apiRoutes.admin.subject + `/admin/${id}`, data);
 
 export const apiAssignSubject = async (data: { teacherId: string; listSubjectId: string[] }) => instance.put(apiRoutes.admin.subject + `/admin/assign`, data);
 

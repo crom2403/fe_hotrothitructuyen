@@ -174,7 +174,7 @@ const QuestionTable = ({
                           <Eye className="mr-2 h-4 w-4 text-primary" />
                           Xem chi tiết
                         </DropdownMenuItem>
-                        {question.is_public === false && (
+                        {/* {question.is_public === false && (
                           <DropdownMenuItem onClick={() => handleEdit?.(question)}>
                             <Edit className="mr-2 h-4 w-4 text-primary" />
                             Chỉnh sửa
@@ -185,7 +185,7 @@ const QuestionTable = ({
                             <Trash2 className="mr-2 h-4 w-4 text-red-600" />
                             Xóa
                           </DropdownMenuItem>
-                        )}
+                        )} */}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

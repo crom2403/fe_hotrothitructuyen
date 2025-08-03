@@ -59,9 +59,9 @@ const AppSidebar = () => {
         if (currentUser?.permissions?.includes('question.approve')) {
           approvalItems.push({ id: 'approve-questions', label: 'Duyệt câu hỏi', path: path.TEACHER.APPROVE_QUESTION });
         }
-        if (currentUser?.permissions?.includes('exam.approve')) {
-          approvalItems.push({ id: 'approve-exams', label: 'Duyệt đề thi', path: path.TEACHER.APPROVE_EXAM });
-        }
+        // if (currentUser?.permissions?.includes('exam.approve')) {
+        //   approvalItems.push({ id: 'approve-exams', label: 'Duyệt đề thi', path: path.TEACHER.APPROVE_EXAM });
+        // }
         if (approvalItems.length > 0) {
           baseItems.splice(6, 0, { id: 'approval', label: 'Kiểm duyệt', icon: Shield, items: approvalItems });
         }

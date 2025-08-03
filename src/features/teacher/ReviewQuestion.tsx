@@ -50,7 +50,6 @@ const ReviewQuestion = () => {
   const [questions, setQuestions] = useState<QuestionPendingProps | null>(null)
   const [statusFilter, setStatusFilter] = useState('pending')
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [subjectFilter, setSubjectFilter] = useState('all')
   const [difficultyFilter, setDifficultyFilter] = useState('all')
@@ -296,7 +295,7 @@ const ReviewQuestion = () => {
                 ))
               )}
             </TableBody>
-            {questions?.data.length === 0 && isLoading === false && (
+            {(questions?.data.length === 0 || questions === null)&& isLoading === false && (
               <TableBody>
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-gray-500">

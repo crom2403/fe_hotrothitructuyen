@@ -173,15 +173,15 @@ const StudyGroupTable = ({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleEdit(classItem)}>
-                            <Edit className="mr-2 h-4 w-4" />
+                            <Edit className="mr-2 h-4 w-4 text-primary" />
                             Chỉnh sửa
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleToggleStatus(classItem.study_group_id, classItem.study_group_is_active)}>
+                          {/* <DropdownMenuItem onClick={() => handleToggleStatus(classItem.study_group_id, classItem.study_group_is_active)}>
                             <GraduationCap className="mr-2 h-4 w-4" />
                             {classItem.study_group_is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}
-                          </DropdownMenuItem>
+                          </DropdownMenuItem> */}
                           <DropdownMenuItem onClick={() => openDeleteDialog(classItem)} className="text-red-600">
-                            <Trash2 className="mr-2 h-4 w-4" />
+                            <Trash2 className="mr-2 h-4 w-4 text-red" />
                             Xóa
                           </DropdownMenuItem>
                         </DropdownMenuContent>
