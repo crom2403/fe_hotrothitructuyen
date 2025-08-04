@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -52,6 +52,34 @@ export default function ExamRoomStudent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isValidSession, setIsValidSession] = useState(true);
 
+  // Sử dụng ref để lưu trữ giá trị mới nhất của các state quan trọng
+  const answersRef = useRef(answers);
+  const timeLeftRef = useRef(timeLeft);
+  const tabSwitchCountRef = useRef(tabSwitchCount);
+  const isSubmittedRef = useRef(isSubmitted);
+  const examRef = useRef(exam);
+
+  // Cập nhật ref khi state thay đổi
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
+  useEffect(() => {
+    timeLeftRef.current = timeLeft;
+  }, [timeLeft]);
+
+  useEffect(() => {
+    tabSwitchCountRef.current = tabSwitchCount;
+  }, [tabSwitchCount]);
+
+  useEffect(() => {
+    isSubmittedRef.current = isSubmitted;
+  }, [isSubmitted]);
+
+  useEffect(() => {
+    examRef.current = exam;
+  }, [exam]);
+
   // Kiểm tra điều kiện hợp lệ và điều hướng nếu cần
   useEffect(() => {
     if (!examId || !studyGroupId || !currentUser?.id) {
@@ -60,6 +88,114 @@ export default function ExamRoomStudent() {
       navigate('/student/study-groups');
     }
   }, [examId, studyGroupId, currentUser?.id, navigate]);
+
+  // Tạo hàm submit với useCallback để tránh tạo lại function không cần thiết
+  const handleSubmit = useCallback(
+    async (reason: 'manual' | 'timeout' | 'tab_switch' = 'manual') => {
+      // Sử dụng ref để lấy giá trị mới nhất
+      if (isSubmittedRef.current) {
+        console.log('Exam already submitted, skipping...');
+        return;
+      }
+
+      const currentExam = examRef.current;
+      if (!socket || !currentExam || !isValidSession) {
+        console.log('Missing required data for submission:', {
+          hasSocket: !!socket,
+          hasExam: !!currentExam,
+          isValidSession,
+        });
+        return;
+      }
+
+      console.log(`Submitting exam due to: ${reason}`);
+      console.log('Current answers:', answersRef.current);
+      console.log('Current time left:', timeLeftRef.current);
+      console.log('Current tab switches:', tabSwitchCountRef.current);
+
+      setIsSubmitting(true);
+      setIsSubmitted(true); // Đặt trạng thái submitted ngay lập tức để tránh submit nhiều lần
+
+      const submissionData = {
+        answers: Object.entries(answersRef.current).map(([questionId, answer], index) => {
+          const question = currentExam.exam_questions.find((q) => q.question.id === questionId);
+
+          if (question?.question.question_type.code === 'matching') {
+            const formattedAnswer = Object.entries(answer || {}).map(([leftId, rightId]) => ({
+              left: question?.question.answers.find((a) => a.id === leftId)?.content.left,
+              right: question?.question.answers.find((a) => a.id === rightId)?.content.right,
+            }));
+
+            return {
+              question_id: questionId,
+              question_type: question?.question.question_type.code,
+              order_index: index + 1,
+              answer_content: formattedAnswer,
+            };
+          }
+
+          if (question?.question.question_type.code === 'video_popup') {
+            // Format answer as { "popup-0": "A", "popup-1": "B", ... }
+            const config = question.question.answer_config as unknown as VideoPopupQuestionType;
+            const formattedAnswer = Object.entries((answer as Record<string, VideoPopupAnswerType>) || {}).reduce<Record<string, string>>((acc, [timeIndex, ans]) => {
+              const popupId = config.popup_times[parseInt(timeIndex)]?.id;
+              if (popupId && ans?.content?.value) {
+                acc[popupId] = ans.content.value;
+              }
+              return acc;
+            }, {});
+
+            return {
+              question_id: questionId,
+              question_type: question?.question.question_type.code,
+              order_index: index + 1,
+              answer_content: formattedAnswer,
+            };
+          }
+
+          return {
+            question_id: questionId,
+            question_type: question?.question.question_type.code,
+            order_index: index + 1,
+            answer_content: answer,
+          };
+        }),
+        time_spent: currentExam.duration_minutes * 60 - timeLeftRef.current,
+        tab_switches: tabSwitchCountRef.current,
+      };
+
+      console.log('Dữ liệu exam:', JSON.stringify(currentExam, null, 2));
+      console.log('Dữ liệu bài làm của sinh viên:', JSON.stringify(submissionData, null, 2));
+
+      try {
+        socket.emit('submitExam', {
+          examId,
+          studyGroupId,
+          studentId: currentUser?.id,
+        });
+
+        const res = await apiSubmitExam(exam_attempt_id, submissionData);
+
+        if (res.status === 200 && exam_attempt_id && currentExam.allow_review_point === true) {
+          toast.success('Nộp bài thi thành công');
+          const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
+          navigate(path1);
+        } else {
+          toast.success('Nộp bài thi thành công');
+          navigate(path.STUDENT.EXAM_LIST);
+        }
+
+        console.log('Submission response:', res);
+      } catch (error) {
+        console.error('Error submitting exam:', error);
+        toast.error('Lỗi khi nộp bài thi');
+        navigate(path.STUDENT.EXAM_LIST);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [socket, isValidSession, examId, studyGroupId, currentUser?.id, exam_attempt_id, navigate],
+  );
 
   // Khởi tạo Socket và xử lý các sự kiện
   useEffect(() => {
@@ -88,7 +224,7 @@ export default function ExamRoomStudent() {
 
     socketInstance.on('openExam', () => {
       setExamOpened(true);
-      socket.emit('tabIn', {
+      socketInstance.emit('tabIn', {
         examId,
         studyGroupId,
         studentId: currentUser?.id,
@@ -124,52 +260,62 @@ export default function ExamRoomStudent() {
         socketInstance.disconnect();
       }
     };
-  }, [examId, studyGroupId, currentUser?.id, isValidSession, navigate]);
+  }, [examId, studyGroupId, currentUser?.id, isValidSession, exam?.name]);
 
-  // Xử lý sự kiện chuyển tab
-  useEffect(() => {
-    if (!isValidSession || !socket || !exam || isSubmitted) return;
+  // Xử lý sự kiện chuyển tab - Sử dụng useCallback để tránh tạo lại function
+  const handleVisibilityChange = useCallback(() => {
+    if (!socket || !examRef.current || isSubmittedRef.current) return;
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        socket.emit('tabOut', {
+    if (document.hidden) {
+      socket.emit('tabOut', {
+        examId,
+        studyGroupId,
+        studentId: currentUser?.id,
+        status: 'out_of_exam',
+      });
+
+      setTabSwitchCount((prev) => {
+        const newCount = prev + 1;
+        const maxTabSwitch = examRef.current?.max_tab_switch || 999;
+
+        console.log(`Tab switch detected: ${newCount}/${maxTabSwitch}`);
+
+        if (newCount >= maxTabSwitch) {
+          toast.error('Bạn đã chuyển tab quá nhiều lần. Bài thi sẽ được nộp tự động.');
+          // Sử dụng setTimeout để đảm bảo state được cập nhật trước khi submit
+          setTimeout(() => {
+            handleSubmit('tab_switch');
+          }, 100);
+        } else {
+          toast.warning(`Cảnh báo: Bạn đã chuyển tab ${newCount} lần!`);
+        }
+        return newCount;
+      });
+    } else {
+      if (examOpened) {
+        socket.emit('tabIn', {
           examId,
           studyGroupId,
           studentId: currentUser?.id,
-          status: 'out_of_exam',
-        });
-        setTabSwitchCount((prev) => {
-          const newCount = prev + 1;
-          if (newCount >= exam.max_tab_switch) {
-            toast.error('Bạn đã chuyển tab quá nhiều lần. Bài thi sẽ được nộp tự động.');
-            handleSubmit();
-          } else {
-            toast.warning(`Cảnh báo: Bạn đã chuyển tab ${newCount} lần!`);
-          }
-          return newCount;
+          status: 'taking_exam',
         });
       } else {
-        if (examOpened) {
-          socket.emit('tabIn', {
-            examId,
-            studyGroupId,
-            studentId: currentUser?.id,
-            status: 'taking_exam',
-          });
-        } else {
-          socket.emit('tabIn', {
-            examId,
-            studyGroupId,
-            studentId: currentUser?.id,
-            status: 'waiting',
-          });
-        }
+        socket.emit('tabIn', {
+          examId,
+          studyGroupId,
+          studentId: currentUser?.id,
+          status: 'waiting',
+        });
       }
-    };
+    }
+  }, [socket, examId, studyGroupId, currentUser?.id, examOpened, handleSubmit]);
+
+  useEffect(() => {
+    if (!isValidSession || !exam || isSubmitted) return;
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isValidSession, socket, exam, isSubmitted, examId, studyGroupId, currentUser?.id]);
+  }, [isValidSession, exam, isSubmitted, handleVisibilityChange]);
 
   // Quản lý thời gian
   useEffect(() => {
@@ -187,6 +333,7 @@ export default function ExamRoomStudent() {
       try {
         setIsLoading(true);
         const [examResponse, attemptResponse] = await Promise.all([apiGetDetailExam(examId), apiGetExamAttemptId(examId, studyGroupId)]);
+
         if (examResponse?.data) {
           setExam(examResponse.data);
           setTimeLeft(examResponse.data.duration_minutes * 60);
@@ -222,14 +369,14 @@ export default function ExamRoomStudent() {
     };
 
     handleGetExam();
-  }, [examId, studyGroupId, isValidSession, navigate]);
+  }, [examId, studyGroupId, isValidSession, navigate, setExamAttemptId]);
 
   // Tự động nộp bài khi hết giờ
   useEffect(() => {
     if (timeLeft === 0 && !isSubmitted && examOpened && isValidSession) {
-      handleSubmit();
+      handleSubmit('timeout');
     }
-  }, [timeLeft, isSubmitted, examOpened, isValidSession]);
+  }, [timeLeft, isSubmitted, examOpened, isValidSession, handleSubmit]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -237,15 +384,15 @@ export default function ExamRoomStudent() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAnswerChange = (questionId: string, answer: any) => {
-    console.log('answer', answer);
+  const handleAnswerChange = useCallback((questionId: string, answer: any) => {
+    console.log('Answer changed for question:', questionId, 'Answer:', answer);
     setAnswers((prev) => ({
       ...prev,
       [questionId]: answer,
     }));
-  };
+  }, []);
 
-  const toggleFlag = (questionId: string) => {
+  const toggleFlag = useCallback((questionId: string) => {
     setFlaggedQuestions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(questionId)) {
@@ -255,87 +402,7 @@ export default function ExamRoomStudent() {
       }
       return newSet;
     });
-  };
-
-  const handleSubmit = async () => {
-    if (!socket || isSubmitted || !exam || !isValidSession) return;
-    setIsSubmitting(true);
-
-    const submissionData = {
-      answers: Object.entries(answers).map(([questionId, answer], index) => {
-        const question = exam.exam_questions.find((q) => q.question.id === questionId);
-        if (question?.question.question_type.code === 'matching') {
-          const formattedAnswer = Object.entries(answer).map(([leftId, rightId]) => ({
-            left: question?.question.answers.find((a) => a.id === leftId)?.content.left,
-            right: question?.question.answers.find((a) => a.id === rightId)?.content.right,
-          }));
-
-          return {
-            question_id: questionId,
-            question_type: question?.question.question_type.code,
-            order_index: index + 1,
-            answer_content: formattedAnswer,
-          };
-        }
-
-        if (question?.question.question_type.code === 'video_popup') {
-          // Format answer as { "popup-0": "A", "popup-1": "B", ... }
-          const config = question.question.answer_config as unknown as VideoPopupQuestionType;
-          const formattedAnswer = Object.entries(answer as Record<string, VideoPopupAnswerType>).reduce<Record<string, string>>((acc, [timeIndex, ans]) => {
-            const popupId = config.popup_times[parseInt(timeIndex)].id;
-            acc[popupId] = ans.content.value;
-            return acc;
-          }, {});
-
-          return {
-            question_id: questionId,
-            question_type: question?.question.question_type.code,
-            order_index: index + 1,
-            answer_content: formattedAnswer,
-          };
-        }
-
-        return {
-          question_id: questionId,
-          question_type: question?.question.question_type.code,
-          order_index: index + 1,
-          answer_content: answer,
-        };
-      }),
-      time_spent: exam.duration_minutes * 60 - timeLeft,
-      tab_switches: tabSwitchCount,
-    };
-
-    console.log('Dữ liệu exam:', JSON.stringify(exam, null, 2));
-    console.log('Dữ liệu bài làm của sinh viên:', JSON.stringify(submissionData, null, 2));
-
-    // const data = JSON.stringify(, null, 2);
-    try {
-      socket.emit('submitExam', {
-        examId,
-        studyGroupId,
-        studentId: currentUser?.id,
-      });
-      const res = await apiSubmitExam(exam_attempt_id, submissionData);
-      if (res.status === 200 && exam_attempt_id && exam.allow_review_point === true) {
-        toast.success('Nộp bài thi thành công');
-
-        const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
-        navigate(path1);
-      } else {
-        navigate(path.STUDENT.EXAM_LIST);
-      }
-      console.log('res', res);
-    } catch (error) {
-      console.error('Error submitting exam:', error);
-      toast.error('Lỗi khi nộp bài thi');
-      navigate(path.STUDENT.EXAM_LIST);
-    } finally {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-    }
-    // console.log('res', res);
-  };
+  }, []);
 
   const getProgress = () => {
     if (!exam) return 0;
@@ -559,7 +626,7 @@ export default function ExamRoomStudent() {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleSubmit}>Nộp bài</AlertDialogAction>
+                        <AlertDialogAction onClick={() => handleSubmit('manual')}>Nộp bài</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -573,6 +640,7 @@ export default function ExamRoomStudent() {
             </div>
           </CardContent>
         </Card>
+
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle className="text-lg">Danh sách câu hỏi</CardTitle>
