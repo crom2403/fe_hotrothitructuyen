@@ -33,11 +33,6 @@ export function PreviewTab({ selectedQuestions, mode }: PreviewTabProps) {
 
   const distribution = getDifficultyDistribution();
 
-  const extractScore = (score: string) => {
-    const match = score.match(/\d+$/);
-    return match ? parseInt(match[0], 10) : null;
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -60,11 +55,11 @@ export function PreviewTab({ selectedQuestions, mode }: PreviewTabProps) {
           </div>
           <div>
             <Label className="text-sm font-medium">Tổng điểm</Label>
-            <p className="text-sm text-gray-600">{extractScore(commonProps.point_scale_name)} điểm</p>
+            <p className="text-sm text-gray-600">10 điểm</p>
           </div>
           <div>
             <Label className="text-sm font-medium">Điểm đậu</Label>
-            <p className="text-sm text-gray-600">{tab1Data.pass_points}</p>
+            <p className="text-sm text-gray-600">{tab1Data.pass_points} điểm</p>
           </div>
           <div>
             <Label className="text-sm font-medium">Số lần chuyển tab</Label>
