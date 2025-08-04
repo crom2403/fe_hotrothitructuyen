@@ -149,6 +149,9 @@ const SemesterFormDialog = ({ form, years, isDialogOpen, setIsDialogOpen, editin
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
+                          locale={vi}
+                          fromYear={2000}
+                          toYear={2035}
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
                           disabled={(date) => date < new Date('1900-01-01')}
