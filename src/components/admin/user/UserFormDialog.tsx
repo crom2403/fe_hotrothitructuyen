@@ -257,7 +257,7 @@ const UserFormDialog = ({ form, isDialogOpen, setIsDialogOpen, editingUser, setE
                     <Popover>
                       <PopoverTrigger>
                         <FormControl>
-                          <Button variant="outline" className="w-full justify-start text-left">
+                          <Button type='button' variant="outline" className="w-full justify-start text-left">
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Chọn ngày sinh</span>}
                           </Button>

@@ -226,7 +226,7 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
           <TabsContent value="question_bank">
             {isLoadingAvailableQuestions ? (
               <div className="flex items-center justify-center h-52">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
               <div>
@@ -264,7 +264,7 @@ const QuestionList = ({ selectedQuestions, addQuestionToExam, selectedSubjectId 
           <TabsContent value="question_private">
             {isLoadingPrivateQuestions ? (
               <div className="flex items-center justify-center h-52">
-                <Loader2 className="h-8 w-8 animate-spin" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
               <div>

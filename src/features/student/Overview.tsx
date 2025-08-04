@@ -41,11 +41,6 @@ interface Exam {
   }[];
 }
 
-interface Subject {
-  id: string;
-  name: string;
-}
-
 interface DataReposne {
   id: string;
   name: string;
@@ -58,6 +53,10 @@ interface DataReposne {
 interface ExamResult {
   id: string;
   exam_name: string;
+  exam_type: string;
+  exam_allow_review: boolean;
+  exam_show_correct_answer: boolean;
+  exam_allow_review_point: boolean;
   exam_subject: string;
   created_at: string;
   duration_seconds: number;
@@ -66,9 +65,12 @@ interface ExamResult {
   correct_answers: number;
   score: number;
   exam_pass_point: number;
+  submitted_at: string;
 }
 
 const Overview = () => {
+  const navigate = useNavigate();
+  const { setExamId, setStudyGroupId } = useAppStore();
   const [stats, setStats] = useState<OverviewProps>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [studyGroupExams, setStudyGroupExams] = useState<DataReposne[]>([]);
@@ -77,12 +79,12 @@ const Overview = () => {
   const [isExamResultDetailLoading, setIsExamResultDetailLoading] = useState(false);
   const [isExamResultOpen, setIsExamResultOpen] = useState(false);
   const [examResultDetail, setExamResultDetail] = useState<StudentExamResult | null>(null);
-  const navigate = useNavigate();
-  const { setExamId, setStudyGroupId } = useAppStore();
+  const [comingExamsLoading, setComingExamsLoading] = useState(false);
+  const [resultsLoading, setResultsLoading] = useState(false);
 
   const handleGetListExams = async (currentPage: number = 1) => {
     try {
-      setIsLoading(true);
+      setComingExamsLoading(true);
       const params: any = {
         page: currentPage,
         size: 3,
@@ -99,13 +101,9 @@ const Overview = () => {
       console.error('Lỗi khi lấy danh sách kỳ thi:', err);
       setStudyGroupExams([]);
     } finally {
-      setIsLoading(false);
+      setComingExamsLoading(false);
     }
   };
-
-  useEffect(() => {
-    handleGetListExams();
-  }, []);
 
   const handleGetStatus = (start_time: Date, end_time: Date) => {
     const now = new Date();
@@ -118,35 +116,6 @@ const Overview = () => {
     }
   };
 
-  const recentResults = [
-    {
-      id: 1,
-      title: 'Kiểm tra - Hệ điều hành',
-      subject: 'Hệ điều hành',
-      score: 8.5,
-      maxScore: 10,
-      completedAt: '2024-12-01',
-      status: 'Đạt',
-    },
-    {
-      id: 2,
-      title: 'Bài tập - Thuật toán',
-      subject: 'Thuật toán',
-      score: 7.2,
-      maxScore: 10,
-      completedAt: '2024-11-28',
-      status: 'Đạt',
-    },
-    {
-      id: 3,
-      title: 'Thực hành - Java',
-      subject: 'Lập trình Java',
-      score: 9.1,
-      maxScore: 10,
-      completedAt: '2024-11-25',
-      status: 'Đạt',
-    },
-  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -196,7 +165,7 @@ const Overview = () => {
   };
 
   const handleGetExamResults = async () => {
-    setIsLoading(true);
+    setResultsLoading(true);
     try {
       const response = await apiGetExamResultList();
       setExamResults(response.data);
@@ -206,13 +175,14 @@ const Overview = () => {
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
-      setIsLoading(false);
+      setResultsLoading(false);
     }
   };
 
   useEffect(() => {
     handleGetStats();
     handleGetExamResults();
+    handleGetListExams();
   }, []);
 
   const getTestTypeLabel = (test_type: string) => {
@@ -318,41 +288,53 @@ const Overview = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {studyGroupExams?.map((studyGroup) =>
-                    studyGroup.exams?.slice(0, 3).map((exam) => {
-                      const examStatus = handleGetStatus(new Date(exam.start_time), new Date(exam.end_time));
-                      const hasSubmittedAttempt = exam.exam_attempts.length > 0 && exam.exam_attempts.some((attempt) => attempt.handle_status === 'submitted');
-                      return (
-                        <div key={exam.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
-                          <div className="flex-1">
-                            <h4 className="font-medium">{exam.name} - {getTestTypeLabel(exam.test_type)}</h4>
-                            <p className="text-sm text-gray-600">{exam.subject_name}</p>
-                            <p className="text-xs text-gray-500">
-                              {formatDateTime(exam.start_time)} • {exam.duration_minutes} phút
-                            </p>
-                          </div>
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <Badge className={getStatusColor(examStatus)}>
-                                {getStatusText(examStatus)}
-                              </Badge>
-                              {examStatus === 'opening' && !hasSubmittedAttempt && (
-                                <Button
-                                  size="sm"
-                                  className="bg-primary text-white hover:bg-primary/90"
-                                  onClick={() => handleJoinExamRoom(exam.id, studyGroup.id)}
-                                  disabled={loadingExamAttempts[`${exam.id}_${studyGroup.id}`]}
-                                >
-                                  <Play className="mr-1 h-3 w-3" />
-                                  Vào thi
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
+                  {
+                    comingExamsLoading ? (
+                      <div className="flex justify-center items-center h-32">
+                        <Loading />
+                      </div>
+                    ) : studyGroupExams.length === 0 ? (
+                      <p className="text-gray-500">Không có bài thi sắp tới</p>
+                    ) : (
+                      <>
+                        {studyGroupExams?.map((studyGroup) =>
+                          studyGroup.exams?.slice(0, 3).map((exam) => {
+                            const examStatus = handleGetStatus(new Date(exam.start_time), new Date(exam.end_time));
+                            const hasSubmittedAttempt = exam.exam_attempts.length > 0 && exam.exam_attempts.some((attempt) => attempt.handle_status === 'submitted');
+                            return (
+                              <div key={exam.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
+                                <div className="flex-1">
+                                  <h4 className="font-medium">{exam.name} - {getTestTypeLabel(exam.test_type)}</h4>
+                                  <p className="text-sm text-gray-600">{exam.subject_name}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {formatDateTime(exam.start_time)} • {exam.duration_minutes} phút
+                                  </p>
+                                </div>
+                                <div>
+                                  <div className="flex md:items-center items-end flex-col md:flex-row gap-1.5">
+                                    <Badge className={getStatusColor(examStatus)}>
+                                      {getStatusText(examStatus)}
+                                    </Badge>
+                                    {examStatus === 'opening' && !hasSubmittedAttempt && (
+                                      <Button
+                                        size="sm"
+                                        className="bg-primary text-white hover:bg-primary/90"
+                                        onClick={() => handleJoinExamRoom(exam.id, studyGroup.id)}
+                                        disabled={loadingExamAttempts[`${exam.id}_${studyGroup.id}`]}
+                                      >
+                                        <Play className="mr-1 h-3 w-3" />
+                                        Vào thi
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </>
+                    )
+                  }
                 </div>
               </CardContent>
             </Card>
@@ -364,28 +346,48 @@ const Overview = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {examResults.slice(0, 3).map((result) => (
-                    <div key={result.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
-                      <div className="flex-1">
-                        <h4 className="font-medium">{result.exam_name}</h4>
-                        <p className="text-sm text-gray-600">{result.exam_subject}</p>
-                        <p className="text-xs text-gray-500">Hoàn thành: {new Date(result.created_at).toLocaleDateString('vi-VN')}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="text-right">
-                          <p className={`font-bold ${getScoreColor(result.score, 10)}`}>
-                            {result.score === 10 || result.score === 0 ? result.score : result.score.toFixed(2)}/{10}
-                          </p>
-                          <Badge className={getStudentStatusColor(result.exam_pass_point, result.score)}>
-                            {getStudentGradeColor(result.exam_pass_point, result.score) === 'bg-green-100 text-green-800' ? 'Đạt' : 'Không đạt'}
-                          </Badge>
-                        </div>
-                        <Button variant="ghost" size="sm" onClick={() => handleViewExam(result.id)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
+                  {resultsLoading ? (
+                    <div className="flex justify-center items-center h-32">
+                      <Loading />
                     </div>
-                  ))}
+                  ) : examResults.length === 0 ? (
+                    <p className="text-gray-500">Không có kết quả bài thi gần đây</p>
+                  ) : (
+                    <>
+                      {examResults.slice(0, 3).map((result) => (
+                        <div key={result.id} className="flex justify-between items-center p-6 rounded-lg border border-gray-200">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{result.exam_name}</h4>
+                            <p className="text-sm text-gray-600">{result.exam_subject}</p>
+                            <p className="text-xs text-gray-500">Hoàn thành: {new Date(result.submitted_at).toLocaleDateString('vi-VN')}</p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="text-right">
+                              {result.exam_allow_review_point && (
+                                <p className={`font-bold ${getScoreColor(result.score, 10)}`}>
+                                  {result.score === 10 || result.score === 0 ? result.score : result.score.toFixed(2)}/{10}
+                                </p>
+                              )}
+                              <Badge className={getStudentStatusColor(result.exam_pass_point, result.score)}>
+                                {getStudentGradeColor(result.exam_pass_point, result.score) === 'bg-green-100 text-green-800' ? 'Đạt' : 'Không đạt'}
+                              </Badge>
+                            </div>
+                            {
+                              result.exam_allow_review && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewExam(result.id)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              )
+                            }
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>

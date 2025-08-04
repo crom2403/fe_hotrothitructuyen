@@ -141,11 +141,11 @@ const SubjectTable = ({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => openDetailDialog(subject)}>
-                          <Eye className="mr-2 h-4 w-4" />
+                          <Eye className="mr-2 h-4 w-4 text-green-500" />
                           Xem chi tiết
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(subject)}>
-                          <Edit className="mr-2 h-4 w-4" />
+                          <Edit className="mr-2 h-4 w-4 text-primary" />
                           Chỉnh sửa
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleToggleStatus(subject.id, subject.is_active)}>
@@ -153,7 +153,7 @@ const SubjectTable = ({
                           {subject.is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => openDeleteDialog(subject)} className="text-red-600">
-                          <Trash2 className="mr-2 h-4 w-4" />
+                          <Trash2 className="mr-2 h-4 w-4 text-red-500" />
                           Xóa
                         </DropdownMenuItem>
                       </DropdownMenuContent>

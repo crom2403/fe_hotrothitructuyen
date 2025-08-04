@@ -1,11 +1,12 @@
 import SemesterFormDialog from '@/components/admin/year_semester/SemesterFormDialog';
 import YearFormDialog from '@/components/admin/year_semester/YearFormDialog';
 import YearSemesterTable from '@/components/admin/year_semester/YearSemesterTable';
-import { apiCreateAcademicYear, apiGetAcademicYears, apiGetSemesters } from '@/services/admin/yearSemester';
+import { apiCreateAcademicYear, apiCreateSemester, apiDeleteSemester, apiGetAcademicYears, apiGetSemesters } from '@/services/admin/yearSemester';
 import type { Semester, Year } from '@/types/year_semesterType';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { AxiosError } from 'axios';
-import { differenceInMonths } from 'date-fns';
+import { differenceInMonths, format } from 'date-fns';
+import { set } from 'lodash';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -29,11 +30,17 @@ const yearFormSchema = z
 
 const semesterFormSchema = z
   .object({
-    name: z.string().min(1, 'Vui lòng chọn học kỳ'),
-    code: z.string().min(1, 'Mã học kỳ là bắt buộc'),
-    year: z.string().min(1, 'Vui lòng chọn năm học'),
-    start_date: z.date(),
-    end_date: z.date(),
+    name: z.string().min(1, 'Bắt buộc chọn học kỳ'),
+    code: z.string().min(1, 'Bắt buộc chọn mã học kỳ'),
+    year: z.string().min(1, 'Bắt buộc chọn năm học'),
+    start_date: z.date().refine((date) => date !== undefined && date !== null, {
+      message: 'Bắt buộc chọn ngày bắt đầu',
+      path: ['start_date'],
+    }),
+    end_date: z.date().refine((date) => date !== undefined && date !== null, {
+      message: 'Bắt buộc chọn ngày kết thúc',
+      path: ['end_date'],
+    }),
   })
   .refine(
     (data) => {
@@ -72,9 +79,10 @@ const YearSemesterManagement = () => {
   const [editingSemester, setEditingSemester] = useState<Semester | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [yearFilter, setYearFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [semesterResponse, setSemesterResponse] = useState<SemesterResponse | null>(null);
+  const [isYearLoading, setIsYearLoading] = useState(false);
+  const [isSemesterLoading, setIsSemesterLoading] = useState(false);
 
   const yearForm = useForm<YearForm>({
     resolver: zodResolver(yearFormSchema),
@@ -100,8 +108,8 @@ const YearSemesterManagement = () => {
   }, [isSemesterFormDialogOpen]);
 
   const handleYearFormSubmit = async (data: YearForm) => {
-    console.log(data);
-    setIsLoading(true);
+    // console.log(data);
+    setIsYearLoading(true);
     try {
       const response = await apiCreateAcademicYear(data);
       if (response.status === 200) {
@@ -116,18 +124,18 @@ const YearSemesterManagement = () => {
       const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
       toast.error(errorMessage);
     } finally {
-      setIsLoading(false);
+      setIsYearLoading(false);
     }
   };
 
   useEffect(() => {
     handleGetSemesters();
-  }, [page, statusFilter, yearFilter]);
+  }, [page, yearFilter]);
 
   const handleGetSemesters = async () => {
     setIsLoading(true);
     try {
-      const response = await apiGetSemesters(page, statusFilter, yearFilter);
+      const response = await apiGetSemesters(page, yearFilter);
       if (response.status === 200) {
         setSemesterResponse(response.data);
       }
@@ -141,7 +149,36 @@ const YearSemesterManagement = () => {
   };
 
   const handleSemesterFormSubmit = async (data: SemesterForm) => {
-    console.log(data);
+    setIsSemesterLoading(true);
+    try {
+      const dataRequest = {
+        name: data.name,
+        code: data.code,
+        academic_year_id: data.year,
+        start_date: format(data.start_date || new Date(), 'yyyy-MM-dd'),
+        end_date: format(data.end_date || new Date(), 'yyyy-MM-dd'),
+      }
+      // console.log(dataRequest);
+      const response = await apiCreateSemester(dataRequest);
+      if(response.status === 200) {
+        toast.success('Tạo mới học kỳ thành công');
+        setIsSemesterFormDialogOpen(false);
+        semesterForm.reset({
+          name: '',
+          code: '',
+          year: '',
+          start_date: undefined,
+          end_date: undefined,
+        });
+        handleGetSemesters();
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string; error: string }>;
+      const errorMessage = axiosError.response?.data?.message || axiosError.response?.data?.error || 'Đã có lỗi xảy ra';
+      toast.error(errorMessage);
+    } finally {
+      setIsSemesterLoading(false);
+    }
   };
 
   const handleGetAcademicYears = async () => {
@@ -162,16 +199,10 @@ const YearSemesterManagement = () => {
     setIsSemesterFormDialogOpen(true);
   };
 
-  const handleDelete = async (semesterId: string) => {
-    console.log(semesterId);
-  };
+
 
   const handlePageClick = (page: number) => {
     setPage(page);
-  };
-
-  const handleSetCurrent = (semesterId: string) => {
-    console.log(semesterId);
   };
 
   return (
@@ -182,14 +213,14 @@ const YearSemesterManagement = () => {
           <p>Quản lý thời gian học tập trong chương trình đào tạo</p>
         </div>
         <div className="md:w-fit w-full flex gap-2 md:justify-end justify-start md:mt-0 mt-2">
-          <YearFormDialog form={yearForm as any} isDialogOpen={isYearFormDialogOpen} setIsDialogOpen={setIsYearFormDialogOpen} onSubmit={handleYearFormSubmit} isLoading={isLoading} />
+          <YearFormDialog form={yearForm as any} isDialogOpen={isYearFormDialogOpen} setIsDialogOpen={setIsYearFormDialogOpen} onSubmit={handleYearFormSubmit} isLoading={isYearLoading} />
           <SemesterFormDialog
             form={semesterForm as any}
             years={academicYears}
             isDialogOpen={isSemesterFormDialogOpen}
             setIsDialogOpen={setIsSemesterFormDialogOpen}
             onSubmit={handleSemesterFormSubmit}
-            isLoading={isLoading}
+            isLoading={isSemesterLoading}
             editingSemester={editingSemester}
             setEditingSemester={setEditingSemester}
           />
@@ -204,14 +235,11 @@ const YearSemesterManagement = () => {
           isLoading={isLoading}
           yearFilter={yearFilter}
           setYearFilter={setYearFilter}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
           page={semesterResponse?.metadata.page || 1}
           totalPages={semesterResponse?.metadata.last_page || 1}
           handleEdit={handleEdit}
-          handleDelete={async (semesterId: string) => handleDelete(semesterId)}
           handlePageClick={handlePageClick}
-          handleSetCurrent={handleSetCurrent}
+          handleGetSemesters={handleGetSemesters}
         />
       </div>
     </div>

@@ -6,11 +6,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, PlusIcon } from 'lucide-react';
+import { CalendarIcon, Loader2, PlusIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Calendar } from '../../ui/calendar';
+import { vi } from 'date-fns/locale';
 
 interface SemesterFormDialogProps {
   form: UseFormReturn<SemesterForm>;
@@ -139,7 +140,7 @@ const SemesterFormDialog = ({ form, years, isDialogOpen, setIsDialogOpen, editin
                     <Popover>
                       <PopoverTrigger>
                         <FormControl>
-                          <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
+                          <Button variant="outline" type='button' className={cn('w-full justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Chọn ngày bắt đầu</span>}
                           </Button>
@@ -148,6 +149,9 @@ const SemesterFormDialog = ({ form, years, isDialogOpen, setIsDialogOpen, editin
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
+                          locale={vi}
+                          fromYear={2000}
+                          toYear={2035}
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
                           disabled={(date) => date < new Date('1900-01-01')}
@@ -168,7 +172,7 @@ const SemesterFormDialog = ({ form, years, isDialogOpen, setIsDialogOpen, editin
                     <Popover>
                       <PopoverTrigger>
                         <FormControl>
-                          <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
+                          <Button variant="outline" type='button' className={cn('w-full justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Chọn ngày kết thúc</span>}
                           </Button>
@@ -177,10 +181,13 @@ const SemesterFormDialog = ({ form, years, isDialogOpen, setIsDialogOpen, editin
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
+                          locale={vi}
                           selected={field.value ? new Date(field.value) : undefined}
                           onSelect={field.onChange}
                           disabled={(date) => date < new Date('1900-01-01')}
                           captionLayout="dropdown"
+                          fromYear={2000}
+                          toYear={2035}
                         />
                       </PopoverContent>
                     </Popover>
@@ -205,7 +212,7 @@ const SemesterFormDialog = ({ form, years, isDialogOpen, setIsDialogOpen, editin
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? (
                   <>
-                    <CalendarIcon className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {editingSemester ? 'Đang cập nhật...' : 'Đang tạo...'}
                   </>
                 ) : editingSemester ? (
