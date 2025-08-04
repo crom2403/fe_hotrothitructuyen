@@ -149,7 +149,6 @@ export default function ExamRoomStudent() {
           return newCount;
         });
       } else {
-        console.log('Vào đây', examOpened);
         if (examOpened) {
           socket.emit('tabIn', {
             examId,
@@ -312,14 +311,15 @@ export default function ExamRoomStudent() {
 
     // const data = JSON.stringify(, null, 2);
     try {
+      socket.emit('submitExam', {
+        examId,
+        studyGroupId,
+        studentId: currentUser?.id,
+      });
       const res = await apiSubmitExam(exam_attempt_id, submissionData);
       if (res.status === 200 && exam_attempt_id && exam.allow_review_point === true) {
         toast.success('Nộp bài thi thành công');
-        socket.emit('submitExam', {
-          examId,
-          studyGroupId,
-          studentId: currentUser?.id,
-        });
+
         const path1 = path.STUDENT.RESULT_SUMMARY.replace(':exam_attempt_id', exam_attempt_id || '');
         navigate(path1);
       } else {
