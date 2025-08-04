@@ -164,8 +164,8 @@ export default function ExamRoomStudent() {
         tab_switches: tabSwitchCountRef.current,
       };
 
-      console.log('Dữ liệu exam:', JSON.stringify(currentExam, null, 2));
-      console.log('Dữ liệu bài làm của sinh viên:', JSON.stringify(submissionData, null, 2));
+      // console.log('Dữ liệu exam:', JSON.stringify(currentExam, null, 2));
+      // console.log('Dữ liệu bài làm của sinh viên:', JSON.stringify(submissionData, null, 2));
 
       try {
         socket.emit('submitExam', {
