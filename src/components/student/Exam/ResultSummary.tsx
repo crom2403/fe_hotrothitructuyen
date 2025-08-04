@@ -171,8 +171,8 @@ const ResultSummary = () => {
           <div className="text-center space-y-4">
             <div className="space-y-2">
               <div className={`text-3xl font-bold ${getScoreColor(examResult?.score || 0, examResult?.exam_total_questions || 0)}`}>
-                {examResult?.score.toFixed(2)}
-                <span className="text-xl text-gray-500">/{examResult?.exam_total_questions}</span>
+                {examResult?.score === 10 || examResult?.score === 0 ? examResult?.score : examResult?.score.toFixed(2)}
+                <span className="text-xl text-gray-500">/10</span>
               </div>
               <Badge variant="outline" className={`text-lg px-4 py-1 ${resultStatus === 'passed' ? 'border-green-500 text-green-700 bg-green-50' : 'border-red-500 text-red-700 bg-red-50'}`}>
                 {getScoreGrade(examResult?.score || 0)}
